@@ -1,0 +1,119 @@
+{
+  "abi": 1,
+  "id": "org.piratewave.gain-example",
+  "name": "PirateWave Gain Example",
+  "version": "1.0.0",
+  "author": "PirateWave contributors",
+  "license": "MIT",
+  "library": "piratewave_gain_example.dll",
+  "types": [
+    {
+      "id": "org.piratewave.gain-example/processor",
+      "name": "Example Gain Processor",
+      "kind": "processor",
+      "description": "A minimal stereo gain example with smoothed level changes.",
+      "help": "Gain adjusts both stereo channels equally. Unity restores 0 dB; Quiet toggles between -12 dB and the default.",
+      "category": "Examples",
+      "inputs": [
+        {
+          "id": 10,
+          "name": "Audio in"
+        }
+      ],
+      "outputs": [
+        {
+          "id": 20,
+          "name": "Audio out"
+        }
+      ],
+      "parameters": [
+        {
+          "id": "gain_db",
+          "name": "Gain",
+          "min": -60.0,
+          "max": 12.0,
+          "default": 0.0,
+          "unit": " dB"
+        }
+      ],
+      "actions": [
+        {
+          "id": "unity",
+          "name": "Unity",
+          "parameter": "gain_db",
+          "value": 0.0
+        },
+        {
+          "id": "quiet",
+          "name": "Toggle quiet",
+          "parameter": "gain_db",
+          "value": -12.0,
+          "toggle": true
+        }
+      ],
+      "bypass": [
+        {
+          "input": 10,
+          "output": 20
+        }
+      ],
+      "state_schema": 1,
+      "default_state": [],
+      "latency_frames": 0
+    },
+    {
+      "id": "org.piratewave.gain-example/node",
+      "name": "Example Gain Node",
+      "kind": "node",
+      "description": "A minimal stereo gain example with smoothed level changes.",
+      "help": "Gain adjusts both stereo channels equally. Unity restores 0 dB; Quiet toggles between -12 dB and the default.",
+      "category": "Examples",
+      "inputs": [
+        {
+          "id": 10,
+          "name": "Audio in"
+        }
+      ],
+      "outputs": [
+        {
+          "id": 20,
+          "name": "Audio out"
+        }
+      ],
+      "parameters": [
+        {
+          "id": "gain_db",
+          "name": "Gain",
+          "min": -60.0,
+          "max": 12.0,
+          "default": 0.0,
+          "unit": " dB"
+        }
+      ],
+      "actions": [
+        {
+          "id": "unity",
+          "name": "Unity",
+          "parameter": "gain_db",
+          "value": 0.0
+        },
+        {
+          "id": "quiet",
+          "name": "Toggle quiet",
+          "parameter": "gain_db",
+          "value": -12.0,
+          "toggle": true
+        }
+      ],
+      "bypass": [
+        {
+          "input": 10,
+          "output": 20
+        }
+      ],
+      "state_schema": 1,
+      "default_state": [],
+      "latency_frames": 0
+    }
+  ]
+}

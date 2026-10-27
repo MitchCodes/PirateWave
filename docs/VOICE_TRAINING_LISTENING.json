@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "release_accepted": false,
+  "beta_quality_accepted": true,
+  "beta_quality_acceptance": "User requested releasing the existing training process and finishing LLVC on October 21, 2026. This accepts the current experimental quality for Beta availability; it does not claim improved quality or completed technical qualification.",
+  "reviews": [
+    {
+      "target_speaker": "1272",
+      "source_clip_index": 3,
+      "stage": "teacher",
+      "training_steps": 250,
+      "preferred_variant": "no-f0",
+      "user_response": "Version without pitch conditioning",
+      "interpretation": "Preference between these two experimental samples; not final quality or release acceptance.",
+      "remaining": ["Other target speakers", "LLVC output", "Personal voice trial", "Final voice-quality acceptance"]
+    },
+    {
+      "stage": "llvc_native_streaming",
+      "teacher_variant": "no-f0",
+      "teacher_training_steps": 250,
+      "llvc_training_steps": 500,
+      "ranked_targets": ["1462", "1673", "1272"],
+      "user_response": "Target 1462 seemed the most convincing although it is still plainly AI. 1272 was the worst and sounded much more robotic and target 1673 was somewhere in the middle.",
+      "interpretation": "1462 is the preferred experimental candidate; artificial and robotic sound remains a quality concern. Relative preference does not establish final listening acceptance, intelligibility, or absence of chopped syllables.",
+      "release_accepted": false,
+      "remaining": ["Improve and re-evaluate candidate quality", "Personal voice trial", "Final voice-quality acceptance"]
+    },
+    {
+      "stage": "pipeline_artifact_diagnosis",
+      "targets": ["1462", "1272"],
+      "user_response": "Teacher sounds acceptable; LLVC makes it worse",
+      "interpretation": "Prioritize LLVC duration experiments while holding teacher, paired data and initialization fixed. This identifies the perceived degradation stage, not its underlying cause or final release acceptance.",
+      "release_accepted": false
+    },
+    {
+      "stage": "llvc_duration",
+      "target_speaker": "1462",
+      "baseline_steps": 500,
+      "candidate_steps": 1000,
+      "user_response": "About the same",
+      "interpretation": "No perceived improvement from doubling LLVC updates with the teacher and data fixed. Do not advance this unchanged recipe to 5,000 updates. Investigate training context and recipe differences first.",
+      "release_accepted": false
+    },
+    {
+      "stage": "llvc_context",
+      "target_speaker": "1462",
+      "training_steps": 1000,
+      "baseline_context_samples": 10240,
+      "candidate_context_samples": 65536,
+      "user_response": "About the same",
+      "interpretation": "No perceived improvement from the longer generator context at the tested budget. Neither duration nor context experiments establish a quality fix. Retain both as negative results; do not advance budgets or accept the recipe based on numerical parity.",
+      "release_accepted": false
+    },
+    {
+      "stage": "pretrained_baseline",
+      "target_speaker": "1462",
+      "user_response": "Pretrained is clearly cleaner",
+      "interpretation": "On identical held-out source speech, the reviewer finds the untouched pretrained voice cleaner than the adapted candidates. This implicates adaptation quality rather than establishing an inherent LLVC quality ceiling. Different target identities remain a confound; the specific training defect is not established.",
+      "release_accepted": false
+    },
+    {
+      "stage": "discriminator_warmup",
+      "target_speaker": "1462",
+      "joint_training_steps": 1000,
+      "baseline_warmup_steps": 0,
+      "candidate_warmup_steps": 500,
+      "user_response": "About the same",
+      "interpretation": "No perceived improvement from discriminator-only warm-up under the tested conditions. Duration, context and warm-up experiments have not established a quality fix. Retain negative results; do not promote warm-up or escalate this recipe based on numerical checks.",
+      "release_accepted": false
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "abi": 1,
+  "id": "org.piratewave.examples",
+  "name": "PirateWave SDK Examples",
+  "version": "1.0.0",
+  "author": "PirateWave contributors",
+  "license": "MIT",
+  "library": "piratewave_example_extension.dll",
+  "types": [
+    {
+      "id": "org.piratewave.examples/stereo-width",
+      "name": "SDK Stereo Width",
+      "kind": "processor",
+      "description": "Mono to wide stereo using a smoothed mid/side width.",
+      "help": "Width 0 is mono; 1 preserves stereo; 2 exaggerates the side signal.",
+      "inputs": [
+        {
+          "id": 10,
+          "name": "Stereo"
+        }
+      ],
+      "outputs": [
+        {
+          "id": 20,
+          "name": "Stereo"
+        }
+      ],
+      "parameters": [
+        {
+          "id": "width",
+          "name": "Width",
+          "min": 0.0,
+          "max": 2.0,
+          "default": 1.0,
+          "unit": "x"
+        },
+        {
+          "id": "polarity",
+          "name": "Polarity",
+          "min": 0.0,
+          "max": 1.0,
+          "default": 0.0,
+          "step": 1.0,
+          "choices": [
+            "Normal",
+            "Invert"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "mono",
+          "name": "Mono",
+          "parameter": "width",
+          "value": 0.0
+        },
+        {
+          "id": "invert",
+          "name": "Toggle polarity",
+          "parameter": "polarity",
+          "value": 1.0,
+          "toggle": true
+        }
+      ],
+      "state_schema": 2
+    },
+    {
+      "id": "org.piratewave.examples/multi-mix",
+      "name": "SDK Multi Mix",
+      "kind": "node",
+      "description": "Mix two independent stereo inputs with separate outputs.",
+      "help": "Mixed is A + B; the other two outputs preserve the independent signals.",
+      "inputs": [
+        {
+          "id": 101,
+          "name": "A"
+        },
+        {
+          "id": 202,
+          "name": "B"
+        }
+      ],
+      "outputs": [
+        {
+          "id": 303,
+          "name": "Mixed"
+        },
+        {
+          "id": 404,
+          "name": "A"
+        },
+        {
+          "id": 505,
+          "name": "B"
+        }
+      ],
+      "parameters": [
+        {
+          "id": "level",
+          "name": "Mixed level",
+          "min": 0.0,
+          "max": 1.0,
+          "default": 1.0,
+          "unit": "x"
+        }
+      ],
+      "actions": [
+        {
+          "id": "quiet",
+          "name": "Toggle quiet mix",
+          "parameter": "level",
+          "value": 0.25,
+          "toggle": true
+        }
+      ],
+      "bypass": [
+        {
+          "input": 101,
+          "output": 303
+        },
+        {
+          "input": 101,
+          "output": 404
+        },
+        {
+          "input": 202,
+          "output": 505
+        }
+      ],
+      "state_schema": 2
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PirateWave controls</title><link rel="stylesheet" href="style.css"></head>
+<body>
+  <p id="status" role="status">Connecting to PirateWave…</p>
+  <label>Find node<input id="filter" type="search" placeholder="Filter node names"></label>
+  <label>Node / source<select id="node"></select></label>
+  <label>Effect / slot / destination<select id="target"></select></label>
+  <label><span id="action-label">Action</span><select id="action"></select></label>
+  <section id="adjustment" hidden>
+    <label>Button operation<select id="operation"><option value="increase">Increase</option><option value="decrease">Decrease</option><option value="reset">Reset to default</option></select></label>
+    <label>Sensitivity<input id="sensitivity" type="number" min="0.01" max="100" step="0.01" value="1"></label>
+    <p>Dials rotate to adjust. Press or tap to mute (volume), center (pan), or reset. Button reset always restores the parameter default.</p>
+  </section>
+  <p id="target-status"></p>
+  <details><summary>Setup &amp; target matching</summary><p>Run PirateWave and enable External controllers in Settings. Targets match exact names in the current project. Renamed targets need reassignment; duplicate names are ambiguous. Empty recording slots can be captured.</p></details>
+  <script type="module" src="inspector.mjs"></script>
+</body></html>

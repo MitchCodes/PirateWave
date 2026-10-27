@@ -1,0 +1,27 @@
+{
+  "name": "piratewave-streamdeck",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "validate": "streamdeck validate com.piratewave.streamdeck.sdPlugin",
+    "pack": "streamdeck pack com.piratewave.streamdeck.sdPlugin --output ../../dist --force --no-update-check"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "3.0.3",
+    "@elgato/utils": "0.6.1"
+  },
+  "devDependencies": {
+    "@elgato/cli": "1.10.3",
+    "@types/node": "24.10.1",
+    "esbuild": "0.25.12",
+    "typescript": "5.9.3",
+    "ws": "8.22.0"
+  }
+}

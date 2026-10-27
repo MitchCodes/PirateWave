@@ -1,0 +1,11 @@
+[package]
+name = "piratewave-example-extension"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+piratewave-extension-sdk = { path = "../piratewave-extension-sdk" }

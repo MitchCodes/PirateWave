@@ -1,0 +1,47 @@
+/target/
+/.tools/
+/dist/
+*.log
+*.exe
+*.dll
+*.pdb
+*.zip
+*.msi
+
+# Local projects, imported assets, and credentials
+/studio.json
+/studio.json.tmp
+/studio.json.bak
+/settings.json
+/settings.json.tmp
+/settings.json.bak
+/training-settings.json
+/training-settings.json.tmp
+/local/
+.env
+.env.*
+!.env.example
+/.secrets/
+
+# Editor and OS files
+/.vs/
+/.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Loupedeck .NET build outputs
+/integrations/loupedeck/**/bin/
+/integrations/loupedeck/**/obj/
+
+# Python validation caches
+__pycache__/
+*.pyc
+
+# Stream Deck build outputs
+/integrations/streamdeck/node_modules/
+/integrations/streamdeck/com.piratewave.streamdeck.sdPlugin/
+/integrations/streamdeck/.test-build/

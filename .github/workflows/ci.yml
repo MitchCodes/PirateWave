@@ -1,0 +1,127 @@
+name: Windows CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.run_id || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+jobs:
+  build:
+    name: Check, test, and package Windows x64
+    runs-on: windows-2022
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+          if ($LASTEXITCODE -ne 0) { throw 'Rust installation failed' }
+
+      - name: Install Node.js 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Ensure Media Foundation is available for native audio export tests
+        run: |
+          if (-not (Test-Path "$env:SystemRoot/System32/mfplat.dll")) {
+            $taskFeature = Install-WindowsFeature Server-Media-Foundation
+            if (-not $taskFeature.Success) { throw 'Media Foundation installation failed' }
+          }
+
+      - name: Restore verified portable runtime and Loupedeck SDK dependencies
+        run: ./scripts/prepare-ci-dependencies.ps1
+
+      - name: Format, test, lint, and package app and controller plugins
+        run: ./build.ps1 -Verify -WithLoupedeck -WithStreamDeck
+
+      - name: Verify native VST hosting without audio hardware
+        run: ./scripts/test-plugins.ps1
+
+      - name: Verify native pitch correction and allocation-free processing
+        run: cargo run --release --locked -p piratewave-core --example voice_correction_check
+
+      - name: Verify rack processor processing allocations
+        run: cargo run --release --locked -p piratewave-core --example rack_processors_check
+
+      - name: Verify shared recording histories and allocation-free rendering
+        run: cargo run --release --locked -p piratewave-core --example recording_check
+
+      - name: Verify Auto Ducking detector and lookahead processing allocations
+        run: cargo run --release --locked -p piratewave-core --example ducking_check
+
+      - name: Verify extension graph allocations
+        run: cargo run --release --locked -p piratewave-core --example extension_check
+
+      - name: Verify Loupedeck SDK callbacks and native connection
+        run: |
+          $env:PIRATEWAVE_EXTENSION_FIXTURE=(Resolve-Path 'dist/example-extension').Path
+          dotnet run --project integrations/loupedeck/PirateWavePlugin.Tests -c Release "-p:PluginApiDir=$env:PIRATEWAVE_LOUPEDECK_SDK_DIR" -- (Resolve-Path 'dist/PirateWave/PirateWave.exe').Path
+          if ($LASTEXITCODE -ne 0) { throw 'Loupedeck SDK/native transport tests failed' }
+
+      - name: Verify Stream Deck native connection and coexistence
+        run: |
+          $env:PIRATEWAVE_EXTENSION_FIXTURE=(Resolve-Path 'dist/example-extension').Path
+          node integrations/streamdeck/test/native.mjs (Resolve-Path 'dist/PirateWave/PirateWave.exe').Path
+          if ($LASTEXITCODE -ne 0) { throw 'Stream Deck native transport tests failed' }
+
+      - name: Test release publication safeguards
+        run: python -m unittest discover -s scripts -p test_publish_main_release.py
+
+      - name: Prepare release checksums
+        id: release
+        run: |
+          $taskMetadata = (& cargo metadata --locked --no-deps --format-version 1) | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read application version' }
+          $taskVersion = ($taskMetadata.packages | Where-Object { $_.name -eq 'piratewave-desktop' }).version
+          "version=$taskVersion" >> $env:GITHUB_OUTPUT
+          python scripts/publish-main-release.py --folder dist --version $taskVersion --commit $env:GITHUB_SHA --run $env:GITHUB_RUN_NUMBER --dry-run
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset validation failed' }
+
+      - name: Upload portable build and controller plugins
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: PirateWave-windows-x64
+          path: |
+            dist/PirateWave-*-windows-x64.zip
+            dist/PirateWave.lplug4
+            dist/PirateWave.streamDeckPlugin
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish public GitHub release on main push
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PUBLISH_RELEASES == 'true'
+        env:
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          RELEASES_REPOSITORY: ${{ vars.RELEASES_REPOSITORY }}
+          PIRATEWAVE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          python scripts/publish-main-release.py --folder dist --version $env:PIRATEWAVE_VERSION --commit $env:GITHUB_SHA --run $env:GITHUB_RUN_NUMBER
+          if ($LASTEXITCODE -ne 0) { throw 'Public GitHub release failed; check RELEASES_TOKEN and the release logs' }
+
+      # Audio hardware, virtual-cable, global shortcut, and graphical smoke tests
+      # are opt-in local diagnostics, not requirements on headless hosted runners.

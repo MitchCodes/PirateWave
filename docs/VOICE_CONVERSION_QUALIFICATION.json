@@ -1,0 +1,2264 @@
+{
+  "schema": 1,
+  "release_qualified": false,
+  "scope": "One pretrained voice. No additional-voice prerequisite.",
+  "limits": {
+    "state_normalized_rms": 0.0001,
+    "state_normalized_max": 0.001,
+    "audio_rms": 1e-05,
+    "audio_max": 0.0001
+  },
+  "runs": [
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-cpu-1-isolated.json",
+      "sha256": "69687c96e28f3a37f431fca7cb7ad85b01dda825eb9be9e6b41db5d2038fd3af",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 212.98700000000002,
+      "first_chunk_ms": 8.8088,
+      "mean_ms": 7.136800984605766,
+      "p99_ms": 8.383099999999999,
+      "max_ms": 19.971,
+      "timing_pass": false,
+      "warm_measurements": 12797,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.3832003e-05,
+      "max_audio_rms": 4.0623265976765983e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.00977945327758789,
+          "rms_error": 0.00014546807059428836,
+          "normalized_max_error": 0.0009728612090555358,
+          "normalized_rms_error": 0.00014546807059428836,
+          "legacy_element_scaled_max": 25.35313586650839,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-cpu-1.json",
+      "sha256": "402a40e0435b4cd53156fb5dd4d48eabebce83531c24309eb17f0cd556b1ffb5",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 211.60750000000002,
+      "first_chunk_ms": 7.9548,
+      "mean_ms": 7.145337016488239,
+      "p99_ms": 8.606300000000001,
+      "max_ms": 18.6914,
+      "timing_pass": false,
+      "warm_measurements": 12797,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.3832003e-05,
+      "max_audio_rms": 4.0623265976765983e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.00977945327758789,
+          "rms_error": 0.00014546807059428836,
+          "normalized_max_error": 0.0009728612090555358,
+          "normalized_rms_error": 0.00014546807059428836,
+          "legacy_element_scaled_max": 25.35313586650839,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-cpu-2.json",
+      "sha256": "50895ecc0539ed2d9dcc277548cb3cdcdcf3e1ddea54c4c6615c766425d774d2",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 2,
+      "hop_ms": 13.0,
+      "session_load_ms": 210.38490000000002,
+      "first_chunk_ms": 7.7745999999999995,
+      "mean_ms": 6.848814159568658,
+      "p99_ms": 8.4784,
+      "max_ms": 18.470899999999997,
+      "timing_pass": false,
+      "warm_measurements": 12797,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.3832003e-05,
+      "max_audio_rms": 4.0623265976765983e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.00977945327758789,
+          "rms_error": 0.00014546807059428836,
+          "normalized_max_error": 0.0009728612090555358,
+          "normalized_rms_error": 0.00014546807059428836,
+          "legacy_element_scaled_max": 25.35313586650839,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-cpu-state-native.json",
+      "sha256": "c6d93a7937cb36dcf0169396dc3e50262fb7abc65624895ebb927da746269e5a",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 231.7636,
+      "first_chunk_ms": 8.2532,
+      "mean_ms": 8.2532,
+      "p99_ms": 8.2532,
+      "max_ms": 8.2532,
+      "timing_pass": false,
+      "warm_measurements": 0,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 7.93807e-09,
+      "max_audio_rms": 3.0378315889733567e-09,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech-chunk-39",
+          "name": "out_decoder",
+          "max_error": 0.009815692901611328,
+          "rms_error": 0.00013101341990353236,
+          "normalized_max_error": 0.0009801199207790756,
+          "normalized_rms_error": 0.00013101341990353236,
+          "legacy_element_scaled_max": 11.283439900677225,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-cpu-state.json",
+      "sha256": "19e932231dde19f2eadf352b529f5a71c2e4f82260e2a4df4329e7af48a90aa1",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "reset_and_clone_pass": true,
+      "state_shapes": [
+        [
+          1,
+          512,
+          510
+        ],
+        [
+          1,
+          2,
+          13,
+          256
+        ],
+        [
+          1,
+          512,
+          4
+        ],
+        [
+          1,
+          1,
+          24
+        ]
+      ],
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 2.137931005563587e-07,
+            "max_chunk_rms_error": 4.5784758274499627e-08,
+            "max_normalized_rms": 4.5784758274499627e-08,
+            "max_normalized_peak": 2.137931005563587e-07,
+            "legacy_element_scaled_max": 0.002137833958953336,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.007016181945800781,
+            "max_chunk_rms_error": 3.0059380842774883e-05,
+            "max_normalized_rms": 8.077213001327907e-06,
+            "max_normalized_peak": 0.0002263454082980547,
+            "legacy_element_scaled_max": 24.940532772605735,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.04693031311035156,
+            "max_chunk_rms_error": 0.000653926346042434,
+            "max_normalized_rms": 0.000653926346042434,
+            "max_normalized_peak": 0.004697038174292473,
+            "legacy_element_scaled_max": 94.19908500931439,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 2.8249087336007506e-07,
+            "max_chunk_rms_error": 9.70373178355906e-09,
+            "max_normalized_rms": 9.70373178355906e-09,
+            "max_normalized_peak": 2.8249087336007506e-07,
+            "legacy_element_scaled_max": 0.0028248302095826346,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 4.892717697657645e-07,
+            "max_chunk_rms_error": 1.487270344112859e-07,
+            "max_normalized_rms": 1.487270344112859e-07,
+            "max_normalized_peak": 4.892717697657645e-07,
+            "legacy_element_scaled_max": 0.004892369899444662,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01636803150177002,
+            "max_chunk_rms_error": 0.0001673464131349268,
+            "max_normalized_rms": 4.5416050727154255e-05,
+            "max_normalized_peak": 0.0005488923858949852,
+            "legacy_element_scaled_max": 69.72184485103375,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11395856738090515,
+            "max_chunk_rms_error": 0.0014847827518529057,
+            "max_normalized_rms": 0.0014847827518529057,
+            "max_normalized_peak": 0.011792014983787416,
+            "legacy_element_scaled_max": 784.4660252334555,
+            "first_failing_chunk": 21
+          },
+          "out_synthesis": {
+            "max_error": 3.484710759948939e-07,
+            "max_chunk_rms_error": 2.0635232449011874e-08,
+            "max_normalized_rms": 2.0635232449011874e-08,
+            "max_normalized_peak": 3.484710759948939e-07,
+            "legacy_element_scaled_max": 0.0034846022801376915,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-directml-1.json",
+      "sha256": "50b702629787e41811385bf88dff7d0723077b31915068b9bfc65655851fd024",
+      "adapter": "NVIDIA GeForce RTX 4070 SUPER",
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "directml",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 725.4863,
+      "first_chunk_ms": 4.8824000000000005,
+      "mean_ms": 1.3354753926701575,
+      "p99_ms": 1.8831,
+      "max_ms": 2.8261,
+      "timing_pass": true,
+      "warm_measurements": 12797,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.2032688e-05,
+      "max_audio_rms": 4.0377203954747065e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_encoder",
+          "max_error": 0.12655305862426758,
+          "rms_error": 0.0011644229674093321,
+          "normalized_max_error": 0.00423609808506104,
+          "normalized_rms_error": 0.0003159661762054446,
+          "legacy_element_scaled_max": 449.90169536300493,
+          "tensor_pass": false
+        },
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.15125036239624023,
+          "rms_error": 0.0022387846452570554,
+          "normalized_max_error": 0.015046404564160645,
+          "normalized_rms_error": 0.0022387846452570554,
+          "legacy_element_scaled_max": 381.014564345342,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-directml-state-native.json",
+      "sha256": "5dfe65d2cc57ce39228b398bdc1b37853044c78b5a54ae1700d6b0df856a1f8a",
+      "adapter": "NVIDIA GeForce RTX 4070 SUPER",
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "directml",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 812.8977,
+      "first_chunk_ms": 5.0632,
+      "mean_ms": 5.0632,
+      "p99_ms": 5.0632,
+      "max_ms": 5.0632,
+      "timing_pass": false,
+      "warm_measurements": 0,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.2833334e-07,
+      "max_audio_rms": 5.0552788771958566e-08,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech-chunk-9",
+          "name": "out_decoder",
+          "max_error": 0.004605531692504883,
+          "rms_error": 0.00013949024903827655,
+          "normalized_max_error": 0.0006168126715297702,
+          "normalized_rms_error": 0.00013949024903827655,
+          "legacy_element_scaled_max": 14.999698145010058,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop1-directml-state.json",
+      "sha256": "eecfe2afe9ac6e16cd3e8a7fb3abaeaba158b6c8aeffd1346e2f865a89c59844",
+      "backend": "directml",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "reset_and_clone_pass": true,
+      "state_shapes": [
+        [
+          1,
+          512,
+          510
+        ],
+        [
+          1,
+          2,
+          13,
+          256
+        ],
+        [
+          1,
+          512,
+          4
+        ],
+        [
+          1,
+          1,
+          24
+        ]
+      ],
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 3.7193967727944255e-06,
+            "max_chunk_rms_error": 7.022898334429719e-07,
+            "max_normalized_rms": 7.022898334429719e-07,
+            "max_normalized_peak": 3.7193967727944255e-06,
+            "legacy_element_scaled_max": 0.03719227939072458,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.0847388505935669,
+            "max_chunk_rms_error": 0.0003146649178592449,
+            "max_normalized_rms": 8.537358823412615e-05,
+            "max_normalized_peak": 0.002833018089905402,
+            "legacy_element_scaled_max": 379.5463252088261,
+            "first_failing_chunk": 29
+          },
+          "out_decoder": {
+            "max_error": 0.5878307819366455,
+            "max_chunk_rms_error": 0.007334251110600429,
+            "max_normalized_rms": 0.007334251110600429,
+            "max_normalized_peak": 0.058833266598675264,
+            "legacy_element_scaled_max": 1688.0785921994043,
+            "first_failing_chunk": 9
+          },
+          "out_synthesis": {
+            "max_error": 2.0017068891320378e-06,
+            "max_chunk_rms_error": 1.3647587307530893e-07,
+            "max_normalized_rms": 1.3647587307530893e-07,
+            "max_normalized_peak": 2.0017068891320378e-06,
+            "legacy_element_scaled_max": 0.020016860998819337,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 1.1920928955078125e-07,
+            "max_chunk_rms_error": 5.3100702349244414e-08,
+            "max_normalized_rms": 5.3100702349244414e-08,
+            "max_normalized_peak": 1.1920928955078125e-07,
+            "legacy_element_scaled_max": 0.0011659084521104997,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 1.6307822079397738e-06,
+            "max_chunk_rms_error": 5.332812920940238e-07,
+            "max_normalized_rms": 5.332812920940238e-07,
+            "max_normalized_peak": 1.6307822079397738e-06,
+            "legacy_element_scaled_max": 0.016306951816289758,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.13477617502212524,
+            "max_chunk_rms_error": 0.0014710257893477915,
+            "max_normalized_rms": 0.0003980052617321314,
+            "max_normalized_peak": 0.00423609808506104,
+            "legacy_element_scaled_max": 678.073320546764,
+            "first_failing_chunk": 11
+          },
+          "out_decoder": {
+            "max_error": 0.7420046329498291,
+            "max_chunk_rms_error": 0.009244691459790857,
+            "max_normalized_rms": 0.009244691459790857,
+            "max_normalized_peak": 0.07426381490939755,
+            "legacy_element_scaled_max": 2461.350869896744,
+            "first_failing_chunk": 3
+          },
+          "out_synthesis": {
+            "max_error": 2.393988552285009e-06,
+            "max_chunk_rms_error": 9.245703089115732e-08,
+            "max_normalized_rms": 9.245703089115732e-08,
+            "max_normalized_peak": 2.393988552285009e-06,
+            "legacy_element_scaled_max": 0.023939828211175407,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 1.1920928955078125e-07,
+            "max_chunk_rms_error": 5.3100702349244414e-08,
+            "max_normalized_rms": 5.3100702349244414e-08,
+            "max_normalized_peak": 1.1920928955078125e-07,
+            "legacy_element_scaled_max": 0.0011659084521104997,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-cpu-1.json",
+      "sha256": "667db6b0196654e853b8880bdfd6d68cf928392af659e1d77cfd5e5f970f7e8e",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 26.0,
+      "session_load_ms": 206.76739999999998,
+      "first_chunk_ms": 10.3155,
+      "mean_ms": 8.669703688328301,
+      "p99_ms": 10.232399999999998,
+      "max_ms": 19.2615,
+      "timing_pass": true,
+      "warm_measurements": 6263,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.4219433e-05,
+      "max_audio_rms": 4.03542833224347e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.008403301239013672,
+          "rms_error": 0.00013059556343809824,
+          "normalized_max_error": 0.0008359618323630648,
+          "normalized_rms_error": 0.00013059556343809824,
+          "legacy_element_scaled_max": 25.280884858778457,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-cpu-2.json",
+      "sha256": "962000af598c20198ee7e58e6dd4f562c5bfc965aeb2113dcd2ea344f5582db6",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "backend": "cpu",
+      "threads": 2,
+      "hop_ms": 26.0,
+      "session_load_ms": 214.508,
+      "first_chunk_ms": 9.0866,
+      "mean_ms": 7.786718441641362,
+      "p99_ms": 9.254800000000001,
+      "max_ms": 17.264100000000003,
+      "timing_pass": true,
+      "warm_measurements": 6263,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.4219433e-05,
+      "max_audio_rms": 4.03542833224347e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.008403301239013672,
+          "rms_error": 0.00013059556343809824,
+          "normalized_max_error": 0.0008359618323630648,
+          "normalized_rms_error": 0.00013059556343809824,
+          "legacy_element_scaled_max": 25.280884858778457,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-cpu-state-native.json",
+      "sha256": "593725160475b4d20cb56605425078b580b7de536d3df5d13f086c6f77048daf",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 26.0,
+      "session_load_ms": 240.9064,
+      "first_chunk_ms": 9.4331,
+      "mean_ms": 9.4331,
+      "p99_ms": 9.4331,
+      "max_ms": 9.4331,
+      "timing_pass": false,
+      "warm_measurements": 0,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.3515091e-08,
+      "max_audio_rms": 3.953979870217583e-09,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech-chunk-19",
+          "name": "out_decoder",
+          "max_error": 0.010719776153564453,
+          "rms_error": 0.00014109400673020542,
+          "normalized_max_error": 0.0010703948524296834,
+          "normalized_rms_error": 0.00014109400673020542,
+          "legacy_element_scaled_max": 12.32222905785621,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-cpu-state.json",
+      "sha256": "0c935230d8f48b9356070449db18c10830c6ca99acd38812cd466e5f7c2746ca",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "seconds": 4.03,
+      "hop": 416,
+      "case": "quiet_speech",
+      "pass": false,
+      "reset_and_clone_pass": true,
+      "state_shapes": [
+        [
+          1,
+          512,
+          510
+        ],
+        [
+          1,
+          2,
+          13,
+          256
+        ],
+        [
+          1,
+          512,
+          4
+        ],
+        [
+          1,
+          1,
+          24
+        ]
+      ],
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 2.148481144104153e-07,
+            "max_chunk_rms_error": 4.496055707178042e-08,
+            "max_normalized_rms": 4.496055707178042e-08,
+            "max_normalized_peak": 2.148481144104153e-07,
+            "legacy_element_scaled_max": 0.0021483836159522786,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.010467529296875,
+            "max_chunk_rms_error": 4.795698783507673e-05,
+            "max_normalized_rms": 1.2886453277240559e-05,
+            "max_normalized_peak": 0.00025849604688364246,
+            "legacy_element_scaled_max": 34.520993647279525,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.05371713638305664,
+            "max_chunk_rms_error": 0.0007504390198012793,
+            "max_normalized_rms": 0.0007504390198012793,
+            "max_normalized_peak": 0.005376296361625691,
+            "legacy_element_scaled_max": 107.8862974787026,
+            "first_failing_chunk": 19
+          },
+          "out_synthesis": {
+            "max_error": 1.6878880160220433e-07,
+            "max_chunk_rms_error": 4.222432501155844e-09,
+            "max_normalized_rms": 4.222432501155844e-09,
+            "max_normalized_peak": 1.6878880160220433e-07,
+            "legacy_element_scaled_max": 0.0016878851756383804,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 5.034598871134222e-07,
+            "max_chunk_rms_error": 1.4023422375591338e-07,
+            "max_normalized_rms": 1.4023422375591338e-07,
+            "max_normalized_peak": 5.034598871134222e-07,
+            "legacy_element_scaled_max": 0.0050342409700651364,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01680910587310791,
+            "max_chunk_rms_error": 0.00016620175903484498,
+            "max_normalized_rms": 4.523610086970173e-05,
+            "max_normalized_peak": 0.0005623818042993482,
+            "legacy_element_scaled_max": 71.59707246397564,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.07894420623779297,
+            "max_chunk_rms_error": 0.0010335829238395295,
+            "max_normalized_rms": 0.0010335829238395295,
+            "max_normalized_peak": 0.007901155522161205,
+            "legacy_element_scaled_max": 158.5527206375245,
+            "first_failing_chunk": 10
+          },
+          "out_synthesis": {
+            "max_error": 1.7334241420030594e-07,
+            "max_chunk_rms_error": 1.2376625653215699e-08,
+            "max_normalized_rms": 1.2376625653215699e-08,
+            "max_normalized_peak": 1.7334241420030594e-07,
+            "legacy_element_scaled_max": 0.0017332569339227558,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-directml-1.json",
+      "sha256": "fad53b52c286c5a13fe44b87d957db0840ca99ab3ef644e1f2a2863983bef369",
+      "adapter": "NVIDIA GeForce RTX 4070 SUPER",
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "backend": "directml",
+      "threads": 1,
+      "hop_ms": 26.0,
+      "session_load_ms": 733.0556,
+      "first_chunk_ms": 5.4642,
+      "mean_ms": 1.4726489382085248,
+      "p99_ms": 2.0955000000000004,
+      "max_ms": 8.994800000000001,
+      "timing_pass": true,
+      "warm_measurements": 6263,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.117494e-05,
+      "max_audio_rms": 3.976725939709341e-07,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech",
+          "name": "out_encoder",
+          "max_error": 0.12892627716064453,
+          "rms_error": 0.0011631555713436169,
+          "normalized_max_error": 0.004315534391542499,
+          "normalized_rms_error": 0.0003156222683683166,
+          "legacy_element_scaled_max": 439.9837815293786,
+          "tensor_pass": false
+        },
+        {
+          "case": "quiet_speech",
+          "name": "out_decoder",
+          "max_error": 0.14367914199829102,
+          "rms_error": 0.0021738232112850546,
+          "normalized_max_error": 0.014293225412366885,
+          "normalized_rms_error": 0.0021738232112850546,
+          "legacy_element_scaled_max": 388.8447758786854,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-directml-state-native.json",
+      "sha256": "f29b4d741e041df995461fb8fbd3e5ce8e393de6d14ae1e97cb630044b681d4e",
+      "adapter": "NVIDIA GeForce RTX 4070 SUPER",
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "backend": "directml",
+      "threads": 1,
+      "hop_ms": 26.0,
+      "session_load_ms": 862.6501,
+      "first_chunk_ms": 5.2889,
+      "mean_ms": 5.2889,
+      "p99_ms": 5.2889,
+      "max_ms": 5.2889,
+      "timing_pass": false,
+      "warm_measurements": 0,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 1.179651e-07,
+      "max_audio_rms": 4.855718189444204e-08,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech-chunk-1",
+          "name": "out_decoder",
+          "max_error": 0.0078258216381073,
+          "rms_error": 0.00011491505729618613,
+          "normalized_max_error": 0.0010942399037449256,
+          "normalized_rms_error": 0.00011491505729618613,
+          "legacy_element_scaled_max": 55.143345272087764,
+          "tensor_pass": false
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/hop2-directml-state.json",
+      "sha256": "4e59738111bfee6bc4501798333f37113d429a82b4cfe21a8cc92fe7f5f97992",
+      "backend": "directml",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "7290aff7350b3430a5ef1a17e6e9c9394f595b6caf00d696447df1ae5175fd7e",
+      "seconds": 4.03,
+      "hop": 416,
+      "case": "quiet_speech",
+      "pass": false,
+      "reset_and_clone_pass": true,
+      "state_shapes": [
+        [
+          1,
+          512,
+          510
+        ],
+        [
+          1,
+          2,
+          13,
+          256
+        ],
+        [
+          1,
+          512,
+          4
+        ],
+        [
+          1,
+          1,
+          24
+        ]
+      ],
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 3.7181671359576285e-06,
+            "max_chunk_rms_error": 5.872239019853127e-07,
+            "max_normalized_rms": 5.872239019853127e-07,
+            "max_normalized_peak": 3.7181671359576285e-06,
+            "legacy_element_scaled_max": 0.037179983534807025,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.10338127613067627,
+            "max_chunk_rms_error": 0.00045076072730223924,
+            "max_normalized_rms": 0.00012229854200343523,
+            "max_normalized_peak": 0.0034562786657210427,
+            "legacy_element_scaled_max": 433.73205824185436,
+            "first_failing_chunk": 14
+          },
+          "out_decoder": {
+            "max_error": 0.713975191116333,
+            "max_chunk_rms_error": 0.008812973899599983,
+            "max_normalized_rms": 0.008812973899599983,
+            "max_normalized_peak": 0.07145842985592386,
+            "legacy_element_scaled_max": 1797.788835999133,
+            "first_failing_chunk": 1
+          },
+          "out_synthesis": {
+            "max_error": 2.3925540517666377e-06,
+            "max_chunk_rms_error": 9.318077376963305e-08,
+            "max_normalized_rms": 9.318077376963305e-08,
+            "max_normalized_peak": 2.3925540517666377e-06,
+            "legacy_element_scaled_max": 0.02392548327465443,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 1.1920928955078125e-07,
+            "max_chunk_rms_error": 5.3100702349244414e-08,
+            "max_normalized_rms": 5.3100702349244414e-08,
+            "max_normalized_peak": 1.1920928955078125e-07,
+            "legacy_element_scaled_max": 0.0011659084521104997,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 1.6297781257890165e-06,
+            "max_chunk_rms_error": 4.056537786464131e-07,
+            "max_normalized_rms": 4.056537786464131e-07,
+            "max_normalized_peak": 1.6297781257890165e-06,
+            "legacy_element_scaled_max": 0.01629691154697084,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.134712815284729,
+            "max_chunk_rms_error": 0.0014101199655550329,
+            "max_normalized_rms": 0.0003813692203908055,
+            "max_normalized_peak": 0.004315534391542499,
+            "legacy_element_scaled_max": 677.668488370015,
+            "first_failing_chunk": 6
+          },
+          "out_decoder": {
+            "max_error": 0.7251303195953369,
+            "max_chunk_rms_error": 0.009071778042318145,
+            "max_normalized_rms": 0.009071778042318145,
+            "max_normalized_peak": 0.07257489437159474,
+            "legacy_element_scaled_max": 1825.8774386469827,
+            "first_failing_chunk": 1
+          },
+          "out_synthesis": {
+            "max_error": 2.3925540517666377e-06,
+            "max_chunk_rms_error": 9.063469400511382e-08,
+            "max_normalized_rms": 9.063469400511382e-08,
+            "max_normalized_peak": 2.3925540517666377e-06,
+            "legacy_element_scaled_max": 0.02392548327465443,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 1.1920928955078125e-07,
+            "max_chunk_rms_error": 5.3100702349244414e-08,
+            "max_normalized_rms": 5.3100702349244414e-08,
+            "max_normalized_peak": 1.1920928955078125e-07,
+            "legacy_element_scaled_max": 0.0011659084521104997,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/qualification-one-voice/summary.json",
+      "sha256": "736e32146dce2e4e3014a008483b7376972a95809104c2df8cba3875bbb5bc62",
+      "run_environment": {
+        "schema": 1,
+        "profiles": [
+          {
+            "profile": "hop1-cpu-state",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop1-cpu-state-native",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop1-directml-state",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop1-directml-state-native",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-cpu-state",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-cpu-state-native",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-directml-state",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-directml-state-native",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop1-cpu-1",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop1-cpu-2",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop1-directml-1",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-cpu-1",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-cpu-2",
+            "exitCode": 1
+          },
+          {
+            "profile": "hop2-directml-1",
+            "exitCode": 1
+          }
+        ],
+        "cpu": {
+          "Name": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+          "NumberOfCores": 10,
+          "NumberOfLogicalProcessors": 20
+        },
+        "graphics": [
+          {
+            "Name": "Virtual Desktop Monitor",
+            "DriverVersion": "13.50.53.699"
+          },
+          {
+            "Name": "NVIDIA GeForce RTX 4070 SUPER",
+            "DriverVersion": "32.0.16.1656"
+          }
+        ],
+        "probeSha256": "287d32a1efd78c245cf46fcdd2abcb681f95964ddcbbbd11eee7fecf04bfdcbe",
+        "runtimeSha256": "8702a9e02b0e4bc111ca64eb34fb6c9c863ef8ec8e4b21f1a8e4b792edbabf30",
+        "releaseQualified": false,
+        "note": "Offline checks only. A passing subset does not qualify live routing, 30-minute stability, game impact, or listening."
+      }
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/cpu-all.json",
+      "sha256": "152401b1fd150a219ef815c31a7bb17d1f7aea7722774aeb445a83a6b3369129",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 2.137931005563587e-07,
+            "max_chunk_rms_error": 4.5784758274499627e-08,
+            "max_normalized_rms": 4.5784758274499627e-08,
+            "max_normalized_peak": 2.137931005563587e-07,
+            "legacy_element_scaled_max": 0.002137833958953336,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.007016181945800781,
+            "max_chunk_rms_error": 3.0059380842774883e-05,
+            "max_normalized_rms": 8.077213001327907e-06,
+            "max_normalized_peak": 0.0002263454082980547,
+            "legacy_element_scaled_max": 24.940532772605735,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.04693031311035156,
+            "max_chunk_rms_error": 0.000653926346042434,
+            "max_normalized_rms": 0.000653926346042434,
+            "max_normalized_peak": 0.004697038174292473,
+            "legacy_element_scaled_max": 94.19908500931439,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 2.8249087336007506e-07,
+            "max_chunk_rms_error": 9.70373178355906e-09,
+            "max_normalized_rms": 9.70373178355906e-09,
+            "max_normalized_peak": 2.8249087336007506e-07,
+            "legacy_element_scaled_max": 0.0028248302095826346,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 4.892717697657645e-07,
+            "max_chunk_rms_error": 1.487270344112859e-07,
+            "max_normalized_rms": 1.487270344112859e-07,
+            "max_normalized_peak": 4.892717697657645e-07,
+            "legacy_element_scaled_max": 0.004892369899444662,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01636803150177002,
+            "max_chunk_rms_error": 0.0001673464131349268,
+            "max_normalized_rms": 4.5416050727154255e-05,
+            "max_normalized_peak": 0.0005488923858949852,
+            "legacy_element_scaled_max": 69.72184485103375,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11395856738090515,
+            "max_chunk_rms_error": 0.0014847827518529057,
+            "max_normalized_rms": 0.0014847827518529057,
+            "max_normalized_peak": 0.011792014983787416,
+            "legacy_element_scaled_max": 784.4660252334555,
+            "first_failing_chunk": 21
+          },
+          "out_synthesis": {
+            "max_error": 3.484710759948939e-07,
+            "max_chunk_rms_error": 2.0635232449011874e-08,
+            "max_normalized_rms": 2.0635232449011874e-08,
+            "max_normalized_peak": 3.484710759948939e-07,
+            "legacy_element_scaled_max": 0.0034846022801376915,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/cpu-centered.json",
+      "sha256": "8849951489d6037e53ee2580d91a1c9112ef94120e9380b802210d5112ea99a6",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "7fd6928f76e1d122ede1dc3282715c49e4ba66e4f9055ced1d90c1da0b9b3b7a",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 4.5140041038393974e-07,
+            "max_chunk_rms_error": 9.271826967702329e-08,
+            "max_normalized_rms": 9.271826967702329e-08,
+            "max_normalized_peak": 4.5140041038393974e-07,
+            "legacy_element_scaled_max": 0.004513799200689671,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.008961319923400879,
+            "max_chunk_rms_error": 3.838380795563051e-05,
+            "max_normalized_rms": 1.0440824484927125e-05,
+            "max_normalized_peak": 0.0002995978972406752,
+            "legacy_element_scaled_max": 32.24095595144209,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.06032061576843262,
+            "max_chunk_rms_error": 0.0008189665484744659,
+            "max_normalized_rms": 0.0008189665484744659,
+            "max_normalized_peak": 0.00598775539840632,
+            "legacy_element_scaled_max": 191.80117025672973,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 3.1644685805076733e-07,
+            "max_chunk_rms_error": 1.8744251286802636e-08,
+            "max_normalized_rms": 1.8744251286802636e-08,
+            "max_normalized_peak": 3.1644685805076733e-07,
+            "legacy_element_scaled_max": 0.0031644636369654983,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 6.50579750072211e-07,
+            "max_chunk_rms_error": 1.49366077148546e-07,
+            "max_normalized_rms": 1.49366077148546e-07,
+            "max_normalized_peak": 6.50579750072211e-07,
+            "legacy_element_scaled_max": 0.006505502184552981,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.017191648483276367,
+            "max_chunk_rms_error": 0.00017429354043609006,
+            "max_normalized_rms": 4.7301427772333235e-05,
+            "max_normalized_peak": 0.0005765119008008404,
+            "legacy_element_scaled_max": 73.23015282289052,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11944887042045593,
+            "max_chunk_rms_error": 0.0015069719413519183,
+            "max_normalized_rms": 0.0015069719413519183,
+            "max_normalized_peak": 0.01236013142466472,
+            "legacy_element_scaled_max": 822.2600788245962,
+            "first_failing_chunk": 30
+          },
+          "out_synthesis": {
+            "max_error": 4.4440912461141124e-07,
+            "max_chunk_rms_error": 2.6392084864810603e-08,
+            "max_normalized_rms": 2.6392084864810603e-08,
+            "max_normalized_peak": 4.4440912461141124e-07,
+            "legacy_element_scaled_max": 0.004444084303541625,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/cpu-no-mkldnn.json",
+      "sha256": "a813f0abe4c8dcaae237a390f7ce899c6e064cb787d25193d762ab82ec61d0b5",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "off",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 2.137931005563587e-07,
+            "max_chunk_rms_error": 4.5784758274499627e-08,
+            "max_normalized_rms": 4.5784758274499627e-08,
+            "max_normalized_peak": 2.137931005563587e-07,
+            "legacy_element_scaled_max": 0.002137833958953336,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.007016181945800781,
+            "max_chunk_rms_error": 3.0059380842774883e-05,
+            "max_normalized_rms": 8.077213001327907e-06,
+            "max_normalized_peak": 0.0002263454082980547,
+            "legacy_element_scaled_max": 24.940532772605735,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.04693031311035156,
+            "max_chunk_rms_error": 0.000653926346042434,
+            "max_normalized_rms": 0.000653926346042434,
+            "max_normalized_peak": 0.004697038174292473,
+            "legacy_element_scaled_max": 94.19908500931439,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 2.8249087336007506e-07,
+            "max_chunk_rms_error": 9.70373178355906e-09,
+            "max_normalized_rms": 9.70373178355906e-09,
+            "max_normalized_peak": 2.8249087336007506e-07,
+            "legacy_element_scaled_max": 0.0028248302095826346,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 4.892717697657645e-07,
+            "max_chunk_rms_error": 1.487270344112859e-07,
+            "max_normalized_rms": 1.487270344112859e-07,
+            "max_normalized_peak": 4.892717697657645e-07,
+            "legacy_element_scaled_max": 0.004892369899444662,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01636803150177002,
+            "max_chunk_rms_error": 0.0001673464131349268,
+            "max_normalized_rms": 4.5416050727154255e-05,
+            "max_normalized_peak": 0.0005488923858949852,
+            "legacy_element_scaled_max": 69.72184485103375,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11395856738090515,
+            "max_chunk_rms_error": 0.0014847827518529057,
+            "max_normalized_rms": 0.0014847827518529057,
+            "max_normalized_peak": 0.011792014983787416,
+            "legacy_element_scaled_max": 784.4660252334555,
+            "first_failing_chunk": 21
+          },
+          "out_synthesis": {
+            "max_error": 3.484710759948939e-07,
+            "max_chunk_rms_error": 2.0635232449011874e-08,
+            "max_normalized_rms": 2.0635232449011874e-08,
+            "max_normalized_peak": 3.484710759948939e-07,
+            "legacy_element_scaled_max": 0.0034846022801376915,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/cpu-off.json",
+      "sha256": "872b722bd7a51a6ae56449340f4698dc48a03806e0f32f606f2eaefd81f37022",
+      "backend": "cpu",
+      "optimization": "off",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 2.129090717062354e-07,
+            "max_chunk_rms_error": 4.569066907158575e-08,
+            "max_normalized_rms": 4.569066907158575e-08,
+            "max_normalized_peak": 2.129090717062354e-07,
+            "legacy_element_scaled_max": 0.002128994071737285,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.007016181945800781,
+            "max_chunk_rms_error": 3.0059380842774883e-05,
+            "max_normalized_rms": 8.077213001327907e-06,
+            "max_normalized_peak": 0.0002263454082980547,
+            "legacy_element_scaled_max": 24.940532772605735,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.04693031311035156,
+            "max_chunk_rms_error": 0.0006539324136120199,
+            "max_normalized_rms": 0.0006539324136120199,
+            "max_normalized_peak": 0.004697038174292473,
+            "legacy_element_scaled_max": 94.19908500931439,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 2.831948222592473e-07,
+            "max_chunk_rms_error": 9.68886739160123e-09,
+            "max_normalized_rms": 9.68886739160123e-09,
+            "max_normalized_peak": 2.831948222592473e-07,
+            "legacy_element_scaled_max": 0.0028318695028976067,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 4.897592589259148e-07,
+            "max_chunk_rms_error": 1.4884783214760193e-07,
+            "max_normalized_rms": 1.4884783214760193e-07,
+            "max_normalized_peak": 4.897592589259148e-07,
+            "legacy_element_scaled_max": 0.004897244444515118,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01636803150177002,
+            "max_chunk_rms_error": 0.0001673464131349268,
+            "max_normalized_rms": 4.5416050727154255e-05,
+            "max_normalized_peak": 0.0005488923858949852,
+            "legacy_element_scaled_max": 69.72184485103375,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11395856738090515,
+            "max_chunk_rms_error": 0.0014847832179566173,
+            "max_normalized_rms": 0.0014847832179566173,
+            "max_normalized_peak": 0.011792014983787416,
+            "legacy_element_scaled_max": 784.4660252334555,
+            "first_failing_chunk": 21
+          },
+          "out_synthesis": {
+            "max_error": 3.491695679258555e-07,
+            "max_chunk_rms_error": 2.060829231771379e-08,
+            "max_normalized_rms": 2.060829231771379e-08,
+            "max_normalized_peak": 3.491695679258555e-07,
+            "legacy_element_scaled_max": 0.0034915869820052355,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.376418982194449e-08,
+            "max_normalized_rms": 3.376418982194449e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744376090952004,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/cpu-repro.json",
+      "sha256": "adfba21e0925bb458291fc84342258d77cdaffb02a69b6b5ef0971f3d4753409",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 0.988,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "reset_and_clone_pass": true,
+      "state_shapes": [
+        [
+          1,
+          512,
+          510
+        ],
+        [
+          1,
+          2,
+          13,
+          256
+        ],
+        [
+          1,
+          512,
+          4
+        ],
+        [
+          1,
+          1,
+          24
+        ]
+      ],
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 4.853063728660345e-08,
+            "max_chunk_rms_error": 1.531037816875128e-08,
+            "max_normalized_rms": 1.531037816875128e-08,
+            "max_normalized_peak": 4.853063728660345e-08,
+            "legacy_element_scaled_max": 0.00048527475405153655,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.007016181945800781,
+            "max_chunk_rms_error": 3.0059380842774883e-05,
+            "max_normalized_rms": 8.077213001327907e-06,
+            "max_normalized_peak": 0.00018679251027514714,
+            "legacy_element_scaled_max": 19.73892034252887,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.023223161697387695,
+            "max_chunk_rms_error": 0.00030334139507205064,
+            "max_normalized_rms": 0.00030334139507205064,
+            "max_normalized_peak": 0.002403047677768539,
+            "legacy_element_scaled_max": 68.67134397444823,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 7.311973604373634e-08,
+            "max_chunk_rms_error": 3.974197856276684e-09,
+            "max_normalized_rms": 3.974197856276684e-09,
+            "max_normalized_peak": 7.311973604373634e-08,
+            "legacy_element_scaled_max": 0.000731174598102952,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.304568751207189e-08,
+            "max_normalized_rms": 3.304568751207189e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744313518267112,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 4.892717697657645e-07,
+            "max_chunk_rms_error": 1.487270344112859e-07,
+            "max_normalized_rms": 1.487270344112859e-07,
+            "max_normalized_peak": 4.892717697657645e-07,
+            "legacy_element_scaled_max": 0.004892369899444662,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01636803150177002,
+            "max_chunk_rms_error": 0.0001673464131349268,
+            "max_normalized_rms": 4.5416050727154255e-05,
+            "max_normalized_peak": 0.0005488923858949852,
+            "legacy_element_scaled_max": 69.72184485103375,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11395856738090515,
+            "max_chunk_rms_error": 0.0014847827518529057,
+            "max_normalized_rms": 0.0014847827518529057,
+            "max_normalized_peak": 0.011792014983787416,
+            "legacy_element_scaled_max": 784.4660252334555,
+            "first_failing_chunk": 21
+          },
+          "out_synthesis": {
+            "max_error": 3.484710759948939e-07,
+            "max_chunk_rms_error": 1.6957699072698107e-08,
+            "max_normalized_rms": 1.6957699072698107e-08,
+            "max_normalized_peak": 3.484710759948939e-07,
+            "legacy_element_scaled_max": 0.0034846022801376915,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.304568751207189e-08,
+            "max_normalized_rms": 3.304568751207189e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744313518267112,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/cpu-trace.json",
+      "sha256": "2d50a92a4973f9b16515d6311c1ccd4a8c8c57bee82c1a5ad98d0cf2683f6db8",
+      "backend": "cpu",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 0.988,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 4.853063728660345e-08,
+            "max_chunk_rms_error": 1.531037816875128e-08,
+            "max_normalized_rms": 1.531037816875128e-08,
+            "max_normalized_peak": 4.853063728660345e-08,
+            "legacy_element_scaled_max": 0.00048527475405153655,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.007016181945800781,
+            "max_chunk_rms_error": 3.0059380842774883e-05,
+            "max_normalized_rms": 8.077213001327907e-06,
+            "max_normalized_peak": 0.00018679251027514714,
+            "legacy_element_scaled_max": 19.73892034252887,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.023223161697387695,
+            "max_chunk_rms_error": 0.00030334139507205064,
+            "max_normalized_rms": 0.00030334139507205064,
+            "max_normalized_peak": 0.002403047677768539,
+            "legacy_element_scaled_max": 68.67134397444823,
+            "first_failing_chunk": 39
+          },
+          "out_synthesis": {
+            "max_error": 7.311973604373634e-08,
+            "max_chunk_rms_error": 3.974197856276684e-09,
+            "max_normalized_rms": 3.974197856276684e-09,
+            "max_normalized_peak": 7.311973604373634e-08,
+            "legacy_element_scaled_max": 0.000731174598102952,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.304568751207189e-08,
+            "max_normalized_rms": 3.304568751207189e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744313518267112,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 4.892717697657645e-07,
+            "max_chunk_rms_error": 1.487270344112859e-07,
+            "max_normalized_rms": 1.487270344112859e-07,
+            "max_normalized_peak": 4.892717697657645e-07,
+            "legacy_element_scaled_max": 0.004892369899444662,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.01636803150177002,
+            "max_chunk_rms_error": 0.0001673464131349268,
+            "max_normalized_rms": 4.5416050727154255e-05,
+            "max_normalized_peak": 0.0005488923858949852,
+            "legacy_element_scaled_max": 69.72184485103375,
+            "first_failing_chunk": null
+          },
+          "out_decoder": {
+            "max_error": 0.11395856738090515,
+            "max_chunk_rms_error": 0.0014847827518529057,
+            "max_normalized_rms": 0.0014847827518529057,
+            "max_normalized_peak": 0.011792014983787416,
+            "legacy_element_scaled_max": 784.4660252334555,
+            "first_failing_chunk": 21
+          },
+          "out_synthesis": {
+            "max_error": 3.484710759948939e-07,
+            "max_chunk_rms_error": 1.6957699072698107e-08,
+            "max_normalized_rms": 1.6957699072698107e-08,
+            "max_normalized_peak": 3.484710759948939e-07,
+            "legacy_element_scaled_max": 0.0034846022801376915,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 8.940696716308594e-08,
+            "max_chunk_rms_error": 3.304568751207189e-08,
+            "max_normalized_rms": 3.304568751207189e-08,
+            "max_normalized_peak": 8.940696716308594e-08,
+            "legacy_element_scaled_max": 0.0008744313518267112,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": [
+        {
+          "chunk": 39,
+          "operators": {
+            "/net/convnet_pre/down_convs.0/filter/Conv_output_0": {
+              "rms": 1.8148447976951908e-08,
+              "max": 2.9802322387695312e-08,
+              "normalized_rms": 1.8148447976951908e-08,
+              "normalized_max": 2.9802322387695312e-08,
+              "element_scaled_max": 0.0002107460951277526,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.0/gate/Conv_output_0": {
+              "rms": 1.783995329943098e-08,
+              "max": 2.9802322387695312e-08,
+              "normalized_rms": 1.783995329943098e-08,
+              "normalized_max": 2.9802322387695312e-08,
+              "element_scaled_max": 0.00021477363395914787,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.1/filter/Conv_output_0": {
+              "rms": 1.8676055978259168e-08,
+              "max": 4.470348358154297e-08,
+              "normalized_rms": 1.8676055978259168e-08,
+              "normalized_max": 4.470348358154297e-08,
+              "element_scaled_max": 0.00039471389156990985,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.1/gate/Conv_output_0": {
+              "rms": 7.578623740975321e-08,
+              "max": 2.384185791015625e-07,
+              "normalized_rms": 6.659246969538676e-08,
+              "normalized_max": 2.0949482940574172e-07,
+              "element_scaled_max": 0.0011151172317170116,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.2/filter/Conv_output_0": {
+              "rms": 1.945253233454214e-08,
+              "max": 5.960464477539063e-08,
+              "normalized_rms": 1.945253233454214e-08,
+              "normalized_max": 5.960464477539063e-08,
+              "element_scaled_max": 0.0005279118475903714,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.2/gate/Conv_output_0": {
+              "rms": 6.107658604359388e-08,
+              "max": 1.1920928955078125e-07,
+              "normalized_rms": 6.107658604359388e-08,
+              "normalized_max": 1.1920928955078125e-07,
+              "element_scaled_max": 0.000745809566402353,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.3/filter/Conv_output_0": {
+              "rms": 1.2760592081810164e-08,
+              "max": 4.470348358154297e-08,
+              "normalized_rms": 1.2760592081810164e-08,
+              "normalized_max": 4.470348358154297e-08,
+              "element_scaled_max": 0.0003815015542564071,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.3/gate/Conv_output_0": {
+              "rms": 3.9612058872733286e-08,
+              "max": 1.1920928955078125e-07,
+              "normalized_rms": 3.9612058872733286e-08,
+              "normalized_max": 1.1920928955078125e-07,
+              "element_scaled_max": 0.0006096624920637185,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.4/filter/Conv_output_0": {
+              "rms": 1.7044305738581706e-08,
+              "max": 4.470348358154297e-08,
+              "normalized_rms": 1.7044305738581706e-08,
+              "normalized_max": 4.470348358154297e-08,
+              "element_scaled_max": 0.000391549837657564,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.4/gate/Conv_output_0": {
+              "rms": 4.0352535270829797e-08,
+              "max": 1.1920928955078125e-07,
+              "normalized_rms": 4.0352535270829797e-08,
+              "normalized_max": 1.1920928955078125e-07,
+              "element_scaled_max": 0.0006298979288200222,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.5/filter/Conv_output_0": {
+              "rms": 5.427514862874244e-08,
+              "max": 1.7881393432617188e-07,
+              "normalized_rms": 5.427514862874244e-08,
+              "normalized_max": 1.7881393432617188e-07,
+              "element_scaled_max": 0.0009787654231408465,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.5/gate/Conv_output_0": {
+              "rms": 4.318766816314888e-08,
+              "max": 1.1920928955078125e-07,
+              "normalized_rms": 4.318766816314888e-08,
+              "normalized_max": 1.1920928955078125e-07,
+              "element_scaled_max": 0.0006916413278102545,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.6/filter/Conv_output_0": {
+              "rms": 3.3993486603524754e-08,
+              "max": 7.450580596923828e-08,
+              "normalized_rms": 3.3993486603524754e-08,
+              "normalized_max": 7.450580596923828e-08,
+              "element_scaled_max": 0.0006159543181668421,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.6/gate/Conv_output_0": {
+              "rms": 1.243004575991849e-08,
+              "max": 2.9802322387695312e-08,
+              "normalized_rms": 1.243004575991849e-08,
+              "normalized_max": 2.9802322387695312e-08,
+              "element_scaled_max": 0.0002482911824911017,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.7/filter/Conv_output_0": {
+              "rms": 4.3834906002304656e-08,
+              "max": 1.387670636177063e-07,
+              "normalized_rms": 4.3834906002304656e-08,
+              "normalized_max": 1.387670636177063e-07,
+              "element_scaled_max": 0.001375602511245659,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.7/gate/Conv_output_0": {
+              "rms": 1.9806029436366643e-08,
+              "max": 5.960464477539063e-08,
+              "normalized_rms": 1.9806029436366643e-08,
+              "normalized_max": 5.960464477539063e-08,
+              "element_scaled_max": 0.0004158151724843956,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.8/filter/Conv_output_0": {
+              "rms": 3.008042162386529e-08,
+              "max": 7.450580596923828e-08,
+              "normalized_rms": 3.008042162386529e-08,
+              "normalized_max": 7.450580596923828e-08,
+              "element_scaled_max": 0.0006462866546808067,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.8/gate/Conv_output_0": {
+              "rms": 1.7206378853011898e-08,
+              "max": 2.9802322387695312e-08,
+              "normalized_rms": 1.7206378853011898e-08,
+              "normalized_max": 2.9802322387695312e-08,
+              "element_scaled_max": 0.0002324030942426851,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.9/filter/Conv_output_0": {
+              "rms": 3.0671493948326394e-08,
+              "max": 7.82310962677002e-08,
+              "normalized_rms": 3.0671493948326394e-08,
+              "normalized_max": 7.82310962677002e-08,
+              "element_scaled_max": 0.0007558432541329698,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.9/gate/Conv_output_0": {
+              "rms": 6.955884483714954e-09,
+              "max": 2.2351741790771484e-08,
+              "normalized_rms": 6.955884483714954e-09,
+              "normalized_max": 2.2351741790771484e-08,
+              "element_scaled_max": 0.00021768167474484873,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.10/filter/Conv_output_0": {
+              "rms": 1.3974494456261702e-08,
+              "max": 2.60770320892334e-08,
+              "normalized_rms": 1.3974494456261702e-08,
+              "normalized_max": 2.60770320892334e-08,
+              "element_scaled_max": 0.00025412779412965086,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.10/gate/Conv_output_0": {
+              "rms": 0.0,
+              "max": 0.0,
+              "normalized_rms": 0.0,
+              "normalized_max": 0.0,
+              "element_scaled_max": 0.0,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.11/filter/Conv_output_0": {
+              "rms": 2.0527160843983427e-08,
+              "max": 2.9802322387695312e-08,
+              "normalized_rms": 2.0527160843983427e-08,
+              "normalized_max": 2.9802322387695312e-08,
+              "element_scaled_max": 0.0002890333177538955,
+              "pass": true
+            },
+            "/net/convnet_pre/down_convs.11/gate/Conv_output_0": {
+              "rms": 0.0,
+              "max": 0.0,
+              "normalized_rms": 0.0,
+              "normalized_max": 0.0,
+              "element_scaled_max": 0.0,
+              "pass": true
+            },
+            "/net/in_conv/in_conv.0/Conv_output_0": {
+              "rms": 6.302774546726888e-10,
+              "max": 5.300535121932626e-09,
+              "normalized_rms": 6.302774546726888e-10,
+              "normalized_max": 5.300535121932626e-09,
+              "element_scaled_max": 5.300345009249739e-05,
+              "pass": true
+            },
+            "/net/label_embedding/label_embedding.0/Gemm_output_0": {
+              "rms": 0.0,
+              "max": 0.0,
+              "normalized_rms": 0.0,
+              "normalized_max": 0.0,
+              "element_scaled_max": 0.0,
+              "pass": true
+            },
+            "/net/label_embedding/label_embedding.1/LayerNormalization_output_0": {
+              "rms": 3.948401340090666e-07,
+              "max": 7.152557373046875e-07,
+              "normalized_rms": 3.418110338461886e-07,
+              "normalized_max": 1.3600304284141185e-07,
+              "element_scaled_max": 0.003273544587532291,
+              "pass": true
+            },
+            "/net/label_embedding/label_embedding.3/Gemm_output_0": {
+              "rms": 2.6886386102503542e-05,
+              "max": 9.1552734375e-05,
+              "normalized_rms": 1.2782290123310374e-07,
+              "normalized_max": 2.2798221829890155e-07,
+              "element_scaled_max": 0.003021694634339066,
+              "pass": true
+            },
+            "/net/label_embedding/label_embedding.4/LayerNormalization_output_0": {
+              "rms": 2.630607350911642e-06,
+              "max": 2.765655517578125e-05,
+              "normalized_rms": 2.630607350911642e-06,
+              "normalized_max": 3.315022217507524e-06,
+              "element_scaled_max": 0.029602010160226493,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_0/layers/layers.0/Conv_output_0": {
+              "rms": 7.350941440178752e-09,
+              "max": 1.1920928955078125e-07,
+              "normalized_rms": 7.350941440178752e-09,
+              "normalized_max": 1.1920928955078125e-07,
+              "element_scaled_max": 0.0009308282232609179,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_0/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 2.994940305890677e-07,
+              "max": 9.5367431640625e-06,
+              "normalized_rms": 1.6218625104804993e-07,
+              "normalized_max": 4.191019985297902e-07,
+              "element_scaled_max": 0.004191555775565661,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_0/layers/layers.3/Conv_output_0": {
+              "rms": 4.885592561716258e-06,
+              "max": 4.9591064453125e-05,
+              "normalized_rms": 3.7045544929155473e-07,
+              "normalized_max": 1.128929085711596e-06,
+              "element_scaled_max": 0.0323584578383619,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_0/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 2.4348007955439077e-07,
+              "max": 4.76837158203125e-06,
+              "normalized_rms": 2.4348007955439077e-07,
+              "normalized_max": 9.483623347277105e-07,
+              "element_scaled_max": 0.007910559418149875,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_1/layers/layers.0/Conv_output_0": {
+              "rms": 9.827037450735091e-08,
+              "max": 1.6242265701293945e-06,
+              "normalized_rms": 9.827037450735091e-08,
+              "normalized_max": 1.6242265701293945e-06,
+              "element_scaled_max": 0.01497909214196139,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_1/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 2.449539718683924e-06,
+              "max": 4.673004150390625e-05,
+              "normalized_rms": 1.8131089371314821e-06,
+              "normalized_max": 5.463666229313194e-06,
+              "element_scaled_max": 0.19516263569698195,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_1/layers/layers.3/Conv_output_0": {
+              "rms": 1.1148025825300608e-05,
+              "max": 8.0108642578125e-05,
+              "normalized_rms": 9.120157616004099e-07,
+              "normalized_max": 1.8593895942714509e-06,
+              "element_scaled_max": 0.17330518437005382,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_1/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 9.711321437327256e-07,
+              "max": 7.152557373046875e-06,
+              "normalized_rms": 9.711321437327256e-07,
+              "normalized_max": 1.2712878204948378e-06,
+              "element_scaled_max": 0.051592054244808616,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_2/layers/layers.0/Conv_output_0": {
+              "rms": 4.326550430932396e-07,
+              "max": 5.170702934265137e-06,
+              "normalized_rms": 4.326550430932396e-07,
+              "normalized_max": 5.170702934265137e-06,
+              "element_scaled_max": 0.042710812168248846,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_2/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 4.306896931292308e-06,
+              "max": 6.628036499023438e-05,
+              "normalized_rms": 3.5639782991753526e-06,
+              "normalized_max": 8.533672551933383e-06,
+              "element_scaled_max": 0.38074496033774224,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_2/layers/layers.3/Conv_output_0": {
+              "rms": 2.8812311666867595e-05,
+              "max": 0.000293731689453125,
+              "normalized_rms": 1.3626220235975873e-06,
+              "normalized_max": 1.8300376968752178e-06,
+              "element_scaled_max": 0.6440315398533019,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_2/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 1.9747896567892372e-06,
+              "max": 2.3365020751953125e-05,
+              "normalized_rms": 1.9237942418598272e-06,
+              "normalized_max": 1.7609932519457357e-06,
+              "element_scaled_max": 0.21819429800614146,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_3/layers/layers.0/Conv_output_0": {
+              "rms": 1.099476259042578e-06,
+              "max": 1.9997358322143555e-05,
+              "normalized_rms": 1.099476259042578e-06,
+              "normalized_max": 5.169207657071035e-06,
+              "element_scaled_max": 0.17686760227695292,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_3/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 6.5326559727830965e-06,
+              "max": 0.00013838708400726318,
+              "normalized_rms": 6.5326559727830965e-06,
+              "normalized_max": 1.4675456707418516e-05,
+              "element_scaled_max": 1.1698401430512824,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_3/layers/layers.3/Conv_output_0": {
+              "rms": 3.4417085565454095e-05,
+              "max": 0.0006275177001953125,
+              "normalized_rms": 3.0686544693844266e-06,
+              "normalized_max": 3.964659053300154e-06,
+              "element_scaled_max": 1.0134977848019706,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_3/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 7.248693116746033e-06,
+              "max": 0.00027430057525634766,
+              "normalized_rms": 7.248693116746033e-06,
+              "normalized_max": 7.830144197158743e-05,
+              "element_scaled_max": 1.0241640254794948,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_4/layers/layers.0/Conv_output_0": {
+              "rms": 4.250526384908962e-06,
+              "max": 0.00014013051986694336,
+              "normalized_rms": 4.250526384908962e-06,
+              "normalized_max": 5.309997231844914e-05,
+              "element_scaled_max": 0.916622604535168,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_4/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 1.9050782690620817e-05,
+              "max": 0.0005960464477539062,
+              "normalized_rms": 1.4632878980816395e-05,
+              "normalized_max": 5.903116911844363e-05,
+              "element_scaled_max": 4.312934641757182,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_4/layers/layers.3/Conv_output_0": {
+              "rms": 0.0001122064169509724,
+              "max": 0.0017385482788085938,
+              "normalized_rms": 7.041796872516866e-06,
+              "normalized_max": 1.309239985254927e-05,
+              "element_scaled_max": 4.797561095878887,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_4/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 1.5124400945709396e-05,
+              "max": 0.00029838085174560547,
+              "normalized_rms": 1.2526342034895222e-05,
+              "normalized_max": 3.846508482911237e-05,
+              "element_scaled_max": 1.9994519060040263,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_5/layers/layers.0/Conv_output_0": {
+              "rms": 7.636440461670691e-06,
+              "max": 0.00017631053924560547,
+              "normalized_rms": 7.636440461670691e-06,
+              "normalized_max": 6.242535021296795e-05,
+              "element_scaled_max": 1.2248347108123263,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_5/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 2.115754978609872e-05,
+              "max": 0.0005202293395996094,
+              "normalized_rms": 1.8009314155206443e-05,
+              "normalized_max": 8.898438556485674e-05,
+              "element_scaled_max": 4.242504843299526,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_5/layers/layers.3/Conv_output_0": {
+              "rms": 0.00016104077667988996,
+              "max": 0.004452228546142578,
+              "normalized_rms": 1.5163019246835944e-05,
+              "normalized_max": 4.454063563785129e-05,
+              "element_scaled_max": 6.617239831708838,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_5/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 4.3264554405378266e-05,
+              "max": 0.0016694068908691406,
+              "normalized_rms": 2.3012355676255015e-05,
+              "normalized_max": 0.00012304367238513393,
+              "element_scaled_max": 16.064361133889165,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_6/layers/layers.0/Conv_output_0": {
+              "rms": 2.266074849716015e-05,
+              "max": 0.0009387731552124023,
+              "normalized_rms": 1.4822998780547386e-05,
+              "normalized_max": 3.991173945811099e-05,
+              "element_scaled_max": 6.0529103035676215,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_6/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 2.6931591769779406e-05,
+              "max": 0.0013308525085449219,
+              "normalized_rms": 2.6870926830701493e-05,
+              "normalized_max": 8.48251177172652e-05,
+              "element_scaled_max": 9.566578973384424,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_6/layers/layers.3/Conv_output_0": {
+              "rms": 0.0002013042466172637,
+              "max": 0.00534588098526001,
+              "normalized_rms": 5.5916046084665765e-05,
+              "normalized_max": 0.00015722034555275147,
+              "element_scaled_max": 31.092380517295062,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_6/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 0.00019011466939719072,
+              "max": 0.005609989166259766,
+              "normalized_rms": 6.9185433879085e-05,
+              "normalized_max": 0.0003100294487130919,
+              "element_scaled_max": 19.517260461964938,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_7/layers/layers.0/Conv_output_0": {
+              "rms": 0.00012067680317969897,
+              "max": 0.007207632064819336,
+              "normalized_rms": 3.309405920230869e-05,
+              "normalized_max": 0.00010352899526923415,
+              "element_scaled_max": 17.236326565985067,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_7/layers/layers.1/LayerNormalization_output_0": {
+              "rms": 4.092808820884968e-05,
+              "max": 0.0025544166564941406,
+              "normalized_rms": 3.971194537443853e-05,
+              "normalized_max": 0.00013379914852090124,
+              "element_scaled_max": 16.074792646390005,
+              "pass": true
+            },
+            "/net/mask_gen/encoder/dcc_7/layers/layers.3/Conv_output_0": {
+              "rms": 0.0002800198033700757,
+              "max": 0.004251360893249512,
+              "normalized_rms": 0.00014357208888657606,
+              "normalized_max": 0.0005220069940125594,
+              "element_scaled_max": 19.55089524956796,
+              "pass": false
+            },
+            "/net/mask_gen/encoder/dcc_7/layers/layers.4/LayerNormalization_output_0": {
+              "rms": 0.0008368079069926956,
+              "max": 0.016450881958007812,
+              "normalized_rms": 0.00018144201062262122,
+              "normalized_max": 0.00040983676664878115,
+              "element_scaled_max": 124.94219122303831,
+              "pass": false
+            },
+            "/net/mask_gen/proj_e2d_e/proj_e2d_e.0/Conv_output_0": {
+              "rms": 0.00045297397340873883,
+              "max": 0.018283843994140625,
+              "normalized_rms": 0.0001336861980462748,
+              "normalized_max": 0.0009701442312801177,
+              "element_scaled_max": 20.561975125072298,
+              "pass": false
+            },
+            "/net/mask_gen/proj_e2d_l/proj_e2d_l.0/Conv_output_0": {
+              "rms": 5.840929896794301e-06,
+              "max": 0.0002377033233642578,
+              "normalized_rms": 5.840929896794301e-06,
+              "normalized_max": 8.826146427451246e-05,
+              "element_scaled_max": 0.6592955179411041,
+              "pass": true
+            },
+            "/net/mask_gen/decoder/tf_dec_layers.0/norm1/LayerNormalization_output_0": {
+              "rms": 4.207766158374493e-05,
+              "max": 0.0007398128509521484,
+              "normalized_rms": 3.808647422284138e-05,
+              "normalized_max": 7.225963877911902e-05,
+              "element_scaled_max": 4.131716553505838,
+              "pass": true
+            },
+            "/net/mask_gen/decoder/tf_dec_layers.0/norm2/LayerNormalization_output_0": {
+              "rms": 0.00010049213573291937,
+              "max": 0.00342559814453125,
+              "normalized_rms": 3.434264552779113e-05,
+              "normalized_max": 0.00015957560707367745,
+              "element_scaled_max": 2.5867292436222216,
+              "pass": true
+            },
+            "/net/mask_gen/decoder/tf_dec_layers.0/norm3/LayerNormalization_output_0": {
+              "rms": 1.594763448869742e-05,
+              "max": 0.00033783912658691406,
+              "normalized_rms": 1.594763448869742e-05,
+              "normalized_max": 5.748151302051599e-05,
+              "element_scaled_max": 1.182093787465255,
+              "pass": true
+            },
+            "/net/mask_gen/proj_d2e/proj_d2e.0/Conv_output_0": {
+              "rms": 5.4558156449469285e-06,
+              "max": 0.00019252300262451172,
+              "normalized_rms": 5.4558156449469285e-06,
+              "normalized_max": 8.2390392719036e-05,
+              "element_scaled_max": 0.7151136773926043,
+              "pass": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/directml-original.json",
+      "sha256": "7d031f88ad5c962582530c36aca94b22c30a59a80e30dfc08139223e026998c2",
+      "backend": "directml",
+      "optimization": "all",
+      "mkldnn": "on",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "seconds": 4.03,
+      "hop": 208,
+      "case": "quiet_speech",
+      "pass": false,
+      "modes": {
+        "identical_input": {
+          "converted": {
+            "max_error": 3.7193967727944255e-06,
+            "max_chunk_rms_error": 7.022898334429719e-07,
+            "max_normalized_rms": 7.022898334429719e-07,
+            "max_normalized_peak": 3.7193967727944255e-06,
+            "legacy_element_scaled_max": 0.03719227939072458,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.0847388505935669,
+            "max_chunk_rms_error": 0.0003146649178592449,
+            "max_normalized_rms": 8.537358823412615e-05,
+            "max_normalized_peak": 0.002833018089905402,
+            "legacy_element_scaled_max": 379.5463252088261,
+            "first_failing_chunk": 29
+          },
+          "out_decoder": {
+            "max_error": 0.5878307819366455,
+            "max_chunk_rms_error": 0.007334251110600429,
+            "max_normalized_rms": 0.007334251110600429,
+            "max_normalized_peak": 0.058833266598675264,
+            "legacy_element_scaled_max": 1688.0785921994043,
+            "first_failing_chunk": 9
+          },
+          "out_synthesis": {
+            "max_error": 2.0017068891320378e-06,
+            "max_chunk_rms_error": 1.3647587307530893e-07,
+            "max_normalized_rms": 1.3647587307530893e-07,
+            "max_normalized_peak": 2.0017068891320378e-06,
+            "legacy_element_scaled_max": 0.020016860998819337,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 1.1920928955078125e-07,
+            "max_chunk_rms_error": 5.3100702349244414e-08,
+            "max_normalized_rms": 5.3100702349244414e-08,
+            "max_normalized_peak": 1.1920928955078125e-07,
+            "legacy_element_scaled_max": 0.0011659084521104997,
+            "first_failing_chunk": null
+          }
+        },
+        "free_running": {
+          "converted": {
+            "max_error": 1.6307822079397738e-06,
+            "max_chunk_rms_error": 5.332812920940238e-07,
+            "max_normalized_rms": 5.332812920940238e-07,
+            "max_normalized_peak": 1.6307822079397738e-06,
+            "legacy_element_scaled_max": 0.016306951816289758,
+            "first_failing_chunk": null
+          },
+          "out_encoder": {
+            "max_error": 0.13477617502212524,
+            "max_chunk_rms_error": 0.0014710257893477915,
+            "max_normalized_rms": 0.0003980052617321314,
+            "max_normalized_peak": 0.00423609808506104,
+            "legacy_element_scaled_max": 678.073320546764,
+            "first_failing_chunk": 11
+          },
+          "out_decoder": {
+            "max_error": 0.7420046329498291,
+            "max_chunk_rms_error": 0.009244691459790857,
+            "max_normalized_rms": 0.009244691459790857,
+            "max_normalized_peak": 0.07426381490939755,
+            "legacy_element_scaled_max": 2461.350869896744,
+            "first_failing_chunk": 3
+          },
+          "out_synthesis": {
+            "max_error": 2.393988552285009e-06,
+            "max_chunk_rms_error": 9.245703089115732e-08,
+            "max_normalized_rms": 9.245703089115732e-08,
+            "max_normalized_peak": 2.393988552285009e-06,
+            "legacy_element_scaled_max": 0.023939828211175407,
+            "first_failing_chunk": null
+          },
+          "out_prenet": {
+            "max_error": 1.1920928955078125e-07,
+            "max_chunk_rms_error": 5.3100702349244414e-08,
+            "max_normalized_rms": 5.3100702349244414e-08,
+            "max_normalized_peak": 1.1920928955078125e-07,
+            "legacy_element_scaled_max": 0.0011659084521104997,
+            "first_failing_chunk": null
+          }
+        }
+      },
+      "operator_traces": []
+    },
+    {
+      "file": "dist/voice-feasibility/diagnostics/native-cpu-step.json",
+      "sha256": "213f160c36a93f00f49d6230c6f199ba6779d6573ae49731f2970270083b0187",
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 216.307,
+      "first_chunk_ms": 8.5069,
+      "mean_ms": 8.5069,
+      "p99_ms": 8.5069,
+      "max_ms": 8.5069,
+      "timing_pass": false,
+      "warm_measurements": 0,
+      "parity_pass": false,
+      "all_final_tensor_states_pass": false,
+      "max_audio_error": 7.93807e-09,
+      "max_audio_rms": 3.0378315889733567e-09,
+      "failing_final_states": [
+        {
+          "case": "quiet_speech-chunk-39",
+          "name": "out_decoder",
+          "max_error": 0.009815692901611328,
+          "rms_error": 0.00013101341990353236,
+          "normalized_max_error": 0.0009801199207790756,
+          "normalized_rms_error": 0.00013101341990353236,
+          "legacy_element_scaled_max": 11.283439900677225,
+          "tensor_pass": false
+        }
+      ]
+    }
+  ]
+}

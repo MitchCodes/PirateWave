@@ -1,0 +1,1387 @@
+{
+  "schema": 1,
+  "training_enabled": true,
+  "release_qualified": false,
+  "scope": "Local CPU/CUDA Voice Creation Beta; current experimental quality accepted for release by user. Full acceptance remains distinct from Beta availability.",
+  "beta_workflows": {
+    "cpu": {
+      "backend": "cpu",
+      "clean_windows_qualified": false,
+      "import_training_export_install_pass": true,
+      "listening_quality": "Current Beta quality accepted by user; not improved",
+      "live_pipeline": {
+        "finite_output": true,
+        "first_ready_ms": 88.4299,
+        "maximum_inference_ms": 11.3,
+        "nonzero_output": true,
+        "pass": true,
+        "seconds": 30,
+        "underruns": 0
+      },
+      "schema": 1,
+      "native": {
+        "schema": 1,
+        "model_sha256": "c6430e2d5ef92835038f09f7afa8f6483e26febfbf44a1058580b3e1c07f2973",
+        "checkpoint_sha256": "eada748fd69affb4a36c21f493df75ca965e76aa1d0dc299425b494f1ca1f4de",
+        "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 8.164855379174208,
+        "diagnostic_p99_ms": 12.201171001179318,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 6.5773843916325685,
+        "native_p99_ms": 7.135737001772213,
+        "timing_pass": true,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ],
+        "worst_native_errors": {
+          "audio": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "encoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "decoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "synthesis": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "prenet": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          }
+        }
+      },
+      "stages": {
+        "teacher": {
+          "optimizer_steps": 250,
+          "resumed_from": 45,
+          "mean_step_seconds": 3.779711079512167,
+          "max_step_seconds": 6.396849900000234,
+          "checkpoint_bytes": 1095262861,
+          "checkpoint_sha256": "f499cffbd1b0b35e30ec18d5e3bf29a52e81ad7f99f9b1b418ac61e043073620",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "llvc": {
+          "optimizer_steps": 1000,
+          "resumed_from": 0,
+          "mean_step_seconds": 2.9449341883000124,
+          "max_step_seconds": 12.393102800000634,
+          "checkpoint_bytes": 896660588,
+          "checkpoint_sha256": "61d55ecd7e1b349a8f7285bbcaf4a8948bd092be7505858f6d04ab4ad3942cbb",
+          "finite_gradients": true,
+          "quality_accepted": false
+        }
+      },
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "torch": "2.5.1+cpu",
+      "gpu": null,
+      "gpu_peak_allocated_bytes": null,
+      "threads": 2,
+      "dataset_sha256": "cd0445514e5b9edd6ee7aeb1893d68e4431b7ebe11866258c4330215579393f5",
+      "preparation_and_training_elapsed_seconds": 4576.1032237,
+      "source_pairs": {
+        "count": 100,
+        "duration_seconds": 549.46,
+        "target_recording_seconds": 14.55,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "recipe_identity": "llvc-beta-no-f0-250-1000-v1",
+      "cpu_identifier": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+      "logical_processors": "20",
+      "installed_runtime_manifest_sha256": "d1ed482d08b5d7cc77987e071286024245eff88ba54f4579f79e47ecc8cfd774",
+      "shared_manifest_sha256": "c5c4cca20a8c28e35d56ff76b44735dabb236a493b546972fa3059a608d15872",
+      "cpu_reference_estimate_note": "Mean update cost excludes preparation, checkpoint I/O, export and any paused time; this is not a promised completion time."
+    },
+    "cuda": {
+      "backend": "cuda",
+      "clean_windows_qualified": false,
+      "import_training_export_install_pass": true,
+      "listening_quality": "Current Beta quality accepted by user; not improved",
+      "live_pipeline": {
+        "finite_output": true,
+        "first_ready_ms": 88.91350000000001,
+        "maximum_inference_ms": 11.779,
+        "nonzero_output": true,
+        "pass": true,
+        "seconds": 30,
+        "underruns": 0
+      },
+      "schema": 1,
+      "native": {
+        "schema": 1,
+        "model_sha256": "82a532a14ab544afaadeec59ff3b7baadaed3e6114a12029d46546543b3465ce",
+        "checkpoint_sha256": "247f480fa8ac98040e4ebc1739900a99b38ead5147af4c58667efcb7208b18b9",
+        "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 8.004075573203497,
+        "diagnostic_p99_ms": 8.990490999312899,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 6.568807319239074,
+        "native_p99_ms": 7.498489999852613,
+        "timing_pass": true,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ],
+        "worst_native_errors": {
+          "audio": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "encoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "decoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "synthesis": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "prenet": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          }
+        }
+      },
+      "stages": {
+        "teacher": {
+          "optimizer_steps": 250,
+          "resumed_from": 50,
+          "mean_step_seconds": 0.32190133900001455,
+          "max_step_seconds": 0.739820899998449,
+          "checkpoint_bytes": 1095287372,
+          "checkpoint_sha256": "d0da7933add4079c479e37352f2bb4573dba6d1be885d9992dc7939b9686a1de",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "llvc": {
+          "optimizer_steps": 1000,
+          "resumed_from": 0,
+          "mean_step_seconds": 0.19223764239994853,
+          "max_step_seconds": 0.5766766000015195,
+          "checkpoint_bytes": 896671083,
+          "checkpoint_sha256": "bf59e2a9c2b9565d390b82bf430f6bdf4561581164877a24a15365c8716df907",
+          "finite_gradients": true,
+          "quality_accepted": false
+        }
+      },
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "torch": "2.5.1+cu124",
+      "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+      "gpu_peak_allocated_bytes": 2630142464,
+      "threads": 2,
+      "dataset_sha256": "5a6de2600f3ddd1ef265272fa1afd301a57e5d4b97b81737115dda66fa1d5a13",
+      "preparation_and_training_elapsed_seconds": 432.0223049000015,
+      "source_pairs": {
+        "count": 100,
+        "duration_seconds": 549.46,
+        "target_recording_seconds": 14.55,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "recipe_identity": "llvc-beta-no-f0-250-1000-v1",
+      "cpu_identifier": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+      "logical_processors": "20",
+      "installed_runtime_manifest_sha256": "72cf41f1e5a28d5241ed2c752e0287a9ef6beb9ed2424980f884b296eae14a3e",
+      "shared_manifest_sha256": "c5c4cca20a8c28e35d56ff76b44735dabb236a493b546972fa3059a608d15872",
+      "cpu_reference_estimate_note": "Mean update cost excludes preparation, checkpoint I/O, export and any paused time; this is not a promised completion time.",
+      "application_pause_control": {
+        "backend": "cuda",
+        "checkpoint_bytes": 1095287372,
+        "message": "Worker stopped after the five-second pause deadline. Resume uses the previous valid checkpoint.",
+        "pass": true,
+        "seconds": 5.0918887,
+        "status": "paused"
+      }
+    }
+  },
+  "teacher_comparisons": {
+    "schema": 1,
+    "rows": [
+      {
+        "target": "1272",
+        "mode": "no-f0",
+        "exit_code": 0,
+        "elapsed_seconds": 113.50159260000001,
+        "error": null,
+        "accepted": false
+      },
+      {
+        "target": "1272",
+        "mode": "f0",
+        "exit_code": 0,
+        "elapsed_seconds": 377.8282575,
+        "error": null,
+        "accepted": false
+      },
+      {
+        "target": "1462",
+        "mode": "no-f0",
+        "exit_code": 0,
+        "elapsed_seconds": 134.2184158,
+        "error": null,
+        "accepted": false
+      },
+      {
+        "target": "1462",
+        "mode": "f0",
+        "exit_code": 0,
+        "elapsed_seconds": 283.5304399,
+        "error": null,
+        "accepted": false
+      },
+      {
+        "target": "1673",
+        "mode": "no-f0",
+        "exit_code": 0,
+        "elapsed_seconds": 107.3648371,
+        "error": null,
+        "accepted": false
+      },
+      {
+        "target": "1673",
+        "mode": "f0",
+        "exit_code": 0,
+        "elapsed_seconds": 263.5374734,
+        "error": null,
+        "accepted": false
+      }
+    ],
+    "accepted": false
+  },
+  "llvc_comparisons": {
+    "schema": 1,
+    "rows": [
+      {
+        "target": "1272",
+        "teacher": "no-f0",
+        "llvc_steps": 500,
+        "native_waveform_state_pass": true,
+        "accepted": false
+      },
+      {
+        "target": "1462",
+        "teacher": "no-f0",
+        "llvc_steps": 500,
+        "native_waveform_state_pass": true,
+        "accepted": false
+      },
+      {
+        "target": "1673",
+        "teacher": "no-f0",
+        "llvc_steps": 500,
+        "native_waveform_state_pass": true,
+        "accepted": false
+      }
+    ],
+    "accepted": false
+  },
+  "listening": {
+    "schema": 1,
+    "release_accepted": false,
+    "beta_quality_accepted": true,
+    "beta_quality_acceptance": "User requested releasing the existing training process and finishing LLVC on October 21, 2026. This accepts the current experimental quality for Beta availability; it does not claim improved quality or completed technical qualification.",
+    "reviews": [
+      {
+        "target_speaker": "1272",
+        "source_clip_index": 3,
+        "stage": "teacher",
+        "training_steps": 250,
+        "preferred_variant": "no-f0",
+        "user_response": "Version without pitch conditioning",
+        "interpretation": "Preference between these two experimental samples; not final quality or release acceptance.",
+        "remaining": [
+          "Other target speakers",
+          "LLVC output",
+          "Personal voice trial",
+          "Final voice-quality acceptance"
+        ]
+      },
+      {
+        "stage": "llvc_native_streaming",
+        "teacher_variant": "no-f0",
+        "teacher_training_steps": 250,
+        "llvc_training_steps": 500,
+        "ranked_targets": [
+          "1462",
+          "1673",
+          "1272"
+        ],
+        "user_response": "Target 1462 seemed the most convincing although it is still plainly AI. 1272 was the worst and sounded much more robotic and target 1673 was somewhere in the middle.",
+        "interpretation": "1462 is the preferred experimental candidate; artificial and robotic sound remains a quality concern. Relative preference does not establish final listening acceptance, intelligibility, or absence of chopped syllables.",
+        "release_accepted": false,
+        "remaining": [
+          "Improve and re-evaluate candidate quality",
+          "Personal voice trial",
+          "Final voice-quality acceptance"
+        ]
+      },
+      {
+        "stage": "pipeline_artifact_diagnosis",
+        "targets": [
+          "1462",
+          "1272"
+        ],
+        "user_response": "Teacher sounds acceptable; LLVC makes it worse",
+        "interpretation": "Prioritize LLVC duration experiments while holding teacher, paired data and initialization fixed. This identifies the perceived degradation stage, not its underlying cause or final release acceptance.",
+        "release_accepted": false
+      },
+      {
+        "stage": "llvc_duration",
+        "target_speaker": "1462",
+        "baseline_steps": 500,
+        "candidate_steps": 1000,
+        "user_response": "About the same",
+        "interpretation": "No perceived improvement from doubling LLVC updates with the teacher and data fixed. Do not advance this unchanged recipe to 5,000 updates. Investigate training context and recipe differences first.",
+        "release_accepted": false
+      },
+      {
+        "stage": "llvc_context",
+        "target_speaker": "1462",
+        "training_steps": 1000,
+        "baseline_context_samples": 10240,
+        "candidate_context_samples": 65536,
+        "user_response": "About the same",
+        "interpretation": "No perceived improvement from the longer generator context at the tested budget. Neither duration nor context experiments establish a quality fix. Retain both as negative results; do not advance budgets or accept the recipe based on numerical parity.",
+        "release_accepted": false
+      },
+      {
+        "stage": "pretrained_baseline",
+        "target_speaker": "1462",
+        "user_response": "Pretrained is clearly cleaner",
+        "interpretation": "On identical held-out source speech, the reviewer finds the untouched pretrained voice cleaner than the adapted candidates. This implicates adaptation quality rather than establishing an inherent LLVC quality ceiling. Different target identities remain a confound; the specific training defect is not established.",
+        "release_accepted": false
+      },
+      {
+        "stage": "discriminator_warmup",
+        "target_speaker": "1462",
+        "joint_training_steps": 1000,
+        "baseline_warmup_steps": 0,
+        "candidate_warmup_steps": 500,
+        "user_response": "About the same",
+        "interpretation": "No perceived improvement from discriminator-only warm-up under the tested conditions. Duration, context and warm-up experiments have not established a quality fix. Retain negative results; do not promote warm-up or escalate this recipe based on numerical checks.",
+        "release_accepted": false
+      }
+    ]
+  },
+  "pretrained_diagnostic": {
+    "comparison": {
+      "schema": 1,
+      "initial_checkpoint_sha256": "cceb7ab9621f84d62d283725ae3281cacb04f762d6a088fe3e97c1a29d4b8c0e",
+      "sources": [
+        {
+          "index": 3,
+          "sha256": "d1e0c5992c973112f0826a232b66a0e342bca996f3293618255b36cc06adf9a4"
+        },
+        {
+          "index": 4,
+          "sha256": "951a062471c31b13b9974de98e31d2c9cd5712a861a0213223d55548a92aca40"
+        },
+        {
+          "index": 5,
+          "sha256": "61ed66f00eef683e4d7ea69174bfd0cbec38db3b36db93ba16bbea69116fd77f"
+        }
+      ],
+      "models": [
+        {
+          "label": "Untouched pretrained voice",
+          "native_model_sha256": "32c65106577c4ca60d8e023362e52e0c0b3026c3f93f863fc4507fb9240d2bc1",
+          "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+          "native_pass": true
+        },
+        {
+          "label": "1462: 500 updates",
+          "native_model_sha256": "67ec5803c81b3d89d981449688d4d3cb19ba51cf7f131294ff5ef82129811ae3",
+          "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+          "native_pass": true,
+          "changed_floating_elements": 3258457,
+          "floating_elements": 3309920,
+          "relative_weight_l2": 0.008224741415982197
+        },
+        {
+          "label": "1462: 1,000 updates, short context",
+          "native_model_sha256": "91654d6fffdcb8ee77eab41de9e5b629cec1c8c42d17d3cc261c5c284f463827",
+          "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+          "native_pass": true,
+          "changed_floating_elements": 3258463,
+          "floating_elements": 3309920,
+          "relative_weight_l2": 0.011596578370188269
+        },
+        {
+          "label": "1462: 1,000 updates, long context",
+          "native_model_sha256": "800ececb9b8784c92b1b257bf212ced5a4ffb786e3ce54127f06f7d479daa69e",
+          "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+          "native_pass": true,
+          "changed_floating_elements": 3258463,
+          "floating_elements": 3309920,
+          "relative_weight_l2": 0.01582237392504479
+        }
+      ],
+      "release_accepted": false,
+      "listening_pending": true,
+      "interpretation": "Weight changes confirm training changed the model; they do not establish perceptual improvement. The pretrained target identity differs from 1462."
+    },
+    "native": {
+      "schema": 1,
+      "model_sha256": "32c65106577c4ca60d8e023362e52e0c0b3026c3f93f863fc4507fb9240d2bc1",
+      "checkpoint_sha256": "cceb7ab9621f84d62d283725ae3281cacb04f762d6a088fe3e97c1a29d4b8c0e",
+      "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+      "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+      "seconds": 30.004,
+      "waveform_and_state_pass": true,
+      "diagnostic_mean_ms": 7.781930246813845,
+      "diagnostic_p99_ms": 11.566726998607935,
+      "normal_protocol_parity": {
+        "finite": true,
+        "max": 0.0,
+        "rms": 0.0,
+        "normalized_max": 0.0,
+        "normalized_rms": 0.0,
+        "pass": true
+      },
+      "native_mean_ms": 6.658798236355437,
+      "native_p99_ms": 10.346969000420358,
+      "timing_pass": true,
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "pending": [
+        "Representative training/quality evaluation",
+        "Thirty-minute streaming qualification",
+        "Integrated latency/stability qualification",
+        "Clean Windows bundled-runtime qualification"
+      ]
+    }
+  },
+  "adaptation_diagnostics": {
+    "alignment": {
+      "schema": 1,
+      "method": "Three-band log-energy envelope correlation, 5 ms resolution, +/-200 ms search",
+      "interpretation": "Heuristic timing estimates, not phoneme alignment or proof of a training defect. No audio modified.",
+      "release_qualified": false,
+      "summary": {
+        "pairs": 106,
+        "equal_lengths": true,
+        "high_correlation_pairs": 106,
+        "median_delay_ms": 0.0,
+        "p10_p90_delay_ms": [
+          0.0,
+          0.0
+        ],
+        "max_clipping_fraction": 0.0
+      }
+    },
+    "adversarial": {
+      "schema": 1,
+      "release_qualified": false,
+      "note": "Evaluation-mode output and parameter gradients on three held-out center segments, before clipping or Adam preconditioning. Fresh discriminator is independently seeded, not reconstruction of original initialization. Ratios/cosines do not prove perceptual causation.",
+      "trained_checkpoint_sha256": "991d77c1bf6fa398eba78d489f1a844df1cbdcb936efa62d8ce8acbdfe7143c7",
+      "initial_checkpoint_sha256": "cceb7ab9621f84d62d283725ae3281cacb04f762d6a088fe3e97c1a29d4b8c0e",
+      "summary": [
+        {
+          "generator": "pretrained",
+          "discriminator": "fresh_seed42",
+          "median_output_gan_ratio": 5.648225531097773e-05,
+          "median_parameter_gan_ratio": 0.0023124245962799802
+        },
+        {
+          "generator": "pretrained",
+          "discriminator": "adapted_1000",
+          "median_output_gan_ratio": 0.00044380558615656575,
+          "median_parameter_gan_ratio": 0.010261430969628945
+        },
+        {
+          "generator": "adapted_1000",
+          "discriminator": "fresh_seed42",
+          "median_output_gan_ratio": 0.00023203602669164184,
+          "median_parameter_gan_ratio": 0.006700355526652677
+        },
+        {
+          "generator": "adapted_1000",
+          "discriminator": "adapted_1000",
+          "median_output_gan_ratio": 0.002236806832042075,
+          "median_parameter_gan_ratio": 0.018197062069474763
+        }
+      ]
+    }
+  },
+  "warmup_experiment": {
+    "comparison": {
+      "schema": 1,
+      "accepted": false,
+      "comparison": "warmup",
+      "baseline_context_samples": 10240,
+      "candidate_context_samples": 10240,
+      "baseline_warmup_steps": 0,
+      "candidate_warmup_steps": 500,
+      "baseline_report_sha256": "a87d9b2c1487b95533f028499c6a7b5c57e7ac5b1f3c5421c03f696868430b1a",
+      "candidate_report_sha256": "f765f4b3238cdad15ed8f2eb580eb71a50c87114450e7042a909d82f094de81f",
+      "baseline_steps": 1000,
+      "candidate_steps": 1000,
+      "byte_identical_training_pairs": 100,
+      "native_pass": true,
+      "listening_pending": true
+    },
+    "training": {
+      "schema": 1,
+      "backend": "cuda",
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "stage": "export_and_native_validation_pending",
+      "started_utc": "2026-10-21T07:16:40Z",
+      "execution": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "interpreter_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+        "probe_sha256": "79c46cdfa4f24b2443cecda026ea2000cabf73f007cfe0316a1f63a8106b1c5f",
+        "dataset_code_sha256": "12ba56ae05e1bddb965183e3760afade16d820cf620c85f725e7ea103974ce2d",
+        "seed": 42,
+        "teacher_budget": 250,
+        "llvc_budget": 1000
+      },
+      "torch": "2.5.1+cu124",
+      "device": "cuda",
+      "threads": 2,
+      "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+      "gpu_free_bytes_before": 11608784896,
+      "dataset_sha256": "d5dda4cc0c9c1dbdb3df3779a9c89ccd2716ae4130158f28dc24a31a68304aa9",
+      "teacher": {
+        "reused_checkpoint_sha256": "e997baec4fe3564bdb2551be0c422d099281b0793b44749969cbd5129fdf498f",
+        "optimizer_steps": 250,
+        "quality_accepted": false
+      },
+      "pairs": {
+        "count": 100,
+        "duration_seconds": 605.64,
+        "target_recording_seconds": 289.61,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "warmup": {
+        "steps": 500,
+        "resumed_from": 0,
+        "generator_unchanged": true,
+        "elapsed_seconds": 103.24761919999946,
+        "joint_optimizer_policy": "Fresh optimizers and restored pre-warm-up RNG; only discriminator weights carry forward",
+        "checkpoint_sha256": "44505aaa33afc882bf5dc4f2a0eb7c47c1befa0c8dcf47e0821118270ba4ab0d"
+      },
+      "llvc": {
+        "optimizer_steps": 1000,
+        "resumed_from": 0,
+        "mean_step_seconds": 0.20231194139995204,
+        "max_step_seconds": 0.6864784999997937,
+        "checkpoint_bytes": 896673195,
+        "checkpoint_sha256": "03382c325a8f7d060afd4499192512f81f015244e7997eee96ffbd1944637cf6",
+        "finite_gradients": true,
+        "quality_accepted": false
+      },
+      "gpu_peak_allocated_bytes": 2091648512,
+      "elapsed_seconds": 389.74485749999803
+    },
+    "native": {
+      "schema": 1,
+      "model_sha256": "20131a15fd4ea185c1673d980404b79f69645a4c0c7c06d91b584133fc7bf7a9",
+      "checkpoint_sha256": "b55c69ae33b79de6a341ad929bd40f5536323eaae21f896a3b2a02164bcfe570",
+      "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+      "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+      "seconds": 30.004,
+      "waveform_and_state_pass": true,
+      "diagnostic_mean_ms": 8.080411199262658,
+      "diagnostic_p99_ms": 13.03754699907586,
+      "normal_protocol_parity": {
+        "finite": true,
+        "max": 0.0,
+        "rms": 0.0,
+        "normalized_max": 0.0,
+        "normalized_rms": 0.0,
+        "pass": true
+      },
+      "native_mean_ms": 6.907208553854971,
+      "native_p99_ms": 11.007532999683464,
+      "timing_pass": true,
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "pending": [
+        "Representative training/quality evaluation",
+        "Thirty-minute streaming qualification",
+        "Integrated latency/stability qualification",
+        "Clean Windows bundled-runtime qualification"
+      ]
+    }
+  },
+  "duration_experiment": {
+    "comparison": {
+      "schema": 1,
+      "accepted": false,
+      "baseline_report_sha256": "0f006861c8c7ea04de70d76ad8532231247f7304bf6660d036b5d53bf4c00395",
+      "candidate_report_sha256": "a87d9b2c1487b95533f028499c6a7b5c57e7ac5b1f3c5421c03f696868430b1a",
+      "baseline_steps": 500,
+      "candidate_steps": 1000,
+      "byte_identical_training_pairs": 100,
+      "native_pass": true,
+      "listening_pending": true
+    },
+    "training": {
+      "schema": 1,
+      "backend": "cuda",
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "stage": "export_and_native_validation_pending",
+      "started_utc": "2026-10-21T06:22:58Z",
+      "torch": "2.5.1+cu124",
+      "device": "cuda",
+      "threads": 2,
+      "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+      "gpu_free_bytes_before": 11608784896,
+      "dataset_sha256": "d5dda4cc0c9c1dbdb3df3779a9c89ccd2716ae4130158f28dc24a31a68304aa9",
+      "teacher": {
+        "reused_checkpoint_sha256": "e997baec4fe3564bdb2551be0c422d099281b0793b44749969cbd5129fdf498f",
+        "optimizer_steps": 250,
+        "quality_accepted": false
+      },
+      "pairs": {
+        "count": 100,
+        "duration_seconds": 605.64,
+        "target_recording_seconds": 289.61,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "llvc": {
+        "optimizer_steps": 1000,
+        "resumed_from": 0,
+        "mean_step_seconds": 0.19762461659999825,
+        "max_step_seconds": 0.8641307999987475,
+        "checkpoint_bytes": 896673131,
+        "checkpoint_sha256": "991d77c1bf6fa398eba78d489f1a844df1cbdcb936efa62d8ce8acbdfe7143c7",
+        "finite_gradients": true,
+        "quality_accepted": false
+      },
+      "gpu_peak_allocated_bytes": 2091064832,
+      "elapsed_seconds": 290.8550231999998
+    },
+    "native": {
+      "schema": 1,
+      "model_sha256": "91654d6fffdcb8ee77eab41de9e5b629cec1c8c42d17d3cc261c5c284f463827",
+      "checkpoint_sha256": "84a9f0411eb93b77a65e93145e2ccfbc160dd0a517629c04a980391c3fc5ce02",
+      "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+      "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+      "seconds": 30.004,
+      "waveform_and_state_pass": true,
+      "diagnostic_mean_ms": 7.94903880069368,
+      "diagnostic_p99_ms": 12.144553000853215,
+      "normal_protocol_parity": {
+        "finite": true,
+        "max": 0.0,
+        "rms": 0.0,
+        "normalized_max": 0.0,
+        "normalized_rms": 0.0,
+        "pass": true
+      },
+      "native_mean_ms": 6.728198941799854,
+      "native_p99_ms": 10.976854000055031,
+      "timing_pass": true,
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "pending": [
+        "Representative training/quality evaluation",
+        "Thirty-minute streaming qualification",
+        "Integrated latency/stability qualification",
+        "Clean Windows bundled-runtime qualification"
+      ]
+    }
+  },
+  "context_experiment": {
+    "comparison": {
+      "schema": 1,
+      "accepted": false,
+      "comparison": "context",
+      "baseline_context_samples": 10240,
+      "candidate_context_samples": 65536,
+      "baseline_report_sha256": "a87d9b2c1487b95533f028499c6a7b5c57e7ac5b1f3c5421c03f696868430b1a",
+      "candidate_report_sha256": "b30850533233c22e10b64dd0c3aed1f00873a8017ed226c883fc3863465472d6",
+      "baseline_steps": 1000,
+      "candidate_steps": 1000,
+      "byte_identical_training_pairs": 100,
+      "native_pass": true,
+      "listening_pending": true
+    },
+    "calibration": {
+      "schema": 1,
+      "backend": "cuda",
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "stage": "export_and_native_validation_pending",
+      "started_utc": "2026-10-21T06:52:29Z",
+      "execution": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "interpreter_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+        "probe_sha256": "c797055b3e81f93c27bbcc6dba80556ba087cb718c78c54ad12e225c8b8d8066",
+        "dataset_code_sha256": "12ba56ae05e1bddb965183e3760afade16d820cf620c85f725e7ea103974ce2d",
+        "seed": 42,
+        "teacher_budget": 250,
+        "llvc_budget": 2
+      },
+      "torch": "2.5.1+cu124",
+      "device": "cuda",
+      "threads": 2,
+      "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+      "gpu_free_bytes_before": 11608784896,
+      "dataset_sha256": "d5dda4cc0c9c1dbdb3df3779a9c89ccd2716ae4130158f28dc24a31a68304aa9",
+      "teacher": {
+        "reused_checkpoint_sha256": "e997baec4fe3564bdb2551be0c422d099281b0793b44749969cbd5129fdf498f",
+        "optimizer_steps": 250,
+        "quality_accepted": false
+      },
+      "pairs": {
+        "count": 100,
+        "duration_seconds": 605.64,
+        "target_recording_seconds": 289.61,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "llvc": {
+        "optimizer_steps": 2,
+        "resumed_from": 0,
+        "mean_step_seconds": 0.5689081000018632,
+        "max_step_seconds": 0.8471747000003234,
+        "checkpoint_bytes": 896673131,
+        "checkpoint_sha256": "8512ac024b74a55becad6583408cf5192b15f4b34b615f9c3bfecf76433b2a64",
+        "finite_gradients": true,
+        "quality_accepted": false
+      },
+      "gpu_peak_allocated_bytes": 3411533312,
+      "elapsed_seconds": 33.83806280000135
+    },
+    "training": {
+      "schema": 1,
+      "backend": "cuda",
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "stage": "export_and_native_validation_pending",
+      "started_utc": "2026-10-21T06:53:27Z",
+      "execution": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "interpreter_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+        "probe_sha256": "c797055b3e81f93c27bbcc6dba80556ba087cb718c78c54ad12e225c8b8d8066",
+        "dataset_code_sha256": "12ba56ae05e1bddb965183e3760afade16d820cf620c85f725e7ea103974ce2d",
+        "seed": 42,
+        "teacher_budget": 250,
+        "llvc_budget": 1000
+      },
+      "torch": "2.5.1+cu124",
+      "device": "cuda",
+      "threads": 2,
+      "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+      "gpu_free_bytes_before": 11608784896,
+      "dataset_sha256": "d5dda4cc0c9c1dbdb3df3779a9c89ccd2716ae4130158f28dc24a31a68304aa9",
+      "teacher": {
+        "reused_checkpoint_sha256": "e997baec4fe3564bdb2551be0c422d099281b0793b44749969cbd5129fdf498f",
+        "optimizer_steps": 250,
+        "quality_accepted": false
+      },
+      "pairs": {
+        "count": 100,
+        "duration_seconds": 605.64,
+        "target_recording_seconds": 289.61,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "llvc": {
+        "optimizer_steps": 1000,
+        "resumed_from": 2,
+        "mean_step_seconds": 0.21082989258509785,
+        "max_step_seconds": 0.7884425000011106,
+        "checkpoint_bytes": 896673131,
+        "checkpoint_sha256": "64233bbd49da5f2ba72f176be79f9a34199b2e1bed23d55cf45815e7a78925f7",
+        "finite_gradients": true,
+        "quality_accepted": false
+      },
+      "gpu_peak_allocated_bytes": 3413211648,
+      "elapsed_seconds": 305.8954111999992
+    },
+    "native": {
+      "schema": 1,
+      "model_sha256": "800ececb9b8784c92b1b257bf212ced5a4ffb786e3ce54127f06f7d479daa69e",
+      "checkpoint_sha256": "cd57bddd15363d7a5d9356b9eb5723d4042e2da08688446212d57f1c58dcac1b",
+      "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+      "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+      "seconds": 30.004,
+      "waveform_and_state_pass": true,
+      "diagnostic_mean_ms": 7.710138183449163,
+      "diagnostic_p99_ms": 10.773759000803695,
+      "normal_protocol_parity": {
+        "finite": true,
+        "max": 0.0,
+        "rms": 0.0,
+        "normalized_max": 0.0,
+        "normalized_rms": 0.0,
+        "pass": true
+      },
+      "native_mean_ms": 6.82624885359868,
+      "native_p99_ms": 10.973379998067687,
+      "timing_pass": true,
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "pending": [
+        "Representative training/quality evaluation",
+        "Thirty-minute streaming qualification",
+        "Integrated latency/stability qualification",
+        "Clean Windows bundled-runtime qualification"
+      ]
+    }
+  },
+  "llvc_candidates": {
+    "1272": {
+      "training": {
+        "schema": 1,
+        "backend": "cuda",
+        "public_training_enabled": false,
+        "release_qualified": false,
+        "stage": "export_and_native_validation_pending",
+        "started_utc": "2026-10-21T05:54:07Z",
+        "torch": "2.5.1+cu124",
+        "device": "cuda",
+        "threads": 2,
+        "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+        "gpu_free_bytes_before": 11608784896,
+        "dataset_sha256": "723bc1f6eb10d7f965403540a142fbae1f359444df011a15e35aa444af9815af",
+        "teacher": {
+          "reused_checkpoint_sha256": "42b2abfe48713b37bed467eedc0018cdf5118769c8cebf1cac1312198996ea8e",
+          "optimizer_steps": 250,
+          "quality_accepted": false
+        },
+        "pairs": {
+          "count": 100,
+          "duration_seconds": 549.4599999999999,
+          "target_recording_seconds": 321.6498749999999,
+          "source_speakers": 30,
+          "held_out_target_speaker": true
+        },
+        "llvc": {
+          "optimizer_steps": 500,
+          "resumed_from": 0,
+          "mean_step_seconds": 0.19464622619999966,
+          "max_step_seconds": 1.0249312999999987,
+          "checkpoint_bytes": 896668459,
+          "checkpoint_sha256": "75e43c1de52250ec6cfde212a817b0c026b613a470dd36833c14026ff4530477",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "gpu_peak_allocated_bytes": 2096591872,
+        "elapsed_seconds": 148.62889669999998
+      },
+      "native": {
+        "schema": 1,
+        "model_sha256": "2d81e9985002faa9d870d3e3914873053a9aa46864854a9dfa07c2997e2035ca",
+        "checkpoint_sha256": "70cb45c4cef5205a1557eb368e9f59af56f0cea3f87104ccc7e82ebf3142f467",
+        "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 7.887654409171124,
+        "diagnostic_p99_ms": 11.919436999999077,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 6.597192857142886,
+        "native_p99_ms": 10.97478500000009,
+        "timing_pass": true,
+        "public_training_enabled": false,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ]
+      }
+    },
+    "1462": {
+      "training": {
+        "schema": 1,
+        "backend": "cuda",
+        "public_training_enabled": false,
+        "release_qualified": false,
+        "stage": "export_and_native_validation_pending",
+        "started_utc": "2026-10-21T05:57:31Z",
+        "torch": "2.5.1+cu124",
+        "device": "cuda",
+        "threads": 2,
+        "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+        "gpu_free_bytes_before": 11608784896,
+        "dataset_sha256": "d5dda4cc0c9c1dbdb3df3779a9c89ccd2716ae4130158f28dc24a31a68304aa9",
+        "teacher": {
+          "reused_checkpoint_sha256": "e997baec4fe3564bdb2551be0c422d099281b0793b44749969cbd5129fdf498f",
+          "optimizer_steps": 250,
+          "quality_accepted": false
+        },
+        "pairs": {
+          "count": 100,
+          "duration_seconds": 605.6400000000002,
+          "target_recording_seconds": 289.61,
+          "source_speakers": 30,
+          "held_out_target_speaker": true
+        },
+        "llvc": {
+          "optimizer_steps": 500,
+          "resumed_from": 0,
+          "mean_step_seconds": 0.1940045721999999,
+          "max_step_seconds": 0.6765423000000013,
+          "checkpoint_bytes": 896669291,
+          "checkpoint_sha256": "a72398eb14ad54189ba98f7f74cc422099726893827c1dda3ef0ff3e12441c66",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "gpu_peak_allocated_bytes": 2091064832,
+        "elapsed_seconds": 146.1229112
+      },
+      "native": {
+        "schema": 1,
+        "model_sha256": "67ec5803c81b3d89d981449688d4d3cb19ba51cf7f131294ff5ef82129811ae3",
+        "checkpoint_sha256": "d5134a7c05a75480922808912214f5797a1153e7442468c7295a409fed56316d",
+        "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 8.076320017636663,
+        "diagnostic_p99_ms": 13.048605000000043,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 6.942684656084624,
+        "native_p99_ms": 12.053231999998971,
+        "timing_pass": true,
+        "public_training_enabled": false,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ]
+      }
+    },
+    "1673": {
+      "training": {
+        "schema": 1,
+        "backend": "cuda",
+        "public_training_enabled": false,
+        "release_qualified": false,
+        "stage": "export_and_native_validation_pending",
+        "started_utc": "2026-10-21T06:00:54Z",
+        "torch": "2.5.1+cu124",
+        "device": "cuda",
+        "threads": 2,
+        "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+        "gpu_free_bytes_before": 11608784896,
+        "dataset_sha256": "4f94660b0e98e9cccc7c8fc05a6d741f18e2f3f92c3d093377334e1fd74dad99",
+        "teacher": {
+          "reused_checkpoint_sha256": "f37f7f0a47202395ab37d6296f97f867260475b44c61f37168ad429a993357df",
+          "optimizer_steps": 250,
+          "quality_accepted": false
+        },
+        "pairs": {
+          "count": 100,
+          "duration_seconds": 547.5400000000002,
+          "target_recording_seconds": 254.36,
+          "source_speakers": 31,
+          "held_out_target_speaker": true
+        },
+        "llvc": {
+          "optimizer_steps": 500,
+          "resumed_from": 0,
+          "mean_step_seconds": 0.20538764899999973,
+          "max_step_seconds": 0.7098841999999976,
+          "checkpoint_bytes": 896663531,
+          "checkpoint_sha256": "2db0fa01e597b2d37c5164dc3511b661cc26f978594482cf822acd1b76286442",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "gpu_peak_allocated_bytes": 2097284096,
+        "elapsed_seconds": 149.7655385
+      },
+      "native": {
+        "schema": 1,
+        "model_sha256": "7427e71fb1f277472da00c41bc19e307e39b718b9cdaa4d41862282f38e386ce",
+        "checkpoint_sha256": "80eee634987aadedb50376db6c60800150ab899bd1f26909c1cebbba0f925358",
+        "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 8.51886948853618,
+        "diagnostic_p99_ms": 13.215031999999416,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 7.863854232804343,
+        "native_p99_ms": 14.928172000002048,
+        "timing_pass": true,
+        "public_training_enabled": false,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ]
+      }
+    }
+  },
+  "cpu_runtime": {
+    "schema": 1,
+    "backend": "cpu",
+    "qualified": false,
+    "bytes": 408351610,
+    "sha256": "e9476368e26f456f18715f73498696d321295b56faa3609c666afa6a616f1a3c",
+    "installed_bytes": 1626988390
+  },
+  "cuda_runtime": {
+    "schema": 1,
+    "backend": "cuda",
+    "qualified": false,
+    "bytes": 2786837533,
+    "sha256": "afd0920020b4ebf92282c3575686975404cac9661922651998510449895e14f6",
+    "installed_bytes": 5093522638
+  },
+  "cpu_isolation": {
+    "schema": 1,
+    "integrity_pass": true,
+    "isolated_imports_pass": true,
+    "clean_windows_qualified": false,
+    "release_qualified": false,
+    "runtime_manifest_sha256": "a248e48fff5701a143bb9030cf5558010107deab446986557e5baccce92ddc2b",
+    "details": {
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "torch": "2.5.1+cpu",
+      "cuda": false
+    }
+  },
+  "cuda_isolation": {
+    "schema": 1,
+    "integrity_pass": true,
+    "isolated_imports_pass": true,
+    "clean_windows_qualified": false,
+    "release_qualified": false,
+    "runtime_manifest_sha256": "e5e7805ccc8e7b81ad8e4351c203de640efefa654fcd3acc4df2a0320229eadf",
+    "details": {
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "torch": "2.5.1+cu124",
+      "cuda": true
+    }
+  },
+  "cpu_training": {
+    "schema": 1,
+    "backend": "cpu",
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "stage": "export_and_native_validation_pending",
+    "started_utc": "2026-10-21T05:38:05Z",
+    "torch": "2.5.1+cpu",
+    "device": "cpu",
+    "threads": 2,
+    "dataset_sha256": "39bd3529774a87712b1542016bab6411c918daf07cc83e30d61967f2108ed65e",
+    "teacher": {
+      "optimizer_steps": 2,
+      "resumed_from": 0,
+      "mean_step_seconds": 4.651837050000722,
+      "max_step_seconds": 5.625289400000838,
+      "checkpoint_bytes": 1095189325,
+      "checkpoint_sha256": "e61a4ce59d90e02375954c7e8c436648c89e0d24a7a7a98ee20569c44c3ab78b",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "pairs": {
+      "count": 2,
+      "duration_seconds": 3.96,
+      "target_recording_seconds": 4.0,
+      "source_speakers": 2,
+      "held_out_target_speaker": true
+    },
+    "llvc": {
+      "optimizer_steps": 2,
+      "resumed_from": 0,
+      "mean_step_seconds": 4.121978749999471,
+      "max_step_seconds": 4.544751599998563,
+      "checkpoint_bytes": 896613804,
+      "checkpoint_sha256": "48f79f573a4c87eccedb8e7c893355554bf8341b97e65cb43c1518fe94ebedc1",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "elapsed_seconds": 52.06001160000051
+  },
+  "cuda_training": {
+    "schema": 1,
+    "backend": "cuda",
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "stage": "export_and_native_validation_pending",
+    "started_utc": "2026-10-21T05:40:37Z",
+    "torch": "2.5.1+cu124",
+    "device": "cuda",
+    "threads": 2,
+    "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+    "gpu_free_bytes_before": 11608784896,
+    "dataset_sha256": "39bd3529774a87712b1542016bab6411c918daf07cc83e30d61967f2108ed65e",
+    "teacher": {
+      "optimizer_steps": 2,
+      "resumed_from": 0,
+      "mean_step_seconds": 0.9126426000002539,
+      "max_step_seconds": 1.3882947000001877,
+      "checkpoint_bytes": 1095222668,
+      "checkpoint_sha256": "71bd8e925fa626aa8166ae041f7080f85c043b5b15e48e0190d5bc24491f51fd",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "pairs": {
+      "count": 2,
+      "duration_seconds": 3.96,
+      "target_recording_seconds": 4.0,
+      "source_speakers": 2,
+      "held_out_target_speaker": true
+    },
+    "llvc": {
+      "optimizer_steps": 2,
+      "resumed_from": 0,
+      "mean_step_seconds": 0.7337662500003717,
+      "max_step_seconds": 1.1071418999999878,
+      "checkpoint_bytes": 896628075,
+      "checkpoint_sha256": "01daad0b71cf95278926636d4d588be3f78fd29d986456b27349bd62d09da3f1",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "gpu_peak_allocated_bytes": 2388193280,
+    "elapsed_seconds": 59.127311700000064
+  },
+  "cpu_export": {
+    "schema": 1,
+    "model_sha256": "50bcad71cc0fe2e18a0f4c302b5bbe9a15cdefe40fd675f53e7c309db97c341a",
+    "checkpoint_sha256": "243bc6c209bd253d13b975dcc9e3f194fad31a19f4fdbeadceb47d2210c78ce2",
+    "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+    "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+    "seconds": 30.004,
+    "waveform_and_state_pass": true,
+    "diagnostic_mean_ms": 9.287607142860109,
+    "diagnostic_p99_ms": 18.544213000186573,
+    "normal_protocol_parity": {
+      "finite": true,
+      "max": 0.0,
+      "rms": 0.0,
+      "normalized_max": 0.0,
+      "normalized_rms": 0.0,
+      "pass": true
+    },
+    "native_mean_ms": 7.57397539682787,
+    "native_p99_ms": 13.73445300019741,
+    "timing_pass": true,
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "pending": [
+      "Representative training/quality evaluation",
+      "Thirty-minute streaming qualification",
+      "Integrated latency/stability qualification",
+      "Clean Windows bundled-runtime qualification"
+    ]
+  },
+  "cuda_export": {
+    "schema": 1,
+    "model_sha256": "267f0ea71b61227b19ee35ef7ae4f00eaae0d0c3b31f085880795304605dc641",
+    "checkpoint_sha256": "073021dc2ee728dc6534c95d945dc5de4efbf3e22e5397185d9e9300d0f7ec01",
+    "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+    "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+    "seconds": 30.004,
+    "waveform_and_state_pass": true,
+    "diagnostic_mean_ms": 9.629735008797939,
+    "diagnostic_p99_ms": 17.956822000342086,
+    "normal_protocol_parity": {
+      "finite": true,
+      "max": 0.0,
+      "rms": 0.0,
+      "normalized_max": 0.0,
+      "normalized_rms": 0.0,
+      "pass": true
+    },
+    "native_mean_ms": 8.178104144618443,
+    "native_p99_ms": 16.266687000188554,
+    "timing_pass": true,
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "pending": [
+      "Representative training/quality evaluation",
+      "Thirty-minute streaming qualification",
+      "Integrated latency/stability qualification",
+      "Clean Windows bundled-runtime qualification"
+    ]
+  },
+  "unicode_path_native": {
+    "schema": 1,
+    "model_sha256": "f47923d6f3fa56a969972453789286dd119f32e04d113f280f660b53166b1254",
+    "checkpoint_sha256": "243bc6c209bd253d13b975dcc9e3f194fad31a19f4fdbeadceb47d2210c78ce2",
+    "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+    "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+    "seconds": 5.018,
+    "waveform_and_state_pass": true,
+    "diagnostic_mean_ms": 9.403465317802455,
+    "diagnostic_p99_ms": 16.92780399986077,
+    "normal_protocol_parity": {
+      "finite": true,
+      "max": 0.0,
+      "rms": 0.0,
+      "normalized_max": 0.0,
+      "normalized_rms": 0.0,
+      "pass": true
+    },
+    "native_mean_ms": 8.358184392971117,
+    "native_p99_ms": 13.896323999360902,
+    "timing_pass": true,
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "pending": [
+      "Representative training/quality evaluation",
+      "Thirty-minute streaming qualification",
+      "Integrated latency/stability qualification",
+      "Clean Windows bundled-runtime qualification"
+    ]
+  },
+  "content_objective": {
+    "schema": 1,
+    "source_sha256": "1703cf8d2cdc76f8c046f5f6a9bcd224e0e6caf4744cad1a1f4199c32cac8c8d",
+    "model_sha256": "dcdb4d9c911c921db643da5ca8dc8b2fe6421b589542b6a2afd0aed1aab28a51",
+    "torch": "2.5.1+cu124",
+    "checks": [
+      {
+        "samples": 10240,
+        "output_max": 0.0,
+        "gradient_max": 0.0,
+        "passed": true
+      },
+      {
+        "samples": 16000,
+        "output_max": 0.0,
+        "gradient_max": 0.0,
+        "passed": true
+      },
+      {
+        "samples": 32000,
+        "output_max": 0.0,
+        "gradient_max": 0.0,
+        "passed": true
+      }
+    ],
+    "qualified_for_release": false
+  },
+  "scripts_sha256": {
+    "assets.lock.json": "785250b4041361d106bcd43e58b203a0271acaac2a7d3d889abcfd7aec7e4a1d",
+    "assets.py": "b05ac41565f6e75c28ead0315dd7d3beac9dd3e1f9c50833ca889b7c16d8bdeb",
+    "build_runtime.ps1": "05177b887ac8a693f34324817d6668fe5240a796f7de2cb46b28b590869f9dda",
+    "check_adversarial.py": "92920dcd8c481c14674a8aa4b768a4012949ef14bfd8c2d970cb4bb437153756",
+    "check_pair_alignment.py": "fd2b28b832f6942a392415c2d6c2ece02d6e2ada979ea2771aad2d251fae06f9",
+    "check_runtime.py": "4861a62b65c30d212a6b47db85edd6aa0367f11db86f31303fa29ca59011c3e6",
+    "dataset.py": "12ba56ae05e1bddb965183e3760afade16d820cf620c85f725e7ea103974ce2d",
+    "desktop_worker.py": "8ca0044b597d425fc6c1f01061d798ce6e0495041e79626e608a34c7c0539498",
+    "export_content.py": "f5a32bb698b8bf6ad3bbf90fe9d3485cf7f08e480a8b9fe6bf74dcc1871fef00",
+    "export_probe.py": "7988b36ec6413fa47f8ce52d50b25363fcdc1f1cf6f5d390ca840e340c519d6b",
+    "github_release.py": "b841b063617101c95e794054a61eeb058ec205017f127b22347db254aef79e84",
+    "make_guide_examples.py": "09704fd00ba2bf574a58aed80b8b8c5dca71076558992450dd039c6d46b287c4",
+    "make_release_catalog.py": "f064d6f87f337c3f85fb47fa5c84908e1598802f85289e7d758a57aa28f0b443",
+    "package_curated.py": "20ba966a585be8352417f14e3a37f1aac8816fbd10f65bf84dbdb51f96d8a875",
+    "package_runtime.py": "aad124b44e37dfdfbd012fdbbc03739814f8b9c3907597d970fa2dfb9dc73ae4",
+    "package_shared.py": "46bab2090ba078887c8cef8dcb8afd5d75aa834d4fb53d05683bcf9ca6f6c7d2",
+    "piratewave_directml_py39.py": "db85cabe21425ec8d1d6fa376bc9e1ca6293fc3bc0050e2795ea9c6a8989ee59",
+    "probe.py": "717dbd32033588fb842e16349508087a5ecc9fa106979db5d6c2fe55ecd3d006",
+    "requirements-common.lock.txt": "b779dba9ec6620efb128ffbad32e2b9273a62a917652fcb43e704ecad54c4e7b",
+    "requirements-embedded-cpu.lock.txt": "14d872eca20a092a095bf36b6f5165334f687cb96e31ffada9639cd353458d59",
+    "requirements-embedded-cuda.lock.txt": "9134273ba93c6e467c4a2d6342333b25e7452fa8a823961243b89a9828d6b59d",
+    "requirements-embedded.in": "e56a8b1b95e41ba3afa0e62040c49b37558d9148b035a111dd8a58c8fe0a4da0",
+    "review_duration.py": "a54acd9b531bc8ba806378c63641af91f0d8948852e836f6cf49b51a866d64b2",
+    "review_llvc.py": "ed096f2b1b46eb2c26406deb8d81b8f6f7d00b67ef8b42c5d689af35e25aacc9",
+    "review_matrix.py": "6ffa207b23032a5b79766e9c5e1353786c5fdbbd144e6f06ee089adf6adf8e05",
+    "review_pretrained.py": "5b7d0159ed4e4af8708090913437e2c2e6f06a25b576b3fef85d593bd25129be",
+    "review_stages.py": "c2031fc91b6eaf785d68064f8d442f8537aaad8eb99e5d67362b312761c62d66",
+    "supervise.py": "8d7b5ab420e6a8d25b168d58ba290fd1ba50ed520f543929fe0834c04b4580fb",
+    "test_alignment.py": "bb3162668f7ddced7963e34706285dce912273ff1ae1bedf2ba8a0282a5df25c",
+    "test_bundle.py": "084db1c4463962f1a6bea7ffcefa03d1df3d6e1324a18bef8a70f741b316a96d",
+    "test_dataset.py": "e1c0771e51ef232a250fe499ed6ea2ef48350a9d6d323e542181670b7f38da5e",
+    "test_review.py": "e694da81588a0cff179b1e0fff45e9a393d84da5c821d833111cf519ca022703",
+    "test_training.py": "c878dbf6a2ef97c45cc4ade899b4b965a87423019b560fa5e68c65555ae50499",
+    "verify_bundle.py": "dbeb53850c6563755acba74b911422776c941c4e1192af1140f1c8e11cb88a91",
+    "write_beta_evidence.py": "78bdd79a0e989be0ff9ba30b19f93ac3851e8437f73e506e7ea7c2077b360ca9",
+    "write_build_manifest.py": "163981a0ad80e64869aef1d3817ce3f54b15992e7891fa219f9e75ce74c8193e",
+    "write_progress.py": "b85651e2ec48d673ba7e4f119662b8a15d7e85fc94e8a5f863913a78c2f62128",
+    "write_report.py": "4c0d5ce0959a2fa539e28e0b8fa28481c7cd56ee6a02302f2eace5c5e9302f94"
+  },
+  "remaining": [
+    "Improve adaptation quality and establish measured recording recommendations",
+    "Clean Windows qualification, complete dependency/license/build provenance review",
+    "Custom-model thirty-minute validation, integrated latency and gaming-impact acceptance",
+    "Independent custom-model DirectML qualification"
+  ]
+}

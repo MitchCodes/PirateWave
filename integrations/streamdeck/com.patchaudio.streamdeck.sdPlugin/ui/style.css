@@ -1,0 +1,9 @@
+:root { color-scheme: dark; font: 12px system-ui, sans-serif; background: #2d2d2d; color: #ddd; }
+body { margin: 12px; }
+label { display: block; margin: 12px 0; }
+input, select { display: block; box-sizing: border-box; width: 100%; margin-top: 5px; padding: 7px; background: #3b3b3b; color: #eee; border: 1px solid #666; border-radius: 4px; }
+p { line-height: 1.5; overflow-wrap: anywhere; }
+#status, #target-status { color: #fbbf24; }
+select:disabled { opacity: .65; }
+[hidden] { display: none !important; }
+summary { cursor: pointer; }

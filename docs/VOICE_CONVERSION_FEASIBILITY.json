@@ -1,0 +1,609 @@
+{
+  "date": "2026-10-20",
+  "gate": "not_passed",
+  "missing": "Three accepted distinct pretrained voices and state-equivalence validation",
+  "hardware": {
+    "cpu": {
+      "Name": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "NumberOfCores": 10,
+      "NumberOfLogicalProcessors": 20
+    },
+    "gpu": {
+      "Name": "NVIDIA GeForce RTX 4070 SUPER",
+      "DriverVersion": "32.0.16.1656"
+    }
+  },
+  "fixture": {
+    "schema": 1,
+    "source_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+    "weights_revision": "ebfe8c0fdeb974a7eeb463b3abbc8ce42a0e3851",
+    "checkpoint_sha256": "cceb7ab9621f84d62d283725ae3281cacb04f762d6a088fe3e97c1a29d4b8c0e",
+    "config_sha256": "530f18a80fc1b233382801f3a8ba16ba13f4b8b412e9e4dde296c65e755f97ba",
+    "onnx_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+    "sample_rate": 16000,
+    "hop": 208,
+    "context": 32,
+    "reference_shift_samples": 16,
+    "input_names": [
+      "audio",
+      "encoder",
+      "decoder",
+      "synthesis",
+      "prenet"
+    ],
+    "output_names": [
+      "converted",
+      "out_encoder",
+      "out_decoder",
+      "out_synthesis",
+      "out_prenet"
+    ],
+    "shapes": [
+      [
+        1,
+        1,
+        240
+      ],
+      [
+        1,
+        512,
+        510
+      ],
+      [
+        1,
+        2,
+        13,
+        256
+      ],
+      [
+        1,
+        512,
+        4
+      ],
+      [
+        1,
+        1,
+        24
+      ]
+    ],
+    "cases": [
+      {
+        "name": "174-50561-0000",
+        "chunks": 310,
+        "original_samples": 64320,
+        "input_sha256": "690e4e8afa78cffe6fdf1ddf5f0e6d0b4e79af2cebc3760e528111d0b1229c23",
+        "reference_seconds": 4.952802
+      },
+      {
+        "name": "1919-142785-0000",
+        "chunks": 205,
+        "original_samples": 42560,
+        "input_sha256": "f053890e05c5971c0a2fa1ccbeb20586a6f16bc5e4a030f68b106946f9eec737",
+        "reference_seconds": 3.2351433999999983
+      },
+      {
+        "name": "2086-149214-0000",
+        "chunks": 755,
+        "original_samples": 156960,
+        "input_sha256": "2a20a86391475c4e8cb1f55cf5386d51d04e12721e9beb0c247eb6920f7f56f9",
+        "reference_seconds": 11.743504300000001
+      },
+      {
+        "name": "2412-153947-0000",
+        "chunks": 197,
+        "original_samples": 40800,
+        "input_sha256": "e994f871fe7906742efba71c0b58cbcea24e174c653a44f6f17bdd27310adc55",
+        "reference_seconds": 3.160266799999995
+      },
+      {
+        "name": "2902-9006-0000",
+        "chunks": 370,
+        "original_samples": 76800,
+        "input_sha256": "a81e92b7a29e24efb20cf2661bdc13fbd2875079397e1c9bc09d5b21493b7473",
+        "reference_seconds": 5.8751992999999985
+      },
+      {
+        "name": "5895-34615-0000",
+        "chunks": 257,
+        "original_samples": 53360,
+        "input_sha256": "ed1e2122ca76dcf3952c95e4807528f953914336c9b3cccf50fcfd2ad6dfed2f",
+        "reference_seconds": 4.144168399999998
+      },
+      {
+        "name": "652-129742-0000",
+        "chunks": 464,
+        "original_samples": 96400,
+        "input_sha256": "76d0cff82d65bafcffabaf8f6de18db92734ca6ae608c858832037d5b74ccd61",
+        "reference_seconds": 7.029700200000008
+      },
+      {
+        "name": "777-126732-0000",
+        "chunks": 211,
+        "original_samples": 43840,
+        "input_sha256": "6749e8ba7b6ff25f8c8201759c0a34001e3db3127c5ed2ba9b0e0ae9395340c3",
+        "reference_seconds": 3.2866491999999994
+      },
+      {
+        "name": "7850-73752-0000",
+        "chunks": 243,
+        "original_samples": 50480,
+        "input_sha256": "885f7656208612912cb251899f79cb622cfd7f3d9f4537e693975600febdb248",
+        "reference_seconds": 3.783248299999997
+      },
+      {
+        "name": "8842-302196-0000",
+        "chunks": 1127,
+        "original_samples": 234400,
+        "input_sha256": "60a9ed01a7e8cd92c74bbf94736563439c562a63b243cf56e7c4eda3215d5e8f",
+        "reference_seconds": 17.67971949999999
+      },
+      {
+        "name": "silence",
+        "chunks": 154,
+        "original_samples": 32000,
+        "input_sha256": null,
+        "reference_seconds": 2.3996549000000016
+      },
+      {
+        "name": "quiet_speech",
+        "chunks": 310,
+        "original_samples": 64320,
+        "input_sha256": "690e4e8afa78cffe6fdf1ddf5f0e6d0b4e79af2cebc3760e528111d0b1229c23",
+        "reference_seconds": 4.793995800000005
+      },
+      {
+        "name": "loud_speech",
+        "chunks": 205,
+        "original_samples": 42560,
+        "input_sha256": "f053890e05c5971c0a2fa1ccbeb20586a6f16bc5e4a030f68b106946f9eec737",
+        "reference_seconds": 3.1433853000000056
+      },
+      {
+        "name": "long_mixed_speech",
+        "chunks": 8269,
+        "original_samples": 1719840,
+        "input_sha256": null,
+        "reference_seconds": 129.1470429
+      }
+    ],
+    "versions": {
+      "torch": "2.5.1+cpu",
+      "torchaudio": "2.5.1+cpu",
+      "onnx": "1.16.2",
+      "numpy": "1.23.5"
+    },
+    "onnx_nodes": 2860
+  },
+  "runtime_sha256": "8702a9e02b0e4bc111ca64eb34fb6c9c863ef8ec8e4b21f1a8e4b792edbabf30",
+  "profiles": [
+    {
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 203.2646,
+      "first_chunk_ms": 8.246599999999999,
+      "mean_ms": 7.035111518324629,
+      "p99_ms": 8.3517,
+      "max_ms": 19.775000000000002,
+      "timing_pass": false,
+      "parity_pass": false,
+      "cases": [
+        {
+          "name": "174-50561-0000",
+          "samples": 64480,
+          "max_audio_error": 3.3974648E-06,
+          "rms_audio_error": 1.4680574988005224E-07,
+          "max_state_error": 0.00030851364,
+          "max_state_scaled_error": 1.7566081,
+          "parity_pass": false
+        },
+        {
+          "name": "1919-142785-0000",
+          "samples": 42640,
+          "max_audio_error": 3.8705766E-06,
+          "rms_audio_error": 3.1691311799081555E-07,
+          "max_state_error": 0.00011634827,
+          "max_state_scaled_error": 0.24847819,
+          "parity_pass": true
+        },
+        {
+          "name": "2086-149214-0000",
+          "samples": 157040,
+          "max_audio_error": 3.8295984E-06,
+          "rms_audio_error": 9.442047181220627E-08,
+          "max_state_error": 0.00022888184,
+          "max_state_scaled_error": 0.726873,
+          "parity_pass": true
+        },
+        {
+          "name": "2412-153947-0000",
+          "samples": 40976,
+          "max_audio_error": 6.9215894E-06,
+          "rms_audio_error": 2.1784255232479332E-07,
+          "max_state_error": 0.0001950264,
+          "max_state_scaled_error": 1.3780211,
+          "parity_pass": false
+        },
+        {
+          "name": "2902-9006-0000",
+          "samples": 76960,
+          "max_audio_error": 4.4344924E-06,
+          "rms_audio_error": 1.840638654617243E-07,
+          "max_state_error": 0.00015354156,
+          "max_state_scaled_error": 0.34594947,
+          "parity_pass": true
+        },
+        {
+          "name": "5895-34615-0000",
+          "samples": 53456,
+          "max_audio_error": 2.6784837E-06,
+          "rms_audio_error": 1.8024052172132147E-07,
+          "max_state_error": 0.0001412034,
+          "max_state_scaled_error": 0.94903654,
+          "parity_pass": true
+        },
+        {
+          "name": "652-129742-0000",
+          "samples": 96512,
+          "max_audio_error": 9.108335E-07,
+          "rms_audio_error": 5.685524138235925E-08,
+          "max_state_error": 7.247925E-05,
+          "max_state_scaled_error": 0.25424576,
+          "parity_pass": true
+        },
+        {
+          "name": "777-126732-0000",
+          "samples": 43888,
+          "max_audio_error": 6.388873E-07,
+          "rms_audio_error": 4.94619717484461E-08,
+          "max_state_error": 0.000121593475,
+          "max_state_scaled_error": 0.49987987,
+          "parity_pass": true
+        },
+        {
+          "name": "7850-73752-0000",
+          "samples": 50544,
+          "max_audio_error": 7.5343996E-06,
+          "rms_audio_error": 3.98969707442489E-07,
+          "max_state_error": 0.00015449524,
+          "max_state_scaled_error": 0.49170658,
+          "parity_pass": true
+        },
+        {
+          "name": "8842-302196-0000",
+          "samples": 234416,
+          "max_audio_error": 8.584E-06,
+          "rms_audio_error": 3.984118770270478E-07,
+          "max_state_error": 6.484985E-05,
+          "max_state_scaled_error": 0.18435085,
+          "parity_pass": true
+        },
+        {
+          "name": "silence",
+          "samples": 32032,
+          "max_audio_error": 1.9790605E-09,
+          "rms_audio_error": 1.4193221671001294E-10,
+          "max_state_error": 3.170967E-05,
+          "max_state_scaled_error": 0.09257532,
+          "parity_pass": true
+        },
+        {
+          "name": "quiet_speech",
+          "samples": 64480,
+          "max_audio_error": 4.8927177E-07,
+          "rms_audio_error": 1.6324606313706774E-08,
+          "max_state_error": 0.012298942,
+          "max_state_scaled_error": 58.44383,
+          "parity_pass": false
+        },
+        {
+          "name": "loud_speech",
+          "samples": 42640,
+          "max_audio_error": 5.410984E-06,
+          "rms_audio_error": 4.0623265976765983E-07,
+          "max_state_error": 9.6321106E-05,
+          "max_state_scaled_error": 0.17527124,
+          "parity_pass": true
+        },
+        {
+          "name": "long_mixed_speech",
+          "samples": 1719952,
+          "max_audio_error": 1.3832003E-05,
+          "rms_audio_error": 2.662276051061546E-07,
+          "max_state_error": 6.723404E-05,
+          "max_state_scaled_error": 0.1405741,
+          "parity_pass": true
+        }
+      ]
+    },
+    {
+      "adapter": null,
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "cpu",
+      "threads": 2,
+      "hop_ms": 13.0,
+      "session_load_ms": 206.7704,
+      "first_chunk_ms": 7.6638,
+      "mean_ms": 6.722973517230596,
+      "p99_ms": 8.343,
+      "max_ms": 21.8138,
+      "timing_pass": false,
+      "parity_pass": false,
+      "cases": [
+        {
+          "name": "174-50561-0000",
+          "samples": 64480,
+          "max_audio_error": 3.3974648E-06,
+          "rms_audio_error": 1.4680574988005224E-07,
+          "max_state_error": 0.00030851364,
+          "max_state_scaled_error": 1.7566081,
+          "parity_pass": false
+        },
+        {
+          "name": "1919-142785-0000",
+          "samples": 42640,
+          "max_audio_error": 3.8705766E-06,
+          "rms_audio_error": 3.1691311799081555E-07,
+          "max_state_error": 0.00011634827,
+          "max_state_scaled_error": 0.24847819,
+          "parity_pass": true
+        },
+        {
+          "name": "2086-149214-0000",
+          "samples": 157040,
+          "max_audio_error": 3.8295984E-06,
+          "rms_audio_error": 9.442047181220627E-08,
+          "max_state_error": 0.00022888184,
+          "max_state_scaled_error": 0.726873,
+          "parity_pass": true
+        },
+        {
+          "name": "2412-153947-0000",
+          "samples": 40976,
+          "max_audio_error": 6.9215894E-06,
+          "rms_audio_error": 2.1784255232479332E-07,
+          "max_state_error": 0.0001950264,
+          "max_state_scaled_error": 1.3780211,
+          "parity_pass": false
+        },
+        {
+          "name": "2902-9006-0000",
+          "samples": 76960,
+          "max_audio_error": 4.4344924E-06,
+          "rms_audio_error": 1.840638654617243E-07,
+          "max_state_error": 0.00015354156,
+          "max_state_scaled_error": 0.34594947,
+          "parity_pass": true
+        },
+        {
+          "name": "5895-34615-0000",
+          "samples": 53456,
+          "max_audio_error": 2.6784837E-06,
+          "rms_audio_error": 1.8024052172132147E-07,
+          "max_state_error": 0.0001412034,
+          "max_state_scaled_error": 0.94903654,
+          "parity_pass": true
+        },
+        {
+          "name": "652-129742-0000",
+          "samples": 96512,
+          "max_audio_error": 9.108335E-07,
+          "rms_audio_error": 5.685524138235925E-08,
+          "max_state_error": 7.247925E-05,
+          "max_state_scaled_error": 0.25424576,
+          "parity_pass": true
+        },
+        {
+          "name": "777-126732-0000",
+          "samples": 43888,
+          "max_audio_error": 6.388873E-07,
+          "rms_audio_error": 4.94619717484461E-08,
+          "max_state_error": 0.000121593475,
+          "max_state_scaled_error": 0.49987987,
+          "parity_pass": true
+        },
+        {
+          "name": "7850-73752-0000",
+          "samples": 50544,
+          "max_audio_error": 7.5343996E-06,
+          "rms_audio_error": 3.98969707442489E-07,
+          "max_state_error": 0.00015449524,
+          "max_state_scaled_error": 0.49170658,
+          "parity_pass": true
+        },
+        {
+          "name": "8842-302196-0000",
+          "samples": 234416,
+          "max_audio_error": 8.584E-06,
+          "rms_audio_error": 3.984118770270478E-07,
+          "max_state_error": 6.484985E-05,
+          "max_state_scaled_error": 0.18435085,
+          "parity_pass": true
+        },
+        {
+          "name": "silence",
+          "samples": 32032,
+          "max_audio_error": 1.9790605E-09,
+          "rms_audio_error": 1.4193221671001294E-10,
+          "max_state_error": 3.170967E-05,
+          "max_state_scaled_error": 0.09257532,
+          "parity_pass": true
+        },
+        {
+          "name": "quiet_speech",
+          "samples": 64480,
+          "max_audio_error": 4.8927177E-07,
+          "rms_audio_error": 1.6324606313706774E-08,
+          "max_state_error": 0.012298942,
+          "max_state_scaled_error": 58.44383,
+          "parity_pass": false
+        },
+        {
+          "name": "loud_speech",
+          "samples": 42640,
+          "max_audio_error": 5.410984E-06,
+          "rms_audio_error": 4.0623265976765983E-07,
+          "max_state_error": 9.6321106E-05,
+          "max_state_scaled_error": 0.17527124,
+          "parity_pass": true
+        },
+        {
+          "name": "long_mixed_speech",
+          "samples": 1719952,
+          "max_audio_error": 1.3832003E-05,
+          "rms_audio_error": 2.662276051061546E-07,
+          "max_state_error": 6.723404E-05,
+          "max_state_scaled_error": 0.1405741,
+          "parity_pass": true
+        }
+      ]
+    },
+    {
+      "adapter": "NVIDIA GeForce RTX 4070 SUPER",
+      "runtime": "ORT Build Info: git-branch=HEAD, git-commit-id=ffceed9d44, build type=Release, cmake cxx flags: /MP /guard:cf /DWIN32 /D_WINDOWS /D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR /DWINAPI_FAMILY=100 /DWINVER=0x0A00 /D_WIN32_WINNT=0x0A00 /DNTDDI_VERSION=0x0A000000 /Qspectre /DONNXRUNTIME_ENABLE_INTEL_METEOR_LAKE_MOBILE_PLATFORM_PERF_PIRATEWAVE /O2 /Ob2 /DNDEBUG /Zc:__cplusplus /EHsc /wd26812 -DEIGEN_HAS_C99_MATH -DCPUINFO_SUPPORTED",
+      "model_sha256": "6fe0a3607d35a20bd4170afb6b1e69b4be4679c0f8f30eefeb454284235e400e",
+      "backend": "directml",
+      "threads": 1,
+      "hop_ms": 13.0,
+      "session_load_ms": 760.8166,
+      "first_chunk_ms": 4.9515,
+      "mean_ms": 1.3063707744002528,
+      "p99_ms": 1.8136,
+      "max_ms": 12.281699999999999,
+      "timing_pass": true,
+      "parity_pass": false,
+      "cases": [
+        {
+          "name": "174-50561-0000",
+          "samples": 64480,
+          "max_audio_error": 3.5837293E-06,
+          "rms_audio_error": 1.6592236240805993E-07,
+          "max_state_error": 0.0013947487,
+          "max_state_scaled_error": 10.475995,
+          "parity_pass": false
+        },
+        {
+          "name": "1919-142785-0000",
+          "samples": 42640,
+          "max_audio_error": 3.911555E-06,
+          "rms_audio_error": 3.219122245603764E-07,
+          "max_state_error": 0.00023651123,
+          "max_state_scaled_error": 0.63981664,
+          "parity_pass": true
+        },
+        {
+          "name": "2086-149214-0000",
+          "samples": 157040,
+          "max_audio_error": 4.630536E-06,
+          "rms_audio_error": 1.1263178986623427E-07,
+          "max_state_error": 0.0010623932,
+          "max_state_scaled_error": 6.122624,
+          "parity_pass": false
+        },
+        {
+          "name": "2412-153947-0000",
+          "samples": 40976,
+          "max_audio_error": 7.0258975E-06,
+          "rms_audio_error": 2.2495510909992563E-07,
+          "max_state_error": 0.00061166286,
+          "max_state_scaled_error": 3.429348,
+          "parity_pass": false
+        },
+        {
+          "name": "2902-9006-0000",
+          "samples": 76960,
+          "max_audio_error": 3.4924597E-06,
+          "rms_audio_error": 1.954379727411191E-07,
+          "max_state_error": 0.00027608871,
+          "max_state_scaled_error": 0.91453475,
+          "parity_pass": true
+        },
+        {
+          "name": "5895-34615-0000",
+          "samples": 53456,
+          "max_audio_error": 3.6098063E-06,
+          "rms_audio_error": 1.9480987728870735E-07,
+          "max_state_error": 0.00023841858,
+          "max_state_scaled_error": 0.97431916,
+          "parity_pass": true
+        },
+        {
+          "name": "652-129742-0000",
+          "samples": 96512,
+          "max_audio_error": 8.540228E-07,
+          "rms_audio_error": 7.453474842086433E-08,
+          "max_state_error": 0.0002670288,
+          "max_state_scaled_error": 0.76818526,
+          "parity_pass": true
+        },
+        {
+          "name": "777-126732-0000",
+          "samples": 43888,
+          "max_audio_error": 1.206994E-06,
+          "rms_audio_error": 7.261078865994404E-08,
+          "max_state_error": 0.0004339218,
+          "max_state_scaled_error": 1.4330572,
+          "parity_pass": false
+        },
+        {
+          "name": "7850-73752-0000",
+          "samples": 50544,
+          "max_audio_error": 7.491559E-06,
+          "rms_audio_error": 4.0236676159600867E-07,
+          "max_state_error": 0.00090646744,
+          "max_state_scaled_error": 1.8205245,
+          "parity_pass": false
+        },
+        {
+          "name": "8842-302196-0000",
+          "samples": 234416,
+          "max_audio_error": 8.257106E-06,
+          "rms_audio_error": 4.017207173272482E-07,
+          "max_state_error": 9.346008E-05,
+          "max_state_scaled_error": 0.4173165,
+          "parity_pass": true
+        },
+        {
+          "name": "silence",
+          "samples": 32032,
+          "max_audio_error": 1.3626413E-07,
+          "rms_audio_error": 4.961378440909325E-08,
+          "max_state_error": 3.2663345E-05,
+          "max_state_scaled_error": 0.09535954,
+          "parity_pass": true
+        },
+        {
+          "name": "quiet_speech",
+          "samples": 64480,
+          "max_audio_error": 1.6307822E-06,
+          "rms_audio_error": 9.763144204106198E-08,
+          "max_state_error": 0.15125036,
+          "max_state_scaled_error": 449.90173,
+          "parity_pass": false
+        },
+        {
+          "name": "loud_speech",
+          "samples": 42640,
+          "max_audio_error": 4.9956143E-06,
+          "rms_audio_error": 4.0377203954747065E-07,
+          "max_state_error": 0.00010365248,
+          "max_state_scaled_error": 0.63461626,
+          "parity_pass": true
+        },
+        {
+          "name": "long_mixed_speech",
+          "samples": 1719952,
+          "max_audio_error": 1.2032688E-05,
+          "rms_audio_error": 2.6831491772163104E-07,
+          "max_state_error": 9.3221664E-05,
+          "max_state_scaled_error": 0.38065052,
+          "parity_pass": true
+        }
+      ]
+    }
+  ]
+}

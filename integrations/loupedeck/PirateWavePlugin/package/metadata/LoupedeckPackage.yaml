@@ -1,0 +1,13 @@
+type: plugin4
+name: PirateWave
+displayName: PirateWave Audio Mixer
+description: Control PirateWave nodes, effects, soundboard, recording slots and Auto Ducking
+pluginFileName: PirateWavePlugin.dll
+version: 1.4.0
+author: PirateWave contributors
+copyright: Copyright 2026 PirateWave contributors
+minimumLoupedeckVersion: 6.4.1
+pluginFolderWin: bin
+supportedDevices:
+  - LoupedeckCtFamily
+  - LoupedeckExtendedFamily

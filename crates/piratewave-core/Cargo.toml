@@ -1,0 +1,12 @@
+[package]
+name = "piratewave-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+nnnoiseless = { version = "0.5.2", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+piratewave-extension-sdk = { path = "../piratewave-extension-sdk" }

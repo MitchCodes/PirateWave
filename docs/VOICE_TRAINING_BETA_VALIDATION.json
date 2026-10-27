@@ -1,0 +1,258 @@
+{
+  "schema": 1,
+  "release": "0.2.0-beta.1",
+  "scope": "Experimental local Voice Creation Beta",
+  "quality_improved": false,
+  "clean_windows_qualified": false,
+  "custom_voice_thirty_minute_qualified": false,
+  "gaming_impact_qualified": false,
+  "fixture": "Three licensed LibriSpeech target takes, separate train/validation/test roles; execution test, not listening acceptance.",
+  "backends": {
+    "cpu": {
+      "backend": "cpu",
+      "clean_windows_qualified": false,
+      "import_training_export_install_pass": true,
+      "listening_quality": "Current Beta quality accepted by user; not improved",
+      "live_pipeline": {
+        "finite_output": true,
+        "first_ready_ms": 88.4299,
+        "maximum_inference_ms": 11.3,
+        "nonzero_output": true,
+        "pass": true,
+        "seconds": 30,
+        "underruns": 0
+      },
+      "schema": 1,
+      "native": {
+        "schema": 1,
+        "model_sha256": "c6430e2d5ef92835038f09f7afa8f6483e26febfbf44a1058580b3e1c07f2973",
+        "checkpoint_sha256": "eada748fd69affb4a36c21f493df75ca965e76aa1d0dc299425b494f1ca1f4de",
+        "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 8.164855379174208,
+        "diagnostic_p99_ms": 12.201171001179318,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 6.5773843916325685,
+        "native_p99_ms": 7.135737001772213,
+        "timing_pass": true,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ],
+        "worst_native_errors": {
+          "audio": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "encoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "decoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "synthesis": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "prenet": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          }
+        }
+      },
+      "stages": {
+        "teacher": {
+          "optimizer_steps": 250,
+          "resumed_from": 45,
+          "mean_step_seconds": 3.779711079512167,
+          "max_step_seconds": 6.396849900000234,
+          "checkpoint_bytes": 1095262861,
+          "checkpoint_sha256": "f499cffbd1b0b35e30ec18d5e3bf29a52e81ad7f99f9b1b418ac61e043073620",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "llvc": {
+          "optimizer_steps": 1000,
+          "resumed_from": 0,
+          "mean_step_seconds": 2.9449341883000124,
+          "max_step_seconds": 12.393102800000634,
+          "checkpoint_bytes": 896660588,
+          "checkpoint_sha256": "61d55ecd7e1b349a8f7285bbcaf4a8948bd092be7505858f6d04ab4ad3942cbb",
+          "finite_gradients": true,
+          "quality_accepted": false
+        }
+      },
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "torch": "2.5.1+cpu",
+      "gpu": null,
+      "gpu_peak_allocated_bytes": null,
+      "threads": 2,
+      "dataset_sha256": "cd0445514e5b9edd6ee7aeb1893d68e4431b7ebe11866258c4330215579393f5",
+      "preparation_and_training_elapsed_seconds": 4576.1032237,
+      "source_pairs": {
+        "count": 100,
+        "duration_seconds": 549.46,
+        "target_recording_seconds": 14.55,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "recipe_identity": "llvc-beta-no-f0-250-1000-v1",
+      "cpu_identifier": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+      "logical_processors": "20",
+      "installed_runtime_manifest_sha256": "d1ed482d08b5d7cc77987e071286024245eff88ba54f4579f79e47ecc8cfd774",
+      "shared_manifest_sha256": "c5c4cca20a8c28e35d56ff76b44735dabb236a493b546972fa3059a608d15872",
+      "cpu_reference_estimate_note": "Mean update cost excludes preparation, checkpoint I/O, export and any paused time; this is not a promised completion time."
+    },
+    "cuda": {
+      "backend": "cuda",
+      "clean_windows_qualified": false,
+      "import_training_export_install_pass": true,
+      "listening_quality": "Current Beta quality accepted by user; not improved",
+      "live_pipeline": {
+        "finite_output": true,
+        "first_ready_ms": 88.91350000000001,
+        "maximum_inference_ms": 11.779,
+        "nonzero_output": true,
+        "pass": true,
+        "seconds": 30,
+        "underruns": 0
+      },
+      "schema": 1,
+      "native": {
+        "schema": 1,
+        "model_sha256": "82a532a14ab544afaadeec59ff3b7baadaed3e6114a12029d46546543b3465ce",
+        "checkpoint_sha256": "247f480fa8ac98040e4ebc1739900a99b38ead5147af4c58667efcb7208b18b9",
+        "worker_sha256": "5e2d7e362963a9e518f8c8e4b12ded48eaf6c10274bcffa9f712362ff07c95f2",
+        "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "diagnostic_mean_ms": 8.004075573203497,
+        "diagnostic_p99_ms": 8.990490999312899,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 6.568807319239074,
+        "native_p99_ms": 7.498489999852613,
+        "timing_pass": true,
+        "release_qualified": false,
+        "pending": [
+          "Representative training/quality evaluation",
+          "Thirty-minute streaming qualification",
+          "Integrated latency/stability qualification",
+          "Clean Windows bundled-runtime qualification"
+        ],
+        "worst_native_errors": {
+          "audio": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "encoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "decoder": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "synthesis": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          },
+          "prenet": {
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0
+          }
+        }
+      },
+      "stages": {
+        "teacher": {
+          "optimizer_steps": 250,
+          "resumed_from": 50,
+          "mean_step_seconds": 0.32190133900001455,
+          "max_step_seconds": 0.739820899998449,
+          "checkpoint_bytes": 1095287372,
+          "checkpoint_sha256": "d0da7933add4079c479e37352f2bb4573dba6d1be885d9992dc7939b9686a1de",
+          "finite_gradients": true,
+          "quality_accepted": false
+        },
+        "llvc": {
+          "optimizer_steps": 1000,
+          "resumed_from": 0,
+          "mean_step_seconds": 0.19223764239994853,
+          "max_step_seconds": 0.5766766000015195,
+          "checkpoint_bytes": 896671083,
+          "checkpoint_sha256": "bf59e2a9c2b9565d390b82bf430f6bdf4561581164877a24a15365c8716df907",
+          "finite_gradients": true,
+          "quality_accepted": false
+        }
+      },
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "torch": "2.5.1+cu124",
+      "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+      "gpu_peak_allocated_bytes": 2630142464,
+      "threads": 2,
+      "dataset_sha256": "5a6de2600f3ddd1ef265272fa1afd301a57e5d4b97b81737115dda66fa1d5a13",
+      "preparation_and_training_elapsed_seconds": 432.0223049000015,
+      "source_pairs": {
+        "count": 100,
+        "duration_seconds": 549.46,
+        "target_recording_seconds": 14.55,
+        "source_speakers": 30,
+        "held_out_target_speaker": true
+      },
+      "recipe_identity": "llvc-beta-no-f0-250-1000-v1",
+      "cpu_identifier": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+      "logical_processors": "20",
+      "installed_runtime_manifest_sha256": "72cf41f1e5a28d5241ed2c752e0287a9ef6beb9ed2424980f884b296eae14a3e",
+      "shared_manifest_sha256": "c5c4cca20a8c28e35d56ff76b44735dabb236a493b546972fa3059a608d15872",
+      "cpu_reference_estimate_note": "Mean update cost excludes preparation, checkpoint I/O, export and any paused time; this is not a promised completion time.",
+      "application_pause_control": {
+        "backend": "cuda",
+        "checkpoint_bytes": 1095287372,
+        "message": "Worker stopped after the five-second pause deadline. Resume uses the previous valid checkpoint.",
+        "pass": true,
+        "seconds": 5.0918887,
+        "status": "paused"
+      }
+    }
+  }
+}

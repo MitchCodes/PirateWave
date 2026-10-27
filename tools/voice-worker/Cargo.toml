@@ -1,0 +1,10 @@
+[package]
+name = "piratewave-voice-worker"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+[workspace]
+[dependencies]
+anyhow = "1"
+tch = "=0.18.1"

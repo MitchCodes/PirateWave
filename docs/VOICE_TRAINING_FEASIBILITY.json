@@ -1,0 +1,384 @@
+{
+  "schema": 1,
+  "generated_utc": "2026-10-21T05:15:04Z",
+  "status": "feasibility_only",
+  "public_training_enabled": false,
+  "release_qualified": false,
+  "development_python": "3.9.13",
+  "sources": {
+    "llvc": {
+      "url": "https://github.com/KoeAI/LLVC",
+      "revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+      "license": "MIT"
+    },
+    "rvc": {
+      "url": "https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI",
+      "revision": "81eed5e8f68b6bed1789f682fe78cdd324495afc",
+      "license": "MIT"
+    },
+    "fairseq": {
+      "url": "https://github.com/One-sixth/fairseq",
+      "revision": "44800430a728c2216fd1cf1e8daa672f50dfacba",
+      "license": "MIT"
+    },
+    "rvc_weights": {
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI",
+      "revision": "e6d0c1a17da07c33557852f9dfa2bd44cc75737d",
+      "model_card_license": "MIT"
+    }
+  },
+  "pinned_assets": {
+    "hubert_base_ls960.pt": {
+      "url": "https://huggingface.co/KoeAI/llvc_models/resolve/ebfe8c0fdeb974a7eeb463b3abbc8ce42a0e3851/models/embeddings/hubert_base_ls960.pt",
+      "bytes": 1136468879,
+      "sha256": "1703cf8d2cdc76f8c046f5f6a9bcd224e0e6caf4744cad1a1f4199c32cac8c8d"
+    },
+    "G32k.pth": {
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/pretrained/G32k.pth",
+      "bytes": 72653893,
+      "sha256": "81817645cde7ed2e2d83f23ef883f33dda564924b497e84d792743912eca4c23"
+    },
+    "D32k.pth": {
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/pretrained/D32k.pth",
+      "bytes": 109978943,
+      "sha256": "2ab20645829460fdad0d3c44254f1ab53c32cae50c22a66c926ae5aa30abda6f"
+    },
+    "hubert_base/pytorch_model.bin": {
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/hubert_base/pytorch_model.bin",
+      "bytes": 189206711,
+      "sha256": "cc8c20f4b90a520757260197a3ff2505705a7adbd20ad9eeaa4e1a9b38442ef5"
+    }
+  },
+  "corpus": {
+    "path": "dev-clean.tar.gz",
+    "url": "https://openslr.elda.org/resources/12/dev-clean.tar.gz",
+    "bytes": 337926286,
+    "sha256": "76f87d090650617fca0cac8f88b9416e0ebf80350acb97b343a85fa903728ab3",
+    "upstream_md5": "42e2234ba48799c1f50f24a7926300a1",
+    "license": "CC-BY-4.0",
+    "source": "https://www.openslr.org/12"
+  },
+  "small_assets": [
+    {
+      "path": "hubert_base/config.json",
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/hubert_base/config.json",
+      "bytes": 1492,
+      "sha256": "0346950779dfb7f9316fa74ed846e2b8a22a08eedfdc5387b73f327cb1a4a7cf"
+    },
+    {
+      "path": "hubert_base/preprocessor_config.json",
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/hubert_base/preprocessor_config.json",
+      "bytes": 225,
+      "sha256": "7c1976a680fb7acc757cd36fb08eef878fa36c70b4c9d2d595df9c608bbbbf0e"
+    }
+  ],
+  "scripts_sha256": {
+    "assets.lock.json": "785250b4041361d106bcd43e58b203a0271acaac2a7d3d889abcfd7aec7e4a1d",
+    "assets.py": "08ede85277e3cfb63d8e81293bf2b60696f1e887b9002ffc7cf98393e106ff74",
+    "export_probe.py": "dc911bfc762b5d6f0eb78e8599615a4fe42dc744fabdbcbf5f13955051fd1ba3",
+    "piratewave_directml_py39.py": "db85cabe21425ec8d1d6fa376bc9e1ca6293fc3bc0050e2795ea9c6a8989ee59",
+    "probe.py": "f4386d8fc20d49a2cd4b055a5156d8ad5b0a663c2e960bf1b20a7a514fe58d0c",
+    "requirements-common.lock.txt": "b779dba9ec6620efb128ffbad32e2b9273a62a917652fcb43e704ecad54c4e7b",
+    "supervise.py": "8d7b5ab420e6a8d25b168d58ba290fd1ba50ed520f543929fe0834c04b4580fb",
+    "test_training.py": "d0e2aedab98a5c664f7467d07621e8a0c2b09b35eca43c9da5ade82af2879899",
+    "write_report.py": "4c0d5ce0959a2fa539e28e0b8fa28481c7cd56ee6a02302f2eace5c5e9302f94"
+  },
+  "cpu_execution": {
+    "schema": 1,
+    "backend": "cpu",
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "stage": "export_and_native_validation_pending",
+    "started_utc": "2026-10-21T04:58:31Z",
+    "torch": "2.5.1+cu124",
+    "device": "cpu",
+    "threads": 2,
+    "pairs": {
+      "count": 4,
+      "duration_seconds": 7.92,
+      "held_out_target_speaker": true
+    },
+    "elapsed_seconds": 105.54383370000001,
+    "teacher": {
+      "optimizer_steps": 3,
+      "resumed_from": 0,
+      "mean_step_seconds": 8.07465466666667,
+      "max_step_seconds": 10.046804800000004,
+      "checkpoint_bytes": 1095186380,
+      "checkpoint_sha256": "9855d9344987b7311e63540ae54c0722509c9f8d2d4c073da0f2b1696a8ba840",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "llvc": {
+      "optimizer_steps": 3,
+      "resumed_from": 0,
+      "mean_step_seconds": 7.255073700000001,
+      "max_step_seconds": 9.313217800000004,
+      "checkpoint_bytes": 896610859,
+      "checkpoint_sha256": "be537136a867216c24e340ac20350f41bed3929191a13a67708fe2907ad522da",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "report": "dist/voice-training/cpu-probe/report.json",
+    "report_sha256": "c772803b43948e0e834a9039c293b98f7e7acf5d56fa457a717804c66697c68a",
+    "listening_accepted": false
+  },
+  "cuda_smoke_execution": {
+    "schema": 1,
+    "backend": "cuda",
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "stage": "export_and_native_validation_pending",
+    "started_utc": "2026-10-21T04:56:04Z",
+    "torch": "2.5.1+cu124",
+    "device": "cuda",
+    "threads": 2,
+    "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+    "gpu_free_bytes_before": 11608784896,
+    "pairs": {
+      "count": 4,
+      "duration_seconds": 7.92,
+      "held_out_target_speaker": true
+    },
+    "gpu_peak_allocated_bytes": 2308063232,
+    "elapsed_seconds": 65.7850963,
+    "teacher": {
+      "optimizer_steps": 11,
+      "resumed_from": 10,
+      "mean_step_seconds": 1.708205300000003,
+      "max_step_seconds": 1.708205300000003,
+      "checkpoint_bytes": 1095221644,
+      "checkpoint_sha256": "fa218b881a9bd2618a69c41d04ca852f3a9e06e48f31466ea8506d59825a0cb5",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "llvc": {
+      "optimizer_steps": 11,
+      "resumed_from": 0,
+      "mean_step_seconds": 0.5838536727272718,
+      "max_step_seconds": 1.6865465999999998,
+      "checkpoint_bytes": 896624875,
+      "checkpoint_sha256": "af8c0c1ee3b273bb354d1c3f7aff89dbbc567c48cd6c0a7cfea35e256468eace",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "report": "dist/voice-training/cuda-probe/report.json",
+    "report_sha256": "bf2374282c4f1889fad266e71a0a3b7de115acbef511f600b5f7f777630c0c66",
+    "listening_accepted": false
+  },
+  "cuda_larger_execution": {
+    "schema": 1,
+    "backend": "cuda",
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "stage": "export_and_native_validation_pending",
+    "started_utc": "2026-10-21T05:03:24Z",
+    "torch": "2.5.1+cu124",
+    "device": "cuda",
+    "threads": 2,
+    "gpu": "NVIDIA GeForce RTX 4070 SUPER",
+    "gpu_free_bytes_before": 11608784896,
+    "pairs": {
+      "count": 500,
+      "duration_seconds": 3100.5800000000036,
+      "target_recording_seconds": 433.68987500000003,
+      "source_speakers": 39,
+      "held_out_target_speaker": true
+    },
+    "gpu_peak_allocated_bytes": 2721875456,
+    "elapsed_seconds": 455.7848453,
+    "teacher": {
+      "optimizer_steps": 250,
+      "resumed_from": 0,
+      "mean_step_seconds": 0.7914604907999996,
+      "max_step_seconds": 2.3350587000000047,
+      "checkpoint_bytes": 1095341836,
+      "checkpoint_sha256": "9d371fe8fac601524620545948f6bd9d20569a8d894c94b5212c52e062bdd3c0",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "llvc": {
+      "optimizer_steps": 250,
+      "resumed_from": 0,
+      "mean_step_seconds": 0.37617469919999963,
+      "max_step_seconds": 1.497852499999965,
+      "checkpoint_bytes": 896725611,
+      "checkpoint_sha256": "b3ea1000fcaea5483fce74ab2015ef7d7455b0c465460f3a0bfb7e28fcef823f",
+      "finite_gradients": true,
+      "quality_accepted": false
+    },
+    "report": "dist/voice-training/cuda-representative/report.json",
+    "report_sha256": "b20beeb3a2488f2c98d73e5201a896abf514e0d478c02e75b66a46c4afee0cf2",
+    "listening_accepted": false
+  },
+  "native_export": {
+    "schema": 1,
+    "model_sha256": "fc1737ba059f3fe783bcf6b1367d9aed596768745f2441d191f6419401f3939d",
+    "checkpoint_sha256": "3e1c148ac366ec6008837b8e5547a58cc36e6f950897af064b114f79345d1990",
+    "worker_sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+    "llvc_revision": "1627c5d358cf9bb2b92b0ccc513d8b36807c923d",
+    "seconds": 30.004,
+    "waveform_and_state_pass": true,
+    "diagnostic_mean_ms": 8.143126543209961,
+    "diagnostic_p99_ms": 12.041734999999504,
+    "normal_protocol_parity": {
+      "finite": true,
+      "max": 0.0,
+      "rms": 0.0,
+      "normalized_max": 0.0,
+      "normalized_rms": 0.0,
+      "pass": true
+    },
+    "native_mean_ms": 7.04481243386236,
+    "native_p99_ms": 11.182217000001206,
+    "timing_pass": true,
+    "public_training_enabled": false,
+    "release_qualified": false,
+    "pending": [
+      "Representative training/quality evaluation",
+      "Thirty-minute streaming qualification",
+      "Integrated latency/stability qualification",
+      "Clean Windows bundled-runtime qualification"
+    ],
+    "report": "dist/voice-training/cuda-representative-export/report.json",
+    "report_sha256": "227155895bf4cf13b3765ab90a9a3d51b76402026ae259c66551ecb3ec8a78e2",
+    "worst_errors": {
+      "native": {
+        "audio": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        },
+        "encoder": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        },
+        "decoder": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        },
+        "synthesis": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        },
+        "prenet": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        }
+      },
+      "single_step": {
+        "audio": {
+          "max": 1.7881393432617188e-07,
+          "rms": 4.9101502749309855e-08,
+          "normalized_max": 1.7881393432617188e-07,
+          "normalized_rms": 4.9101502749309855e-08
+        },
+        "encoder": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        },
+        "decoder": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        },
+        "synthesis": {
+          "max": 2.682209014892578e-07,
+          "rms": 6.0967594871951335e-09,
+          "normalized_max": 2.682209014892578e-07,
+          "normalized_rms": 6.0967594871951335e-09
+        },
+        "prenet": {
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0
+        }
+      }
+    }
+  },
+  "directml": {
+    "qualified": false,
+    "stage": "teacher_feature_preparation",
+    "supervisor": {
+      "schema": 1,
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "exit_code": 3221226505,
+      "timed_out": false,
+      "process_completed": false,
+      "complex_float_abort_recorded": true
+    },
+    "pytorch": "2.4.1+cpu",
+    "torch_directml": "0.2.5.dev240914",
+    "module_original_sha256": "56bf0c24d0f2988268a6435a3d367e0b8757e6e30f1d36007a56b99d943783c6",
+    "module_patched_sha256": "6e46340bc3ec56344cc52400c34c13ffc32d0a184d68c42c3e411c9c2ceca1e3",
+    "patch": "Explicit developer-only Python 3.9 staticmethod compatibility fix; no native operator changes",
+    "failure": "Native abort: Invalid or unsupported data type ComplexFloat during spectrogram preparation"
+  },
+  "intel_xpu": {
+    "qualified": false,
+    "reason": "No supported Intel GPU is available on this machine; CUDA wheel is not an XPU training runtime.",
+    "probe": {
+      "schema": 1,
+      "backend": "xpu",
+      "public_training_enabled": false,
+      "release_qualified": false,
+      "stage": "asset_verification",
+      "started_utc": "2026-10-21T05:04:17Z",
+      "error": "Intel XPU is unavailable; refusing implicit CPU fallback",
+      "error_type": "RuntimeError",
+      "elapsed_seconds": 12.4332929,
+      "report": "dist/voice-training/xpu-probe/report.json",
+      "report_sha256": "f4b903d813902feae546fda803bec1e6746086d9aff664479d8412cdb18634de",
+      "listening_accepted": false
+    }
+  },
+  "amd_rocm": {
+    "qualified": false,
+    "tested_on_hardware": false,
+    "version_reviewed": "7.2.1",
+    "reason": "Native Windows documentation lists no ML training support; no AMD GPU was available.",
+    "source": "https://rocm.docs.amd.com/projects/radeon-ryzen/en/docs-7.2.1/docs/limitations/limitationsrad.html#windows"
+  },
+  "development_storage": {
+    "meaning": "End-of-experiment logical file sizes, NOT a published download estimate, peak measurement or minimum requirement.",
+    "cuda_environment_bytes": 5306330008,
+    "directml_environment_bytes": 1860290902,
+    "assets_including_archive_and_extraction_bytes": 2206526334,
+    "experiment_artifacts_bytes": 6249480465,
+    "public_runtime_download_bytes": null,
+    "public_runtime_installed_bytes": null,
+    "peak_training_workspace_bytes": null
+  },
+  "implemented_in_application": [
+    "Gated voice-creation availability page",
+    "Beginner recording/help guide and prompts",
+    "Persistent workspace preference",
+    "Background category/free-space measurement"
+  ],
+  "remaining": [
+    "Accepted voice quality for multiple permissioned target speakers and held-out input speakers",
+    "Validated recording duration, convergence and reduced-dataset recipe",
+    "Supported embedded interpreter and fully prebuilt portable runtime bundles; current venvs require system Python",
+    "Measured download/installed/peak sizes and time/memory calibration",
+    "Rust job supervisor/IPC and complete resumable recording/import/review/training wizard",
+    "Verified runtime download/offline installation and safe checkpoint/cache cleanup",
+    "Live-audio training pause integration (currently no training is launched by PirateWave)",
+    "General voice registry and model-specific CPU/DirectML qualification",
+    "Thirty-minute state/stability, complete latency, listening and clean-Windows acceptance"
+  ],
+  "guard": "Existing curated voice/runtime/installer remain intact. No prototype model is installed or activated."
+}

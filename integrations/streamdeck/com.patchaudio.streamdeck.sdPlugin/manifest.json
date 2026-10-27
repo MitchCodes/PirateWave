@@ -1,0 +1,288 @@
+{
+  "Name": "PirateWave Audio Mixer",
+  "UUID": "com.patchaudio.streamdeck",
+  "Version": "1.1.0.0",
+  "Author": "PirateWave contributors",
+  "Description": "Control PirateWave audio nodes, effects, soundboard and recording slots using buttons and dials.",
+  "Icon": "images/plugin",
+  "Category": "PirateWave Audio Mixer",
+  "CategoryIcon": "images/category",
+  "URL": "https://github.com/MitchCodes/PatchAudio-Releases",
+  "CodePath": "bin/plugin.mjs",
+  "Nodejs": {
+    "Version": "24"
+  },
+  "SDKVersion": 2,
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "7.1"
+  },
+  "Actions": [
+    {
+      "UUID": "com.patchaudio.streamdeck.application",
+      "Name": "Application",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.nodes",
+      "Name": "Inputs, outputs & nodes",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.effects",
+      "Name": "Rack effects",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.switches",
+      "Name": "Switch destinations",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.sounds",
+      "Name": "Soundboard",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.recordings",
+      "Name": "Recording slots",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.extensions",
+      "Name": "Extension actions",
+      "Icon": "images/action",
+      "Tooltip": "Execute a PirateWave action without a keyboard shortcut.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ]
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.volume",
+      "Name": "Volume",
+      "Icon": "images/action",
+      "Tooltip": "Adjust with a dial or configure an increase/decrease/reset button.",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust value",
+          "Push": "Mute, center or reset",
+          "Touch": "Mute, center or reset"
+        }
+      }
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.pan",
+      "Name": "Pan",
+      "Icon": "images/action",
+      "Tooltip": "Adjust with a dial or configure an increase/decrease/reset button.",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust value",
+          "Push": "Mute, center or reset",
+          "Touch": "Mute, center or reset"
+        }
+      }
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.parameters",
+      "Name": "Effect & VST parameters",
+      "Icon": "images/action",
+      "Tooltip": "Adjust with a dial or configure an increase/decrease/reset button.",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust value",
+          "Push": "Mute, center or reset",
+          "Touch": "Mute, center or reset"
+        }
+      }
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.ducking",
+      "Name": "Auto Ducking parameters",
+      "Icon": "images/action",
+      "Tooltip": "Adjust with a dial or configure an increase/decrease/reset button.",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust value",
+          "Push": "Mute, center or reset",
+          "Touch": "Mute, center or reset"
+        }
+      }
+    },
+    {
+      "UUID": "com.patchaudio.streamdeck.nodeparameters",
+      "Name": "Extension node parameters",
+      "Icon": "images/action",
+      "Tooltip": "Adjust with a dial or configure an increase/decrease/reset button.",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "PropertyInspectorPath": "ui/index.html",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "images/key",
+          "TitleAlignment": "middle",
+          "FontSize": 12
+        }
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust value",
+          "Push": "Mute, center or reset",
+          "Touch": "Mute, center or reset"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+[package]
+name = "piratewave-voice-probe"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+# An isolated feasibility executable: do not add inference libraries to PirateWave
+# until the explicitly agreed model/preset gate passes.
+[workspace]
+
+[dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+hound = "3.5"
+ort = { version = "=2.0.0-rc.8", default-features = false, features = ["load-dynamic", "directml", "half"] }
+ort-sys = { version = "=2.0.0-rc.8", default-features = false, features = ["load-dynamic"] }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.54", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }
+

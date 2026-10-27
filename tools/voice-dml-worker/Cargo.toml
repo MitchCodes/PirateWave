@@ -1,0 +1,13 @@
+[package]
+name = "piratewave-voice-dml-worker"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+[workspace]
+[dependencies]
+anyhow = "1"
+tch = "=0.18.1"
+ort = { version = "=2.0.0-rc.8", default-features = false, features = ["load-dynamic", "directml", "half"] }
+ort-sys = { version = "=2.0.0-rc.8", default-features = false, features = ["load-dynamic"] }
+windows = { version = "0.54", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }

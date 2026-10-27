@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "small_assets": [
+    {
+      "path": "hubert_base/config.json",
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/hubert_base/config.json",
+      "bytes": 1492,
+      "sha256": "0346950779dfb7f9316fa74ed846e2b8a22a08eedfdc5387b73f327cb1a4a7cf"
+    },
+    {
+      "path": "hubert_base/preprocessor_config.json",
+      "url": "https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/e6d0c1a17da07c33557852f9dfa2bd44cc75737d/hubert_base/preprocessor_config.json",
+      "bytes": 225,
+      "sha256": "7c1976a680fb7acc757cd36fb08eef878fa36c70b4c9d2d595df9c608bbbbf0e"
+    }
+  ],
+  "corpus": {
+    "path": "dev-clean.tar.gz",
+    "url": "https://openslr.elda.org/resources/12/dev-clean.tar.gz",
+    "bytes": 337926286,
+    "sha256": "76f87d090650617fca0cac8f88b9416e0ebf80350acb97b343a85fa903728ab3",
+    "upstream_md5": "42e2234ba48799c1f50f24a7926300a1",
+    "license": "CC-BY-4.0",
+    "source": "https://www.openslr.org/12"
+  }
+}

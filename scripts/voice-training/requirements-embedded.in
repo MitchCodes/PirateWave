@@ -1,0 +1,11 @@
+# Build-machine input only. Resolve to hashed wheels before distribution.
+numpy==1.26.4
+scipy==1.13.1
+librosa==0.10.2.post1
+soundfile==0.12.1
+speechbrain==0.5.16
+HyperPyYAML==1.2.3
+auraloss==0.4.0
+transformers==4.49.0
+huggingface-hub==0.34.4
+psutil==7.0.0

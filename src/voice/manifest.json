@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "pack": "llvc-f8312-v1",
+  "name": "LLVC voice — Beta",
+  "model_sha256": "730b547dbafea5e295302cd7d9c5a4bae212251ea9515a07443499645774945c",
+  "cpu_identifier": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+  "cpu_name": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+  "logical_processors": 20,
+  "runtime": "LibTorch 2.5.1 CPU / two threads; optional ONNX Runtime 1.19.2 DirectML transformer",
+  "hop": 416,
+  "release_qualified": false,
+  "automated_qualified": true,
+  "files": {
+    "LLVC_LICENSE.txt": {
+      "sha256": "abf2344d1119ee0ed6b3aea4c82dc5f25fdf0067d6975aeb3582a994ee0a4c76",
+      "bytes": 1084
+    },
+    "MODEL_NOTICES.txt": {
+      "sha256": "5aa5821ba0abef0b666873b03d8aed246a636161a5e0862905bff82d1aafca76",
+      "bytes": 1274
+    },
+    "PATCH_LICENSE.txt": {
+      "sha256": "12fb393d76f5d888d4d2bf909ae17bcdd711c4a5ad2656906ca099421fb588c4",
+      "bytes": 1075
+    },
+    "PYTORCH_LICENSE.txt": {
+      "sha256": "f226b225fdff2e19dee06ffac7fff8b5c92f4e1a5914421526d0d4b2fbcef9b2",
+      "bytes": 523467
+    },
+    "PYTORCH_NOTICE.txt": {
+      "sha256": "1c3dec6c0342c7ed9e12af59b296c7bb1d394af5cf881db74191cc8299efce5c",
+      "bytes": 24088
+    },
+    "PatchVoiceWorker.exe": {
+      "sha256": "ec3498e96064adc8f880bc5c2fb9c61cde33b0e58e2b1442e2b586629b84ba14",
+      "bytes": 753152
+    },
+    "QUALIFICATION.json": {
+      "sha256": "f034361776626d87eeb77a399d0d10cdea2c9df7e0fb7e4938af6a1babc9b4c7",
+      "bytes": 92710
+    },
+    "WORKER_THIRD_PARTY_NOTICES.md": {
+      "sha256": "b34a7c85955725828be7ebb09cd1de7ebea327e72ddd03d353e45a15811dc2ed",
+      "bytes": 787208
+    },
+    "asmjit.dll": {
+      "sha256": "9d1347ef1fbd8e60670c622b38360ae3bf758fa6f6cb37b2bd90a7aa4faba13f",
+      "bytes": 358912
+    },
+    "c10.dll": {
+      "sha256": "3b2817cfce28c7325aee533c6b75e1802464f261ddad7888b377656e8532951b",
+      "bytes": 877568
+    },
+    "fbgemm.dll": {
+      "sha256": "d7eb3e5b58d400070aaa6def98391148bfc5f9e38f1ef868f30aa6c92745f43e",
+      "bytes": 4961280
+    },
+    "libiomp5md.dll": {
+      "sha256": "7f37e24b28383b21a06a198927c3adda2f0e3a780d553922b3819220e84f7615",
+      "bytes": 1250312
+    },
+    "libiompstubs5md.dll": {
+      "sha256": "c649831e9cc5fdbf6863dad2de9fae765dba09142a0c16782809f85d80a0aee0",
+      "bytes": 41992
+    },
+    "llvc-stream.pt": {
+      "sha256": "730b547dbafea5e295302cd7d9c5a4bae212251ea9515a07443499645774945c",
+      "bytes": 13515400
+    },
+    "model-config.json": {
+      "sha256": "530f18a80fc1b233382801f3a8ba16ba13f4b8b412e9e4dde296c65e755f97ba",
+      "bytes": 2171
+    },
+    "msvcp140.dll": {
+      "sha256": "7c26614e1d733892c2deac7e245ce115504b1d80592dd0a01b08e3e5a55f89ca",
+      "bytes": 643512
+    },
+    "preview-loud.wav": {
+      "sha256": "cc79a12b6d1e67322898fdb41dd6409ccd0cf5f1752454237aee6fa542adbcd6",
+      "bytes": 85740
+    },
+    "preview-quiet.wav": {
+      "sha256": "4ad9fc30d17ab75ffa6d25b359396be3ef40164940cfd40f6bfedb0d2ed3c6d0",
+      "bytes": 129004
+    },
+    "preview-speaker.wav": {
+      "sha256": "05ffbe9b42042658e1f368bab8c173d99139f3e39c422377ffaad37004fe1469",
+      "bytes": 85740
+    },
+    "preview.wav": {
+      "sha256": "4407d141d584e4fa46244991d16e24208780c9730ae2fe960bf45a64cc570410",
+      "bytes": 129004
+    },
+    "shm.dll": {
+      "sha256": "92d558aead618d3996d63aa62444f3acb3d96dc8389b5f997b1675ad089fa7bf",
+      "bytes": 14848
+    },
+    "tensor-contract.json": {
+      "sha256": "743388bb01bf91c5a599986d9fce4be0e58cb3c0cad84b7f8bd193d62048f4ad",
+      "bytes": 1425
+    },
+    "torch.dll": {
+      "sha256": "ce359532e6a4ebb084e65fd51ff3bf2b7396577fb5034d067baaa1434488928a",
+      "bytes": 9728
+    },
+    "torch_cpu.dll": {
+      "sha256": "7ec6ca0fac6039ae27462af21ea356a52fec8c3c7baf084150d462cffbdbef8b",
+      "bytes": 249312768
+    },
+    "torch_global_deps.dll": {
+      "sha256": "c0f4da23046c70cacb169d4294e987f4baf020a66e1b779d87a8f9489af38b30",
+      "bytes": 9728
+    },
+    "uv.dll": {
+      "sha256": "d6e517084425092066d4b26678320eb60edf2c79ade855bd67b829113f999da6",
+      "bytes": 195072
+    },
+    "vcruntime140.dll": {
+      "sha256": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
+      "bytes": 178616
+    },
+    "vcruntime140_1.dll": {
+      "sha256": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e",
+      "bytes": 50112
+    },
+    "PatchVoiceDmlWorker.exe": {
+      "sha256": "eccec160c094a37eee2a9609e5a41ee0d43e8d567866acbb28d9009a38f0d79d",
+      "bytes": 975360
+    },
+    "front.pt": {
+      "sha256": "a1774e86f90f11c67198b6423f0c519e81141ede22da3b03e973f9f2727add72",
+      "bytes": 13481319
+    },
+    "decoder.onnx": {
+      "sha256": "0d49d43a864e30d965a2ef3af42c17f9b16e69bfc1dafb1484cbf9390a14017b",
+      "bytes": 3476687
+    },
+    "finish.pt": {
+      "sha256": "f8f1489cd3ca79ca16f9eb437ee5c2ba48b11418343c8feb7073a949274cbd21",
+      "bytes": 13418647
+    },
+    "onnxruntime.dll": {
+      "sha256": "8702a9e02b0e4bc111ca64eb34fb6c9c863ef8ec8e4b21f1a8e4b792edbabf30",
+      "bytes": 17992248
+    },
+    "DirectML.dll": {
+      "sha256": "ed090ba646fee8829b32fe724454b5f670ff05c3098372be1c39882e0b9c2f97",
+      "bytes": 18521120
+    },
+    "onnxruntime_providers_shared.dll": {
+      "sha256": "dbc7e173afc0401b6d941f12ff6e4e2ab2f7b60a36767c7b80563c65be6ddc0a",
+      "bytes": 21560
+    },
+    "ONNX_RUNTIME_LICENSE.txt": {
+      "sha256": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674",
+      "bytes": 1094
+    },
+    "ONNX_RUNTIME_NOTICES.txt": {
+      "sha256": "fac5bb85f568b38fd8f3a6aea32737985841f23a1a43e9ce952f79474f883aa9",
+      "bytes": 345046
+    },
+    "DIRECTML_QUALIFICATION.json": {
+      "sha256": "0644891e5d903a75c6305f6847965fd1165952b1dd3b8132038543a992136a31",
+      "bytes": 1133835
+    },
+    "DIRECTML_NOTICES.txt": {
+      "sha256": "3cdf8626da795f1f39f92a2c4405d39e5b1890dde874778b543785db026dabd7",
+      "bytes": 460
+    },
+    "msvcp140_1.dll": {
+      "sha256": "206c931bf90fdad8816de3b5e2ef80b2bcaa9406c89ecc05fe6fddffe251e982",
+      "bytes": 35768
+    },
+    "DIRECTML_CONTRACT.json": {
+      "sha256": "3132c11a96aaf67b05c15605210a6b5769bc50e8fdb7ba43f24424a4e1efff8a",
+      "bytes": 1250
+    },
+    "DIRECTML_WORKER_THIRD_PARTY_NOTICES.md": {
+      "sha256": "13d052d71a29a99871175fc82f568754b69b0ff77da31b53b9418fac3d70bfb8",
+      "bytes": 914982
+    }
+  },
+  "directml_qualified": true
+}

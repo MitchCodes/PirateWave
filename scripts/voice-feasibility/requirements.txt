@@ -1,0 +1,11 @@
+# Development/export only. Install torch/torchaudio using the CPU wheel index.
+torch==2.5.1+cpu
+torchaudio==2.5.1+cpu
+numpy==1.23.5
+speechbrain==0.5.16
+onnx==1.16.2
+onnxruntime-directml==1.19.2
+soundfile==0.12.1
+huggingface-hub==0.34.4
+scipy==1.13.1
+hyperpyyaml==1.2.3

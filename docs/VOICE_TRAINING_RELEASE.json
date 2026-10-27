@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "version": "0.2.0-beta.1",
+  "release_url": "https://github.com/MitchCodes/PatchAudio-Releases/releases/tag/v0.2.0-beta.1",
+  "published": true,
+  "prerelease": true,
+  "source_repository_private": true,
+  "anonymous_app_and_catalog_checksums_pass": true,
+  "assets": 15,
+  "rust_regression_tests_passed": 122,
+  "python_regression_tests_passed": 22,
+  "optional_pack_installation_pass": true,
+  "portable_cpu_workflow_pass": true,
+  "portable_cuda_workflow_pass": true,
+  "training_available": true,
+  "full_release_qualified": false,
+  "quality_improved": false,
+  "limitations": [
+    "Experimental adapted voice quality",
+    "Custom voices use locally checked CPU inference only",
+    "Clean-Windows, custom-model thirty-minute stability, physical end-to-end latency and gaming-impact acceptance remain pending"
+  ]
+}

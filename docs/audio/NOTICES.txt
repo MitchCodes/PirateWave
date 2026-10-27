@@ -1,0 +1,1 @@
+LibriSpeech dev-clean, clip 1462-170138-0000. Source: https://www.openslr.org/12 . Vassil Panayotov and Daniel Povey, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). First eight seconds excerpted; clipped and echo versions modified by PirateWave for teaching. Source SHA-256: 0db52d84970679037bc6c95364086159db5f051e3ba14d723efb7000facf23b5

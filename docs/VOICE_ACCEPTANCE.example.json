@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "model_sha256": "730b547dbafea5e295302cd7d9c5a4bae212251ea9515a07443499645774945c",
+  "cpu_identifier": "Replace with PROCESSOR_IDENTIFIER on the tested machine",
+  "listening": {
+    "accepted": false,
+    "notes": "Review normal, quiet, loud, consonant-heavy speech and your microphone. Check intelligibility and persistent artifacts."
+  },
+  "latency": {
+    "accepted": false,
+    "added_ms": null,
+    "microphone_to_output_ms": null,
+    "method": "Record the complete hardware measurement method; software first-ready time alone is insufficient."
+  },
+  "gaming": {
+    "report": "Path to the compare_frame_times.py report",
+    "notes": "Same repeatable scene and Discord activity; three baseline and three enabled runs."
+  },
+  "clean_windows": {
+    "accepted": false,
+    "notes": "Verify portable startup, optional pack install, preview, old projects and worker execution without Python installed."
+  }
+}

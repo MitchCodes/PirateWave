@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "bundles": [
+    {
+      "id": "training-cpu-6732c248032a",
+      "backend": "cpu",
+      "bytes": 408081670,
+      "installed_bytes": 1626470496,
+      "sha256": "6732c248032a2ac03c51ba80fe487f4d994335157bc4eac57a19e8a5543cd824",
+      "manifest_sha256": "d1ed482d08b5d7cc77987e071286024245eff88ba54f4579f79e47ecc8cfd774",
+      "parts": [
+        {
+          "name": "Patch-Training-CPU-beta1.part001",
+          "bytes": 408081670,
+          "sha256": "6732c248032a2ac03c51ba80fe487f4d994335157bc4eac57a19e8a5543cd824",
+          "url": "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/v0.2.0-beta.1/Patch-Training-CPU-beta1.part001"
+        }
+      ]
+    },
+    {
+      "id": "training-cuda-e342298d4662",
+      "backend": "cuda",
+      "bytes": 2786567626,
+      "installed_bytes": 5093004744,
+      "sha256": "e342298d4662200ddd913137ba81bc90e1de72dc27c3d264e1d6d3874a2dafbb",
+      "manifest_sha256": "72cf41f1e5a28d5241ed2c752e0287a9ef6beb9ed2424980f884b296eae14a3e",
+      "parts": [
+        {
+          "name": "Patch-Training-CUDA-beta1.part001",
+          "bytes": 1073741824,
+          "sha256": "00a3a31ac77b4bb3255c483e739b2a8d773b2f142935e18e5d82ebb439293ba9",
+          "url": "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/v0.2.0-beta.1/Patch-Training-CUDA-beta1.part001"
+        },
+        {
+          "name": "Patch-Training-CUDA-beta1.part002",
+          "bytes": 1073741824,
+          "sha256": "3cea1019a7e2836116a5d2040b1461088b5a3076a651aa7c7def246ec19bfa29",
+          "url": "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/v0.2.0-beta.1/Patch-Training-CUDA-beta1.part002"
+        },
+        {
+          "name": "Patch-Training-CUDA-beta1.part003",
+          "bytes": 639083978,
+          "sha256": "21052f412d83508543c5b4274dd0d540253236faf84fb35092e0b055b7b95113",
+          "url": "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/v0.2.0-beta.1/Patch-Training-CUDA-beta1.part003"
+        }
+      ]
+    },
+    {
+      "id": "training-shared-19bbd92b0a95",
+      "backend": "shared",
+      "bytes": 730167404,
+      "installed_bytes": 788966452,
+      "sha256": "19bbd92b0a95bf7143eb20ee99bc09961d00e2ba4dd266fc32d5e87c7407c5c7",
+      "manifest_sha256": "c5c4cca20a8c28e35d56ff76b44735dabb236a493b546972fa3059a608d15872",
+      "parts": [
+        {
+          "name": "Patch-Training-Shared-beta1.part001",
+          "bytes": 730167404,
+          "sha256": "19bbd92b0a95bf7143eb20ee99bc09961d00e2ba4dd266fc32d5e87c7407c5c7",
+          "url": "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/v0.2.0-beta.1/Patch-Training-Shared-beta1.part001"
+        }
+      ]
+    }
+  ]
+}
