@@ -116,7 +116,11 @@ Built-in processors remain linked Rust code. VST nodes use the injectable Graph:
 - `windows_audio.rs`: read-only endpoint mute/volume diagnostics.
 - `ui.rs` / `ui/mixer.rs`: desktop controls; canvas positions never affect DSP.
 
-Audio starts stopped and never follows a project load automatically. Streams are dropped on stop/exit. No input samples are written to disk.
+Audio starts stopped and never follows a project load automatically. Streams are dropped on stop/exit. Audio is written to disk only through explicit recording capture, take recording/export, or other user-requested media operations; render processing never performs file access.
+
+## Workflow control plane
+
+Scenes, synchronized sessions and guided rules share typed requests, generation-stamped completion events and the engine frame timeline. See [workflow implementation](WORKFLOW_DEVELOPMENT.md) for ownership, transition metadata, bounded history/transfers, cancellation and tests.
 
 ## Tests and future work
 

@@ -56,6 +56,57 @@ impl RecordingEffects {
         self.bypass = bypass;
         Ok(())
     }
+    /// Reserve parameter entries and reset newly enabled instances on the control plane.
+    pub fn prepare_scene(&mut self, settings: &[crate::workflows::SceneSetting], node: u64) {
+        for setting in settings.iter().filter(|s| s.included && s.node == node) {
+            match &setting.value {
+                crate::workflows::Control::Parameter {
+                    effect, parameter, ..
+                } => {
+                    if let Some((spec, _)) = self.effects.iter_mut().find(|(s, _)| s.id == *effect)
+                    {
+                        spec.parameters.entry(parameter.clone()).or_insert(0.);
+                    }
+                }
+                crate::workflows::Control::EffectEnabled {
+                    effect,
+                    value: true,
+                } => {
+                    if let Some((spec, dsp)) =
+                        self.effects.iter_mut().find(|(s, _)| s.id == *effect)
+                    {
+                        if !spec.enabled {
+                            dsp.reset();
+                        }
+                    }
+                }
+                crate::workflows::Control::Bypass { value: false } if self.bypass => {
+                    for (_, dsp) in &mut self.effects {
+                        dsp.reset();
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    /// Apply only values to existing instances; no collection replacement or allocation.
+    pub fn scene_values(&mut self, specs: &[EffectSpec], bypass: bool) {
+        self.bypass = bypass;
+        for ((old, dsp), next) in self.effects.iter_mut().zip(specs) {
+            if old.id != next.id {
+                continue;
+            }
+            old.enabled = next.enabled;
+            for (name, value) in &next.parameters {
+                if let Some(current) = old.parameters.get_mut(name) {
+                    if current != value {
+                        *current = *value;
+                        let _ = dsp.set_parameter(name, *value);
+                    }
+                }
+            }
+        }
+    }
     pub fn process(&mut self, frames: &mut [Frame]) {
         if !self.bypass {
             for (spec, effect) in &mut self.effects {

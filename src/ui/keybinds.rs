@@ -9,6 +9,125 @@ pub(super) enum SettingsSection {
 }
 impl PirateWaveApp {
     pub(super) fn handle_shortcut(&mut self, action: ShortcutAction) {
+        self.dispatch_action(action, piratewave_core::automation::Origin::Ui);
+    }
+    pub(super) fn dispatch_action(
+        &mut self,
+        action: ShortcutAction,
+        origin: piratewave_core::automation::Origin,
+    ) {
+        if let Err(e) =
+            self.dispatch_typed(piratewave_core::actions::Action::Invoke(action), origin)
+        {
+            self.notify_error(e);
+        }
+    }
+    pub(super) fn dispatch_typed(
+        &mut self,
+        action: piratewave_core::actions::Action,
+        origin: piratewave_core::automation::Origin,
+    ) -> Result<(), String> {
+        use piratewave_core::actions::Action;
+        if self.workflow_ui.context.is_none() {
+            self.workflow_ui.action_error = None;
+        }
+        piratewave_core::actions::validate(&action, &self.project, &self.registry, origin)?;
+        match action {
+            Action::Invoke(action) => self.invoke_action(action, origin),
+            Action::Set { node, control } => {
+                let next = piratewave_core::actions::absolute(
+                    &self.project,
+                    &self.registry,
+                    node,
+                    control,
+                )?;
+                let inherited = self.workflow_ui.context;
+                if inherited.is_none() {
+                    let mut context = self.workflow_context();
+                    context.origin = origin;
+                    self.workflow_ui.context = Some(context);
+                }
+                self.workflow_ui.target = node;
+                self.project = next;
+                self.changed(false);
+                self.command(Command::Update(self.project.clone()));
+                self.needs_apply = false;
+                self.workflow_ui.context = inherited;
+            }
+            Action::Batch(actions) => {
+                for action in actions {
+                    self.dispatch_typed(action, origin)?;
+                    if let Some(error) = self.workflow_ui.action_error.take() {
+                        return Err(error);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+    fn invoke_action(
+        &mut self,
+        action: ShortcutAction,
+        origin: piratewave_core::automation::Origin,
+    ) {
+        let inherited = self.workflow_ui.context;
+        if inherited.is_none() {
+            let mut context = self.workflow_context();
+            context.origin = origin;
+            self.workflow_ui.context = Some(context);
+        }
+        self.workflow_ui.target = match action {
+            ShortcutAction::Sound(id)
+            | ShortcutAction::Scene(id)
+            | ShortcutAction::Rule(id)
+            | ShortcutAction::Node { id, .. }
+            | ShortcutAction::RecordingSlot { id, .. }
+            | ShortcutAction::Session { id, .. }
+            | ShortcutAction::SwitchOutput { id, .. }
+            | ShortcutAction::Effect { id, .. }
+            | ShortcutAction::Extension { id, .. } => id,
+            _ => 0,
+        };
+        let asynchronous = matches!(
+            action,
+            ShortcutAction::Sound(_)
+                | ShortcutAction::Scene(_)
+                | ShortcutAction::RecordingSlot {
+                    action: piratewave_core::recording::SlotAction::Capture
+                        | piratewave_core::recording::SlotAction::Preview
+                        | piratewave_core::recording::SlotAction::Send
+                        | piratewave_core::recording::SlotAction::PreviewAndSend,
+                    ..
+                }
+                | ShortcutAction::Session { .. }
+        );
+        if asynchronous && self.needs_apply {
+            let command = if self.needs_restart {
+                Command::Reconfigure(self.project.clone())
+            } else {
+                Command::Update(self.project.clone())
+            };
+            if let Err(e) = self.engine.send(command) {
+                self.notify_error(e);
+                self.workflow_ui.context = inherited;
+                return;
+            }
+            self.needs_apply = false;
+            self.needs_restart = false;
+        }
+        self.execute_shortcut(action);
+        if self.needs_apply {
+            self.command(if self.needs_restart {
+                Command::Reconfigure(self.project.clone())
+            } else {
+                Command::Update(self.project.clone())
+            });
+            self.needs_apply = false;
+            self.needs_restart = false;
+        }
+        self.workflow_ui.context = inherited;
+    }
+    fn execute_shortcut(&mut self, action: ShortcutAction) {
         if matches!(
             action,
             ShortcutAction::App(AppAction::StopSounds | AppAction::StopAudio)
@@ -20,6 +139,10 @@ impl PirateWaveApp {
             return;
         }
         match action {
+            ShortcutAction::Scene(id) => self.recall_scene(id),
+            ShortcutAction::Session { id, action } => self.session_action(id, action),
+            ShortcutAction::Rule(id) => self.run_rule(id),
+            ShortcutAction::Automation { armed } => self.arm_automation(armed),
             ShortcutAction::Extension { id, effect, action } => {
                 match piratewave_core::extensions::apply_action(
                     &mut self.project,
@@ -51,7 +174,7 @@ impl PirateWaveApp {
                     self.changed(false);
                 }
             }
-            ShortcutAction::Sound(id) => self.play(id),
+            ShortcutAction::Sound(id) => self.play_clip(id),
             ShortcutAction::App(action) => {
                 self.command(Command::for_app_action(action, self.project.clone()))
             }

@@ -6,6 +6,7 @@ Every recipe contains a regular Microphone input, a Soundboard routed to both St
 
 | Recipe | Workflow |
 | --- | --- |
+| Captain’s Log | Clean microphone and music ducking, two scenes, synchronized raw/processed session tracks and guided recording rules. |
 | Clear Waters | Microphone → Clean Mic → Stream Mix. High-pass filter, expander, de-esser, parametric EQ, compressor and limiter, in that order. |
 | Silent Seas | Clear Waters with RNNoise Noise Suppression after the high-pass filter. Suppression starts at 100% strength; lower it if speech sounds processed. Adds about 20 ms latency. |
 | Music Mate | Microphone enters Auto Ducking’s Priority input; Spotify enters Ducked. Mixed goes to Stream Mix. |
@@ -20,3 +21,7 @@ Voice recipes use actual Voice Changer nodes. Choose and qualify their voice pac
 The cleaning settings are starting points: 80 Hz high-pass, gentle downward expansion, bounded de-essing, a broad −2 dB cut at 250 Hz, 3:1 compression, and a −1 dB limiter. Tune thresholds to your input level and room. Ducking uses the normal Level defaults, including −18 dB attenuation and no lookahead.
 
 Recipes create ordinary project data; browsing the Cookbook performs no audio processing or device discovery. Imported nodes, effects, routes and slots remain fully editable and work with existing shortcuts and controller integrations. Browsing never marks the current workspace dirty.
+
+## Captain’s Log
+
+Select your microphone, output devices and application targets, then start audio. **Full Deck** and **Interview** on Scenes keep or mute the music. The Sessions configuration includes raw and cleaned microphone, Stream Mix, separate ducking outputs and recorder preview/send tracks. History starts disarmed. On Automation, arm the master and manually run **Ten-second take** to try Start → Wait → Stop → notification. Existing recorder slots remain separate. See [the workflow guide](WORKFLOWS.md) before using raw capture or automation.

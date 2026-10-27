@@ -280,6 +280,15 @@ static class Tests
                 Check(SdkRun(new EffectAdjustment(), client, width, "ApplyAdjustment", 10), "Extension effect knob rejected");
                 await Until(() => Math.Abs(client.Find(width.Selector, out _)!.Value - 1.2) < 0.0001, "Extension effect feedback failed");
             }
+            foreach (var group in new (string Category, PirateWaveCommand Command)[] {
+                ("scene", new SceneCommand()), ("session", new SessionCommand()),
+                ("automation", new AutomationCommand()), ("automation_rule", new RuleCommand()) }) {
+                foreach (var workflow in client.Snapshot.Entries.Where(e => e.Selector.Category == group.Category).ToArray()) {
+                    var before = client.Snapshot.Notice;
+                    Check(SdkRun(group.Command, client, workflow, "RunCommand"), "Workflow SDK callback rejected: " + group.Category);
+                    await Until(() => client.Snapshot.Notice != before, "Workflow action not acknowledged: " + group.Category);
+                }
+            }
             // Construct all SDK action types and validate their dependent selectors.
             foreach (var type in typeof(PirateWavePlugin).Assembly.GetTypes().Where(t => !t.IsAbstract && (t.IsSubclassOf(typeof(Loupedeck.ActionEditorCommand)) || t.IsSubclassOf(typeof(Loupedeck.ActionEditorAdjustment))))) {
                 var action = (Loupedeck.ActionEditorAction)Activator.CreateInstance(type)!;

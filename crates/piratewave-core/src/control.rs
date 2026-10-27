@@ -94,6 +94,59 @@ fn base(
 }
 pub fn catalog(p: &Project, registry: &EffectRegistry, running: bool) -> Vec<Entry> {
     let mut entries = vec![];
+    for scene in &p.workflows.scenes {
+        entries.push(base(
+            "scene",
+            None,
+            &scene.name,
+            "recall".into(),
+            "Recall scene",
+            "Ready".into(),
+        ));
+    }
+    for session in &p.workflows.sessions {
+        for action in [
+            crate::workflows::SessionAction::Start,
+            crate::workflows::SessionAction::Stop,
+            crate::workflows::SessionAction::Capture,
+            crate::workflows::SessionAction::Marker,
+        ] {
+            entries.push(base(
+                "session",
+                None,
+                &session.name,
+                code(action),
+                &format!("{action:?}"),
+                "Ready".into(),
+            ));
+        }
+    }
+    for rule in &p.workflows.rules {
+        let mut e = base(
+            "automation_rule",
+            None,
+            &rule.name,
+            "run".into(),
+            "Run rule",
+            if rule.enabled { "Enabled" } else { "Disabled" }.into(),
+        );
+        e.active = Some(rule.enabled);
+        entries.push(e);
+    }
+    for armed in [true, false] {
+        entries.push(base(
+            "automation",
+            None,
+            "",
+            if armed { "arm" } else { "disarm" }.into(),
+            if armed {
+                "Arm automation"
+            } else {
+                "Disarm automation"
+            },
+            "Disarmed".into(),
+        ));
+    }
     for a in AppAction::ALL {
         let mut entry = base(
             "application",
@@ -482,6 +535,30 @@ fn decode<T: serde::de::DeserializeOwned>(s: &str) -> Result<T, String> {
         .map_err(|_| "Unsupported action".into())
 }
 pub fn resolve(p: &Project, s: &Selector) -> Result<ShortcutAction, String> {
+    match s.category.as_str() {
+        "scene" if s.action == "recall" => {
+            return Ok(ShortcutAction::Scene(
+                unique(p.workflows.scenes.iter().filter(|v| v.name == s.target))?.id,
+            ))
+        }
+        "session" => {
+            return Ok(ShortcutAction::Session {
+                id: unique(p.workflows.sessions.iter().filter(|v| v.name == s.target))?.id,
+                action: decode(&s.action)?,
+            })
+        }
+        "automation_rule" if s.action == "run" => {
+            return Ok(ShortcutAction::Rule(
+                unique(p.workflows.rules.iter().filter(|v| v.name == s.target))?.id,
+            ))
+        }
+        "automation" if s.action == "arm" || s.action == "disarm" => {
+            return Ok(ShortcutAction::Automation {
+                armed: s.action == "arm",
+            })
+        }
+        _ => {}
+    }
     if s.category == "application" {
         return Ok(ShortcutAction::App(decode(&s.action)?));
     }

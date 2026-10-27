@@ -12,6 +12,7 @@
 - [Automatic Voice Correction](AUTOMATIC_VOICE_CORRECTION.md)
 - [Auto Ducking](AUTO_DUCKING.md)
 - [Recording and playback](RECORDING.md)
+- [Scenes, multitrack sessions and guided automation](WORKFLOWS.md)
 - [VST plugins](VST_PLUGINS.md)
 - [Tools](TOOLS.md)
 - [Loupedeck](LOUPEDECK.md) and [Stream Deck](STREAM_DECK.md)
@@ -31,6 +32,7 @@ These features require separate downloads. Hardware qualification and training r
 - [Architecture and custom effects](ARCHITECTURE.md)
 - [Plugin developer and AI implementation guide](PLUGIN_DEVELOPMENT.md)
 - [Buildable example plugin](../examples/gain-plugin/README.md)
+- [Workflow implementation and testing](WORKFLOW_DEVELOPMENT.md)
 - [Native diagnostics](DEVELOPMENT.md)
 - [Release packaging and publication](RELEASING.md)
 
@@ -42,6 +44,7 @@ Detailed guides retain implementation provenance and measured limitations. These
 - [Device discovery memory investigation](DEVICE_DISCOVERY_MEMORY.md)
 - [Voice runtime decision](VOICE_RUNTIME_DECISION.md)
 - [Voice conversion qualification](VOICE_CONVERSION_QUALIFICATION.md)
+- [Workflow validation](WORKFLOW_VALIDATION.md)
 - [Workspace layout validation](WORKSPACE_LAYOUT_VALIDATION.md)
 - [Plugin validation](PLUGIN_VALIDATION.md)
 - [Loupedeck validation](LOUPEDECK_VALIDATION.md)

@@ -34,8 +34,8 @@ for (const [name, size] of [['plugin',256],['plugin@2x',512],['category',28],['c
   await copyFile(`../../assets/branding/piratewave-${size}.png`, `${root}/images/${name}.png`);
 }
 const manifest = {
-  Name: 'PirateWave Audio Mixer', UUID: 'com.piratewave.streamdeck', Version: '1.1.0.0', Author: 'PirateWave contributors',
-  Description: 'Control PirateWave audio nodes, effects, soundboard and recording slots using buttons and dials.',
+  Name: 'PirateWave Audio Mixer', UUID: 'com.piratewave.streamdeck', Version: '1.2.0.0', Author: 'PirateWave contributors',
+  Description: 'Control PirateWave audio, scenes, sessions and automation using buttons and dials.',
   Icon: 'images/plugin', Category: 'PirateWave Audio Mixer', CategoryIcon: 'images/category', URL: 'https://github.com/MitchCodes/PirateWave',
   CodePath: 'bin/plugin.mjs', Nodejs: { Version: '24' }, SDKVersion: 2,
   OS: [{ Platform: 'windows', MinimumVersion: '10' }], Software: { MinimumVersion: '7.1' },

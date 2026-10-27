@@ -253,8 +253,17 @@ impl EffectAction {
         };
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum ShortcutAction {
+    Scene(u64),
+    Session {
+        id: u64,
+        action: crate::workflows::SessionAction,
+    },
+    Rule(u64),
+    Automation {
+        armed: bool,
+    },
     Extension {
         id: u64,
         effect: Option<u64>,
@@ -284,6 +293,10 @@ pub enum ShortcutAction {
 impl ShortcutAction {
     pub fn exists(self, project: &crate::project::Project) -> bool {
         match self {
+            Self::Scene(id) => project.workflows.scenes.iter().any(|s| s.id == id),
+            Self::Session { id, .. } => project.workflows.sessions.iter().any(|s| s.id == id),
+            Self::Rule(id) => project.workflows.rules.iter().any(|s| s.id == id),
+            Self::Automation { .. } => true,
             Self::Extension { id, effect, action } => {
                 crate::extensions::action_descriptor(project, id, effect, action).is_some()
             }

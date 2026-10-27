@@ -11,6 +11,65 @@ pub struct ParameterDescriptor {
     pub unit: &'static str,
 }
 
+/// Scene transition metadata. Unlisted processors/parameters use a guarded edit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SceneTransition {
+    Interpolate,
+    Fade,
+}
+pub fn scene_transition(kind: &str, parameter: &str) -> SceneTransition {
+    let reviewed = matches!(
+        kind,
+        "automatic_gain_control"
+            | "reverb"
+            | "expander"
+            | "upward_compressor"
+            | "de_esser"
+            | "limiter"
+            | "invert_polarity"
+            | "three_band_equalizer"
+            | "noise_suppression"
+            | "vocoder"
+            | "resonator"
+            | "distortion"
+            | "pitch"
+            | "flanger"
+            | "chorus"
+            | "tremolo"
+            | "stereo"
+            | "wahwah"
+            | "automatic_voice_correction"
+            | "equalizer"
+            | "delay"
+            | "gain"
+            | "high_pass"
+            | "gate"
+            | "compressor"
+    );
+    if reviewed
+        && crate::rack_processors::choices(kind, parameter).is_none()
+        && crate::voice_effects::choices(kind, parameter).is_none()
+        && matches!(
+            parameter,
+            "gain"
+                | "mix"
+                | "strength"
+                | "threshold"
+                | "ratio"
+                | "ceiling"
+                | "range"
+                | "amount"
+                | "balance"
+                | "width"
+                | "output"
+        )
+    {
+        SceneTransition::Interpolate
+    } else {
+        SceneTransition::Fade
+    }
+}
+
 /// Implement this trait and register an EffectFactory to add a processor.
 /// The engine owns each instance. `process` must not block, allocate, or do I/O.
 pub trait AudioEffect: Send {

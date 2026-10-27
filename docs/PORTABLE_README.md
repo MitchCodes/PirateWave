@@ -84,3 +84,7 @@ Open **Tools** in the sidebar for microphone checks, spectrum/latency/stereo tes
 ## Example workspaces
 
 Open **Cookbook** in the sidebar to import microphone-cleaning, music-ducking, switchable-voice, recording, and all-in-one recipes. Each import creates a separate workspace. See [Cookbook setup](COOKBOOK.md).
+
+## Scenes, multitrack sessions and automation
+
+**Scenes** recall mixer and built-in effect settings. **Sessions** record aligned raw/processed tracks or capture armed history. **Automation** builds When / If / Then rules and always starts disarmed. Import **Captain’s Log** from Cookbook for an example. See [the workflow guide](WORKFLOWS.md) for setup, controller actions, export and interrupted-take recovery. Take audio is stored separately from workspace JSON.

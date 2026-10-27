@@ -86,7 +86,7 @@ internal sealed class Binding
                 return;
             }
             foreach (var group in entries.GroupBy(NodeKey))
-                args.AddItem(group.Key, group.First().Selector.Node.Length == 0 ? (category == "application" ? "PirateWave" : "Soundboard") : $"{group.First().Selector.Node} ({group.First().Selector.NodeKind})", "Current project name match");
+                args.AddItem(group.Key, group.First().Selector.Node.Length == 0 ? (category == "soundboard" ? "Soundboard" : "PirateWave") : $"{group.First().Selector.Node} ({group.First().Selector.NodeKind})", "Current project name match");
         }
         else if (string.Equals(args.ControlName, TargetControl, StringComparison.OrdinalIgnoreCase))
         {
@@ -198,3 +198,8 @@ public sealed class DuckingAdjustment() : PirateWaveAdjustment("PirateWaveDuckin
 
 public sealed class ExtensionCommand() : PirateWaveCommand("PirateWaveExtensionAction", "Extension actions", "extension_action");
 public sealed class ExtensionAdjustment() : PirateWaveAdjustment("PirateWaveExtensionParameter", "Extension node parameters", "extension_parameter");
+
+public sealed class SceneCommand() : PirateWaveCommand("PirateWaveScene", "Audio scenes", "scene");
+public sealed class SessionCommand() : PirateWaveCommand("PirateWaveSession", "Multitrack sessions", "session");
+public sealed class AutomationCommand() : PirateWaveCommand("PirateWaveAutomation", "Automation", "automation");
+public sealed class RuleCommand() : PirateWaveCommand("PirateWaveRule", "Automation rules", "automation_rule");

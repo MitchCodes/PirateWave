@@ -6,6 +6,7 @@ use crate::{
 use std::collections::{HashMap, HashSet, VecDeque};
 
 pub fn validate(project: &Project) -> Result<Vec<usize>, String> {
+    crate::workflows::validate(project)?;
     if project.version != 1 {
         return Err(format!("Unsupported project version {}", project.version));
     }
@@ -223,6 +224,8 @@ pub fn validate_loopback_routes(
 pub struct RuntimeNode {
     pub config: Node,
     pub frames: [Frame; BLOCK_SIZE],
+    pub raw_frames: [Frame; BLOCK_SIZE],
+    pub capture_raw: bool,
     pub peak: f32,
     pub preview: [Frame; BLOCK_SIZE],
     pub send: [Frame; BLOCK_SIZE],
@@ -231,10 +234,36 @@ pub struct RuntimeNode {
     priority: [Frame; BLOCK_SIZE],
     ducked: [Frame; BLOCK_SIZE],
     pub extension: Option<Box<crate::extensions::Runtime>>,
-    effects: Vec<Box<dyn AudioEffect>>,
+    pub(crate) effects: Vec<Box<dyn AudioEffect>>,
+    pub(crate) scene_mask: Option<f32>,
+    pub(crate) scene_guard: f32,
+    aux_guard: f32,
+    pub(crate) scene_switch: Option<crate::scene_runtime::SwitchFade>,
     gains: Frame,
 }
 impl RuntimeNode {
+    pub fn output(&self, port: OutputPort) -> Option<&[Frame; BLOCK_SIZE]> {
+        match port {
+            OutputPort::Passthrough => Some(&self.frames),
+            OutputPort::Preview => Some(&self.preview),
+            OutputPort::Send => Some(&self.send),
+            OutputPort::Priority => Some(&self.priority),
+            OutputPort::Ducked => Some(&self.ducked),
+            OutputPort::Extension(id) => {
+                let NodeKind::Extension { definition } = &self.config.kind else {
+                    return None;
+                };
+                definition
+                    .outputs
+                    .iter()
+                    .position(|p| p.id == id)
+                    .and_then(|i| self.extension.as_ref().and_then(|e| e.outputs.get(i)))
+            }
+        }
+    }
+    pub fn scene_gain(&self) -> f32 {
+        self.scene_guard
+    }
     pub fn has_effect_fault(&self) -> bool {
         self.effects.iter().any(|e| e.faulted()) || self.extension.as_ref().is_some_and(|e| e.fault)
     }
@@ -283,6 +312,8 @@ impl EffectMonitor {
     }
 }
 pub struct Graph {
+    pub workflow_taps: bool,
+    pub scene: Option<crate::scene_runtime::Transition>,
     pub monitor: Option<Box<EffectMonitor>>,
     has_extensions: bool,
     pub nodes: Vec<RuntimeNode>,
@@ -311,6 +342,8 @@ impl Graph {
                     .then(|| Box::new(crate::extensions::Runtime::new(node))),
                 config: node.clone(),
                 frames: [[0.0; 2]; BLOCK_SIZE],
+                raw_frames: [[0.; 2]; BLOCK_SIZE],
+                capture_raw: false,
                 peak: 0.0,
                 preview: [[0.; 2]; BLOCK_SIZE],
                 send: [[0.; 2]; BLOCK_SIZE],
@@ -320,6 +353,10 @@ impl Graph {
                 priority: [[0.; 2]; BLOCK_SIZE],
                 ducked: [[0.; 2]; BLOCK_SIZE],
                 effects,
+                scene_mask: None,
+                scene_guard: 1.,
+                aux_guard: 1.,
+                scene_switch: None,
                 gains: node_gains(node, solo),
             });
         }
@@ -339,6 +376,8 @@ impl Graph {
             ));
         }
         Ok(Self {
+            workflow_taps: false,
+            scene: None,
             monitor: None,
             has_extensions: project
                 .nodes
@@ -368,7 +407,50 @@ impl Graph {
         }
     }
     /// Validates first, then preserves processor history for unchanged effect types.
+    pub fn recall_scene(
+        &mut self,
+        scene: &crate::workflows::Scene,
+        project: &Project,
+        registry: &EffectRegistry,
+    ) -> Result<Project, String> {
+        let transition =
+            crate::scene_runtime::Transition::prepare(scene, project, &mut self.nodes, registry)?;
+        let target = transition.target.clone();
+        self.scene = Some(transition);
+        Ok(target)
+    }
     pub fn update(&mut self, project: &Project, registry: &EffectRegistry) -> Result<(), String> {
+        let transition = self.scene.take();
+        if let Some(mut scene) = transition {
+            if self.nodes.len() == project.nodes.len()
+                && self
+                    .nodes
+                    .iter()
+                    .zip(&project.nodes)
+                    .all(|(a, b)| a.config.id == b.id && a.config.kind == b.kind)
+            {
+                let previous = scene.target.clone();
+                scene.cancel_manual(&previous, project, &mut self.nodes);
+                let effective = if scene.finished {
+                    project.clone()
+                } else {
+                    scene.effective_project(project, &self.nodes, registry)?
+                };
+                let result = self.update_inner(&effective, registry);
+                scene.target = project.clone();
+                self.scene = Some(scene);
+                return result;
+            }
+            // Structural edits retire the compiled indices on the control plane.
+            for n in &mut self.nodes {
+                n.scene_mask = None;
+                n.scene_guard = 1.;
+                n.scene_switch = None;
+            }
+        }
+        self.update_inner(project, registry)
+    }
+    fn update_inner(&mut self, project: &Project, registry: &EffectRegistry) -> Result<(), String> {
         validate(project)?;
         for node in &project.nodes {
             for spec in &node.effects {
@@ -529,12 +611,53 @@ impl Graph {
         tap: impl FnMut(u64, OutputPort, Option<u64>, &[Frame; BLOCK_SIZE]),
     ) {
         if self.has_extensions {
-            self.process_recording_impl::<true>(inputs, process_external, playback, tap);
+            self.process_recording_impl::<true, false>(
+                inputs,
+                process_external,
+                playback,
+                |_, _| {},
+                tap,
+            );
         } else {
-            self.process_recording_impl::<false>(inputs, process_external, playback, tap);
+            self.process_recording_impl::<false, false>(
+                inputs,
+                process_external,
+                playback,
+                |_, _| {},
+                tap,
+            );
         }
     }
-    fn process_recording_impl<const EXT: bool>(
+    pub fn process_workflows(
+        &mut self,
+        inputs: &[(u64, [Frame; BLOCK_SIZE])],
+        process_external: impl FnMut(&Node, &mut [Frame]) -> bool,
+        playback: impl FnMut(
+            &Node,
+            &[Frame; BLOCK_SIZE],
+            &mut [Frame; BLOCK_SIZE],
+            &mut [Frame; BLOCK_SIZE],
+        ),
+        raw: impl FnMut(u64, &[Frame; BLOCK_SIZE]),
+        tap: impl FnMut(u64, OutputPort, Option<u64>, &[Frame; BLOCK_SIZE]),
+    ) {
+        if !self.workflow_taps {
+            self.process_recording(inputs, process_external, playback, tap);
+            return;
+        }
+        if self.has_extensions {
+            self.process_recording_impl::<true, true>(inputs, process_external, playback, raw, tap);
+        } else {
+            self.process_recording_impl::<false, true>(
+                inputs,
+                process_external,
+                playback,
+                raw,
+                tap,
+            );
+        }
+    }
+    fn process_recording_impl<const EXT: bool, const TRACKS: bool>(
         &mut self,
         inputs: &[(u64, [Frame; BLOCK_SIZE])],
         mut process_external: impl FnMut(&Node, &mut [Frame]) -> bool,
@@ -544,8 +667,12 @@ impl Graph {
             &mut [Frame; BLOCK_SIZE],
             &mut [Frame; BLOCK_SIZE],
         ),
+        mut raw: impl FnMut(u64, &[Frame; BLOCK_SIZE]),
         mut tap: impl FnMut(u64, OutputPort, Option<u64>, &[Frame; BLOCK_SIZE]),
     ) {
+        if let Some(scene) = &mut self.scene {
+            scene.tick(&mut self.nodes);
+        }
         if let Some(monitor) = &mut self.monitor {
             monitor.valid = false;
         }
@@ -603,6 +730,10 @@ impl Graph {
                     }
                 }
             }
+            if TRACKS && node.capture_raw && node.config.kind.is_source() {
+                node.raw_frames = node.frames;
+                raw(node.config.id, &node.raw_frames);
+            }
             for (effect, spec) in node.effects.iter_mut().zip(&node.config.effects) {
                 if let Some(m) = self
                     .monitor
@@ -644,7 +775,30 @@ impl Graph {
                     &mut node.send,
                 );
             }
-            let target = node_gains(&node.config, solo);
+            let mut target = node_gains_masked(&node.config, solo, node.scene_mask);
+            if !matches!(node.config.kind, NodeKind::Recording) {
+                target[0] *= node.scene_guard;
+                target[1] *= node.scene_guard;
+            }
+            if node.aux_guard != 1. || node.scene_guard != 1. {
+                let step = (node.scene_guard - node.aux_guard) / BLOCK_SIZE as f32;
+                for index in 0..BLOCK_SIZE {
+                    let gain = node.aux_guard + step * (index + 1) as f32;
+                    if matches!(node.config.kind, NodeKind::Recording) {
+                        for frame in [&mut node.preview[index], &mut node.send[index]] {
+                            frame[0] *= gain;
+                            frame[1] *= gain;
+                        }
+                    }
+                    if matches!(node.config.kind, NodeKind::AutoDucking) {
+                        for frame in [&mut node.priority[index], &mut node.ducked[index]] {
+                            frame[0] *= gain;
+                            frame[1] *= gain;
+                        }
+                    }
+                }
+            }
+            node.aux_guard = node.scene_guard;
             let step = [
                 (target[0] - node.gains[0]) / BLOCK_SIZE as f32,
                 (target[1] - node.gains[1]) / BLOCK_SIZE as f32,
@@ -683,7 +837,7 @@ impl Graph {
             tap(
                 self.nodes[i].config.id,
                 OutputPort::Passthrough,
-                selected,
+                if TRACKS && is_switch { None } else { selected },
                 &self.nodes[i].frames,
             );
             if matches!(self.nodes[i].config.kind, NodeKind::Recording) {
@@ -727,7 +881,36 @@ impl Graph {
                 }
             }
             for &(destination, port, input) in &self.edges[i] {
-                if is_switch && Some(self.nodes[destination].config.id) != selected {
+                let (route_from, route_gain) = if is_switch {
+                    let id = self.nodes[destination].config.id;
+                    if let Some(fade) = self.nodes[i].scene_switch.as_ref().filter(|f| f.active) {
+                        fade.weights(id)
+                    } else {
+                        let gain = if Some(id) == selected { 1. } else { 0. };
+                        (gain, gain)
+                    }
+                } else {
+                    (1., 1.)
+                };
+                if TRACKS && is_switch {
+                    let mut routed_frames = self.nodes[i].frames;
+                    if route_from != 1. || route_gain != 1. {
+                        for (index, frame) in routed_frames.iter_mut().enumerate() {
+                            let gain = route_from
+                                + (route_gain - route_from) * (index + 1) as f32
+                                    / BLOCK_SIZE as f32;
+                            frame[0] *= gain;
+                            frame[1] *= gain;
+                        }
+                    }
+                    tap(
+                        self.nodes[i].config.id,
+                        OutputPort::Passthrough,
+                        Some(self.nodes[destination].config.id),
+                        &routed_frames,
+                    );
+                }
+                if route_gain == 0. && route_from == 0. {
                     continue;
                 }
                 // Validation rejects cycles/self routes; borrow disjoint nodes to avoid
@@ -757,9 +940,18 @@ impl Graph {
                     RenderInput::Priority => &mut destination_node.priority,
                     RenderInput::Ducked => &mut destination_node.ducked,
                 };
-                for (dst, src) in target.iter_mut().zip(routed) {
-                    dst[0] += src[0];
-                    dst[1] += src[1];
+                if route_gain == 1. && route_from == 1. {
+                    for (dst, src) in target.iter_mut().zip(routed) {
+                        dst[0] += src[0];
+                        dst[1] += src[1];
+                    }
+                } else {
+                    for (index, (dst, src)) in target.iter_mut().zip(routed).enumerate() {
+                        let gain = route_from
+                            + (route_gain - route_from) * (index + 1) as f32 / BLOCK_SIZE as f32;
+                        dst[0] += src[0] * gain;
+                        dst[1] += src[1] * gain;
+                    }
                 }
             }
         }
@@ -806,6 +998,9 @@ fn compile_input(n: &Node, p: InputPort) -> RenderInput {
     }
 }
 fn node_gains(node: &Node, solo: bool) -> Frame {
+    node_gains_masked(node, solo, None)
+}
+fn node_gains_masked(node: &Node, solo: bool, mask: Option<f32>) -> Frame {
     if matches!(node.kind, NodeKind::Recording | NodeKind::AutoDucking) {
         return [1.; 2];
     }
@@ -816,10 +1011,10 @@ fn node_gains(node: &Node, solo: bool) -> Frame {
         }
         return [1.0; 2];
     }
-    let gain = if node.mute || (solo && node.kind.is_source() && !node.solo) {
+    let gain = if mask.is_none() && (node.mute || (solo && node.kind.is_source() && !node.solo)) {
         0.0
     } else {
-        db_to_gain(node.gain_db)
+        db_to_gain(node.gain_db) * mask.unwrap_or(1.)
     };
     [
         gain * (1.0 - node.pan.max(0.0)),
@@ -1474,6 +1669,7 @@ mod tests {
     };
     fn fixture() -> Project {
         Project {
+            workflows: Default::default(),
             version: 1,
             name: "Test".into(),
             nodes: vec![

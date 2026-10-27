@@ -559,6 +559,7 @@ pub fn self_test(path: &Path) -> Result<()> {
     );
 
     let mut p = Project {
+        workflows: Default::default(),
         version: 1,
         name: "Native extension validation".into(),
         nodes: vec![

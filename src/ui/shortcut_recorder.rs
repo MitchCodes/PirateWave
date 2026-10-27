@@ -273,6 +273,49 @@ impl PirateWaveApp {
         if commit {
             if let Some(text) = recorder.candidate {
                 match recorder.target {
+                    ShortcutAction::Scene(id) => {
+                        if let Some(s) = self
+                            .project
+                            .workflows
+                            .scenes
+                            .iter_mut()
+                            .find(|s| s.id == id)
+                        {
+                            s.keybind = text;
+                            self.changed(false);
+                        }
+                    }
+                    ShortcutAction::Session { id, action } => {
+                        if let Some(s) = self
+                            .project
+                            .workflows
+                            .sessions
+                            .iter_mut()
+                            .find(|s| s.id == id)
+                        {
+                            s.keybinds.insert(action, text);
+                            self.changed(false);
+                        }
+                    }
+                    ShortcutAction::Rule(id) => {
+                        if let Some(r) =
+                            self.project.workflows.rules.iter_mut().find(|r| r.id == id)
+                        {
+                            r.keybind = text;
+                            self.changed(false);
+                        }
+                    }
+                    ShortcutAction::Automation { armed } => {
+                        self.project.workflows.automation_keybinds.insert(
+                            if armed {
+                                piratewave_core::workflows::AutomationAction::Arm
+                            } else {
+                                piratewave_core::workflows::AutomationAction::Disarm
+                            },
+                            text,
+                        );
+                        self.changed(false);
+                    }
                     ShortcutAction::App(action) => {
                         self.settings_draft.keybinds.insert(action, text);
                     }

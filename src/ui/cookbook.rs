@@ -4,6 +4,7 @@ use piratewave_core::project::{Connection, InputPort, OutputPort};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Recipe {
+    Workflow,
     Clean,
     Quiet,
     Music,
@@ -12,17 +13,19 @@ enum Recipe {
     Studio,
 }
 impl Recipe {
-    const ALL: [Self; 6] = [
+    const ALL: [Self; 7] = [
         Self::Clean,
         Self::Quiet,
         Self::Music,
         Self::Voices,
         Self::Recording,
         Self::Studio,
+        Self::Workflow,
     ];
     fn name(self) -> &'static str {
         match self {
             Self::Clean => "Clear Waters",
+            Self::Workflow => "Captain’s Log",
             Self::Quiet => "Silent Seas",
             Self::Music => "Music Mate",
             Self::Voices => "Voice Party",
@@ -32,6 +35,7 @@ impl Recipe {
     }
     fn description(self) -> &'static str {
         match self {
+        Self::Workflow=>"Scenes, synchronized raw/processed takes and a guided recording rule, ready to explore.",
         Self::Quiet => "Quiet the background with RNNoise suppression and a complete microphone cleaning chain.",
         Self::Clean => "A simple microphone cleaning chain, from rumble removal to peak control.",
         Self::Music => "Keep Spotify beneath your voice with automatic music ducking.",
@@ -42,6 +46,7 @@ impl Recipe {
     }
     fn route(self) -> &'static str {
         match self {
+        Self::Workflow=>"Microphone > Clean Mic > Auto Ducking > Stream Mix. Spotify > Auto Ducking. Recording Input > Recorder.",
         Self::Quiet => "Microphone > Quiet Mic > Stream Mix",
         Self::Clean => "Microphone > Clean Mic > Stream Mix",
         Self::Music => "Microphone (Priority) + Spotify (Ducked) > Auto Ducking > Stream Mix",
@@ -52,6 +57,7 @@ impl Recipe {
     }
     fn setup(self) -> &'static str {
         match self {
+        Self::Workflow=>"Choose your devices and applications, then start audio. Recall Full Deck or Interview on Scenes. On Sessions, arm history or start Captain’s Log to record aligned raw mic, cleaned mic, bus and separate ducking/recorder outputs. Automation starts disarmed; the manual Ten-second take rule demonstrates Start, Wait and Stop.",
         Self::Quiet => "High-pass filter > Noise Suppression (RNNoise) > Expander > De-esser > Parametric EQ > Compressor > Limiter. Select your microphone and Stream Mix output after import. Suppression starts at 100%; lower Strength if your voice sounds processed. It adds about 20 ms of latency and is intended for speech. Tune the remaining thresholds to your microphone and room.",
         Self::Clean => "Effects run in order: High-pass filter > Expander > De-esser > Parametric EQ > Compressor > Limiter. Start with the supplied gentle settings, then tune the thresholds to your microphone and room.",
         Self::Music => "Select Spotify in the Spotify node’s application picker. Adjust the ducking threshold until the activity indicator follows your speech. Music is reduced by 18 dB while you speak.",
@@ -61,7 +67,11 @@ impl Recipe {
     }
     }
     fn project(self, registry: &EffectRegistry) -> Project {
+        if self == Self::Workflow {
+            return workflow_recipe(registry, self.name());
+        }
         let mut project = Project {
+            workflows: Default::default(),
             name: self.name().into(),
             nodes: vec![],
             connections: vec![],
@@ -309,6 +319,146 @@ impl PirateWaveApp {
             self.add_workspace(recipe.project(&self.registry));
         }
     }
+}
+
+pub(super) fn workflow_recipe(registry: &EffectRegistry, name: &str) -> Project {
+    use piratewave_core::workflows::*;
+    let mut p = Recipe::Recording.project(registry);
+    p.name = name.into();
+    let clean = Recipe::Clean
+        .project(registry)
+        .nodes
+        .into_iter()
+        .find(|n| n.id == 5)
+        .unwrap();
+    p.nodes.push(clean);
+    p.connections.retain(|c| !(c.from == 1 && c.to == 3));
+    route(&mut p, 1, 5, OutputPort::Passthrough, InputPort::Main);
+    let music = Recipe::Music.project(registry);
+    p.nodes
+        .extend(music.nodes.into_iter().filter(|n| n.id == 10 || n.id == 11));
+    route(&mut p, 5, 11, OutputPort::Passthrough, InputPort::Priority);
+    route(&mut p, 10, 11, OutputPort::Passthrough, InputPort::Ducked);
+    route(&mut p, 11, 3, OutputPort::Passthrough, InputPort::Main);
+    let full = Scene::capture(&p, registry, "Full Deck".into());
+    let full_id = full.id;
+    let mut interview = Scene::capture(&p, registry, "Interview".into());
+    for setting in &mut interview.settings {
+        if setting.node == 10 {
+            if let Control::Mute { value } = &mut setting.value {
+                *value = true;
+            }
+        }
+    }
+    let interview_id = interview.id;
+    p.workflows.scenes = vec![full, interview];
+    let session = piratewave_core::recording::RecordSlot::new("").id;
+    let points = [
+        (
+            "Microphone · raw",
+            1,
+            OutputPort::Passthrough,
+            CaptureStage::Raw,
+        ),
+        (
+            "Microphone · clean",
+            5,
+            OutputPort::Passthrough,
+            CaptureStage::Processed,
+        ),
+        (
+            "Stream Mix",
+            3,
+            OutputPort::Passthrough,
+            CaptureStage::Processed,
+        ),
+        (
+            "Priority",
+            11,
+            OutputPort::Priority,
+            CaptureStage::Processed,
+        ),
+        (
+            "Ducked music",
+            11,
+            OutputPort::Ducked,
+            CaptureStage::Processed,
+        ),
+        (
+            "Recorder preview",
+            13,
+            OutputPort::Preview,
+            CaptureStage::Processed,
+        ),
+        (
+            "Recorder send",
+            13,
+            OutputPort::Send,
+            CaptureStage::Processed,
+        ),
+    ];
+    p.workflows.sessions.push(SessionConfig {
+        id: session,
+        name: "Captain’s Log".into(),
+        history_seconds: 60.,
+        tracks: points
+            .into_iter()
+            .map(|(name, node, port, stage)| Track {
+                id: piratewave_core::recording::RecordSlot::new("").id,
+                name: name.into(),
+                point: CapturePoint { node, port, stage },
+                armed: true,
+            })
+            .collect(),
+        take_ids: vec![],
+        keybinds: Default::default(),
+    });
+    p.workflows.rules.push(Rule {
+        id: piratewave_core::recording::RecordSlot::new("").id,
+        name: "Ten-second take".into(),
+        enabled: true,
+        trigger: Trigger::Manual,
+        match_all: true,
+        conditions: vec![Condition::Audio { running: true }],
+        actions: vec![
+            Step::Session {
+                id: session,
+                action: SessionAction::Start,
+            },
+            Step::Wait {
+                milliseconds: 10000,
+            },
+            Step::Session {
+                id: session,
+                action: SessionAction::Stop,
+            },
+            Step::Notify {
+                text: "Your ten-second take is ready on Sessions".into(),
+            },
+        ],
+        cooldown_ms: 1000,
+        keybind: String::new(),
+    });
+    p.workflows.rules.push(Rule {
+        id: piratewave_core::recording::RecordSlot::new("").id,
+        name: "Take completed".into(),
+        enabled: true,
+        trigger: Trigger::Completion {
+            operation: Operation::Session,
+            node: Some(session),
+            success: true,
+        },
+        match_all: true,
+        conditions: vec![],
+        actions: vec![Step::Notify {
+            text: "Captain’s Log finished recording".into(),
+        }],
+        cooldown_ms: 1000,
+        keybind: String::new(),
+    });
+    // Stable workspace IDs are used internally; external controllers resolve scene names.
+    let _ = (full_id, interview_id);
+    p
 }
 
 #[cfg(test)]

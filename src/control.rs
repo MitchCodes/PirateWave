@@ -58,12 +58,13 @@ pub struct Pending {
 }
 #[derive(Clone)]
 pub struct Source {
-    pub project: Project,
+    pub project: Arc<Project>,
     pub generation: u64,
     pub running: bool,
     pub notice: String,
     pub buffered: std::collections::HashMap<u64, f32>,
     pub recordings: std::collections::HashMap<(u64, u64), String>,
+    pub workflows: std::collections::HashMap<(String, String), (String, Option<bool>)>,
 }
 #[derive(Clone, Serialize, Deserialize, Default)]
 pub struct Snapshot {
@@ -127,6 +128,13 @@ impl Drop for Service {
 pub fn snapshot(source: &Source, registry: &piratewave_core::effects::EffectRegistry) -> Snapshot {
     let mut entries = piratewave_core::control::catalog(&source.project, registry, source.running);
     for e in &mut entries {
+        if let Some((state, active)) = source
+            .workflows
+            .get(&(e.selector.category.clone(), e.selector.target.clone()))
+        {
+            e.state = state.clone();
+            e.active = *active;
+        }
         if e.selector.category == "node" && e.selector.node_kind == "recording" {
             if let Ok(node) = piratewave_core::control::node(&source.project, &e.selector) {
                 e.state = format!(
@@ -219,6 +227,41 @@ pub fn diagnostic_host() -> anyhow::Result<()> {
         name: "Controller validation fixture".into(),
         ..Project::default()
     };
+    project
+        .workflows
+        .scenes
+        .push(piratewave_core::workflows::Scene::capture(
+            &project,
+            &registry,
+            "On Deck".into(),
+        ));
+    project
+        .workflows
+        .sessions
+        .push(piratewave_core::workflows::SessionConfig {
+            id: 901,
+            name: "Rehearsal".into(),
+            history_seconds: 60.,
+            tracks: vec![],
+            take_ids: vec![],
+            keybinds: Default::default(),
+        });
+    project
+        .workflows
+        .rules
+        .push(piratewave_core::workflows::Rule {
+            id: 902,
+            name: "Welcome".into(),
+            enabled: true,
+            trigger: piratewave_core::workflows::Trigger::Manual,
+            match_all: true,
+            conditions: vec![],
+            actions: vec![piratewave_core::workflows::Step::Notify {
+                text: "Welcome".into(),
+            }],
+            cooldown_ms: 1000,
+            keybind: String::new(),
+        });
     let mut recorder = Node::new(91, "Replay", NodeKind::Recording, [0.; 2]);
     recorder
         .recording
@@ -278,12 +321,13 @@ pub fn diagnostic_host() -> anyhow::Result<()> {
     let mut accepted = 0;
     let publish = |project: &Project, generation, accepted| {
         service.source.store(Some(Arc::new(Source {
-            project: project.clone(),
+            project: Arc::new(project.clone()),
             generation,
             running: false,
             notice: format!("Accepted {accepted}"),
             buffered: Default::default(),
             recordings: Default::default(),
+            workflows: Default::default(),
         })))
     };
     publish(&project, generation, accepted);

@@ -85,7 +85,7 @@ foreach($taskVoiceDoc in @('VOICE_CHANGER.md','VOICE_RUNTIME_DECISION.md','VOICE
     $taskVoicePath=Join-Path 'docs' $taskVoiceDoc
     if(Test-Path -LiteralPath $taskVoicePath){Copy-Item -LiteralPath $taskVoicePath -Destination (Join-Path 'dist/PirateWave/docs' $taskVoiceDoc) -Force}
 }
-Copy-Item -LiteralPath 'docs/images/mixer.png' -Destination 'dist/PirateWave/docs/images/mixer.png' -Force
+Get-ChildItem -LiteralPath 'docs/images' -File | Copy-Item -Destination 'dist/PirateWave/docs/images' -Force
 Copy-Item -LiteralPath 'crates/piratewave-core/examples/custom_effect.rs' -Destination 'dist/PirateWave/crates/piratewave-core/examples/custom_effect.rs' -Force
 Get-ChildItem -LiteralPath 'design/prototype' | Copy-Item -Destination 'dist/PirateWave/design/prototype' -Recurse -Force
 # The developer portable folder uses the repository README and documentation index.
@@ -102,12 +102,12 @@ foreach ($taskPublicFile in @('PirateWave.exe','PirateWaveVoiceWorker.exe','msvc
 }
 
 $taskPortableReadme = [IO.File]::ReadAllText((Resolve-Path 'docs/PORTABLE_README.md').Path)
-foreach ($taskReadmeGuide in @('PLUGIN_DEVELOPMENT','STREAM_DECK','TOOLS','COOKBOOK')) {
+foreach ($taskReadmeGuide in @('PLUGIN_DEVELOPMENT','STREAM_DECK','TOOLS','COOKBOOK','WORKFLOWS')) {
     $taskPortableReadme = $taskPortableReadme.Replace("]($taskReadmeGuide.md)", "](docs/$taskReadmeGuide.md)")
 }
 [IO.File]::WriteAllText((Join-Path (Resolve-Path $taskPublicStage).Path 'README.md'), $taskPortableReadme, [Text.UTF8Encoding]::new($false))
 New-Item -ItemType Directory -Path (Join-Path $taskPublicStage 'docs') | Out-Null
-foreach ($taskPublicDoc in @('COOKBOOK.md','AUDIO_RECOVERY.md','DEVICE_DISCOVERY_MEMORY.md','WORKSPACES.md','EFFECT_TUNING.md','TOOLS.md','STREAM_DECK.md','PLUGIN_DEVELOPMENT.md','WORKSPACE_LAYOUT.md','AUTO_DUCKING.md','LOUPEDECK.md','RECORDING.md','RACK_PROCESSORS.md','APPLICATION_CAPTURE.md','AUTOMATIC_VOICE_CORRECTION.md','VST_PLUGINS.md','VOICE_CHANGER.md','VOICE_TRAINING_NOTICES.txt','VOICE_TRAINING_BETA_VALIDATION.json')) {
+foreach ($taskPublicDoc in @('WORKFLOWS.md','WORKFLOW_DEVELOPMENT.md','WORKFLOW_VALIDATION.md','COOKBOOK.md','AUDIO_RECOVERY.md','DEVICE_DISCOVERY_MEMORY.md','WORKSPACES.md','EFFECT_TUNING.md','TOOLS.md','STREAM_DECK.md','PLUGIN_DEVELOPMENT.md','WORKSPACE_LAYOUT.md','AUTO_DUCKING.md','LOUPEDECK.md','RECORDING.md','RACK_PROCESSORS.md','APPLICATION_CAPTURE.md','AUTOMATIC_VOICE_CORRECTION.md','VST_PLUGINS.md','VOICE_CHANGER.md','VOICE_TRAINING_NOTICES.txt','VOICE_TRAINING_BETA_VALIDATION.json')) {
     Copy-Item -LiteralPath (Join-Path 'docs' $taskPublicDoc) -Destination (Join-Path $taskPublicStage 'docs')
 }
 $taskGuideText = [IO.File]::ReadAllText((Resolve-Path 'docs/VOICE_TRAINING.md').Path)

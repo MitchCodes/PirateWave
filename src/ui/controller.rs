@@ -66,8 +66,9 @@ impl PirateWaveApp {
                     return Err("Sound is still loading or its file is unavailable".into());
                 }
             }
-            self.handle_shortcut(action);
+            self.dispatch_action(action, piratewave_core::automation::Origin::Controller);
         } else if req.op == "adjust" || req.op == "reset" {
+            self.take_current_adjustment(selector);
             let before = self.project.clone();
             if req.op == "reset" && req.version >= 2 {
                 control::reset_parameter(&mut self.project, &self.registry, selector)?;
@@ -134,14 +135,21 @@ impl PirateWaveApp {
             .published
             .is_none_or(|at| at.elapsed() >= Duration::from_millis(100))
         {
+            let workflow_feedback = self.workflow_feedback();
+            let control_project = if self.status.scene_controls.is_empty() {
+                self.workflow_project()
+            } else {
+                std::sync::Arc::new(self.current_control_project())
+            };
             if let Some(service) = &self.controller.service {
                 service.source.store(Some(std::sync::Arc::new(Source {
-                    project: self.project.clone(),
+                    project: control_project,
                     generation: self.controller.generation,
                     running: self.status.running,
                     notice: self.notice.clone(),
                     buffered: self.status.recording_seconds.clone(),
                     recordings: self.controller.recordings.clone(),
+                    workflows: workflow_feedback,
                 })));
             }
             self.controller.published = Some(Instant::now());

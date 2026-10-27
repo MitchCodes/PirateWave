@@ -80,3 +80,7 @@ This checks selection-change responses and refresh events using the renderer's e
 SDK references: [Action editors](https://logitech.github.io/actions-sdk-docs/csharp/plugin-features/action-editor-actions/), [plugin packaging](https://logitech.github.io/actions-sdk-docs/csharp/plugin-development/distributing-the-plugin/), [current SDK examples](https://github.com/Logitech/actions-sdk).
 
 Stream Deck can connect simultaneously using the same external-controller setting. See [Stream Deck support](STREAM_DECK.md). Protocol v1 remains supported on the PirateWave controller endpoint. Use matching current app/plugin builds; controller and extension identifiers now use the PirateWave namespace. Reassign controls created with older identifiers.
+
+## Scenes, sessions and automation
+
+The refreshed plugin adds Audio scenes, Multitrack sessions, Automation, and Automation rules. Select PirateWave, then the exact scene/session/rule name. Scene recall, live Start/Stop, retrospective Capture, marker insertion, manual rule invocation and master arm/disarm use the shared dispatcher without keyboard bindings. Device feedback reflects runtime progress/state; acceptance is distinct from completed capture/finalization. Automation must be armed before manual rules can run. Existing controller assignments retain their selectors. See [the workflow guide](WORKFLOWS.md).

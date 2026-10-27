@@ -230,6 +230,7 @@ pub struct AutoDucking {
     cursor: usize,
     models: [Box<DenoiseState<'static>>; 2],
     pristine: Box<DenoiseState<'static>>,
+    scene_models: Option<[Box<DenoiseState<'static>>; 2]>,
     speech_input: Box<[[f32; WINDOW]; 2]>,
     speech_output: Box<[[f32; WINDOW]; 2]>,
     speech_cursor: usize,
@@ -265,6 +266,7 @@ impl AutoDucking {
             cursor: 0,
             models,
             pristine,
+            scene_models: None,
             speech_input: Box::new([[0.; WINDOW]; 2]),
             speech_output: Box::new([[0.; WINDOW]; 2]),
             speech_cursor: 0,
@@ -293,9 +295,27 @@ impl AutoDucking {
         self.attack = (-1. / (self.config.attack * 48.)).exp();
         self.release = (-1. / (self.config.release * 48.)).exp();
     }
+    /// Prepare a pristine replacement outside rendering. Retain swapped-out models
+    /// until subsequent control-plane preparation instead of freeing them in render.
+    pub(crate) fn prepare_scene(&mut self) {
+        self.scene_models = Some(std::array::from_fn(|_| self.pristine.clone()));
+    }
+    pub(crate) fn configure_scene(&mut self, config: &DuckingConfig) {
+        self.configure_inner(config, true);
+    }
     pub fn configure(&mut self, config: &DuckingConfig) {
+        self.configure_inner(config, false);
+    }
+    fn configure_inner(&mut self, config: &DuckingConfig, scene: bool) {
         if self.config.detection != config.detection {
-            self.reset_models();
+            if scene {
+                if let Some(models) = &mut self.scene_models {
+                    std::mem::swap(&mut self.models, models);
+                }
+                self.clear_speech();
+            } else {
+                self.reset_models();
+            }
             self.rms.fill([0.; 2]);
             self.sum = [0.; 2];
             self.cursor = 0;
@@ -317,6 +337,9 @@ impl AutoDucking {
         for model in &mut self.models {
             **model = (*self.pristine).clone();
         }
+        self.clear_speech();
+    }
+    fn clear_speech(&mut self) {
         self.speech_input.fill([0.; WINDOW]);
         self.speech_output.fill([0.; WINDOW]);
         self.speech_cursor = 0;

@@ -575,6 +575,7 @@ mod tests {
             .push(EffectSpec::new(registry.get(EFFECT_ID).unwrap()));
         let output = Node::new(3, "Out", NodeKind::Output { device: None }, [0.0; 2]);
         let mut project = Project {
+            workflows: Default::default(),
             version: 1,
             name: "Voice route".into(),
             nodes: vec![source, processor, output],

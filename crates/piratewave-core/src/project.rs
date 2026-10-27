@@ -346,6 +346,8 @@ pub struct Sound {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Project {
+    #[serde(default, skip_serializing_if = "crate::workflows::Workflows::is_empty")]
+    pub workflows: crate::workflows::Workflows,
     pub version: u32,
     pub name: String,
     pub nodes: Vec<Node>,
@@ -391,6 +393,7 @@ impl Default for Project {
             [590.0, 290.0],
         );
         Self {
+            workflows: Default::default(),
             version: 1,
             name: "My studio".into(),
             nodes: vec![mic, desktop, soundboard, monitor, stream],

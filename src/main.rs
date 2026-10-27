@@ -12,6 +12,7 @@ mod hotkeys;
 mod logging;
 mod plugins;
 mod recording_io;
+mod session_io;
 mod startup;
 mod storage;
 mod tools;
@@ -19,6 +20,7 @@ mod training;
 mod ui;
 mod voice;
 mod windows_audio;
+mod workflow_runtime;
 mod workspaces;
 
 fn main() -> anyhow::Result<()> {
@@ -182,6 +184,7 @@ fn run_app() -> anyhow::Result<()> {
             || a == "--ui-smoke"
             || a == "--tools-ui-smoke"
             || a == "--effect-tuning-smoke"
+            || a == "--workflows-ui-smoke"
     });
     if smoke {
         std::fs::create_dir_all("dist")?;

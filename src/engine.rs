@@ -17,12 +17,45 @@ fn validate_hardware_routes(project: &Project) -> Result<(), String> {
 }
 use std::{
     collections::HashMap,
-    sync::{atomic::Ordering, mpsc, Arc},
+    sync::{
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+        mpsc, Arc,
+    },
     thread,
     time::{Duration, Instant},
 };
 
+pub struct WorkflowEvent {
+    pub context: piratewave_core::automation::Context,
+    pub event: Option<piratewave_core::automation::EventKind>,
+    pub result: Result<(), String>,
+}
 pub enum Command {
+    Generation(u64),
+    Perform {
+        context: piratewave_core::automation::Context,
+        target: u64,
+        command: Box<Command>,
+    },
+    RecallScene {
+        scene: piratewave_core::workflows::Scene,
+        reply: mpsc::SyncSender<Result<Project, String>>,
+    },
+    ArmSession {
+        id: u64,
+        armed: bool,
+        reply: mpsc::SyncSender<Result<usize, String>>,
+    },
+    SnapshotSession {
+        id: u64,
+        reply: mpsc::SyncSender<Result<piratewave_core::recording::SessionSnapshot, String>>,
+    },
+    AttachTake {
+        pool: Arc<crate::session_io::Pool>,
+        tracks: Vec<piratewave_core::workflows::Track>,
+        reply: mpsc::SyncSender<Result<(), String>>,
+    },
+    StopTake,
     /// UI-only lease: no project update or device reconfiguration.
     MonitorEffect(Option<(u64, u64, u64)>),
     Start(Project),
@@ -80,6 +113,9 @@ impl Command {
 }
 #[derive(Clone, Default)]
 pub struct Status {
+    pub scene: Option<(u64, f32, bool)>,
+    pub scene_controls: Vec<piratewave_core::workflows::SceneSetting>,
+    pub available: HashMap<u64, bool>,
     pub devices: Option<Arc<audio_io::Devices>>,
     pub running: bool,
     pub peaks: HashMap<u64, f32>,
@@ -100,6 +136,8 @@ pub struct Status {
     pub recording_bytes: usize,
 }
 pub struct Engine {
+    pub workflow_events: Arc<ArrayQueue<WorkflowEvent>>,
+    pub workflow_overflow: Arc<AtomicBool>,
     tx: mpsc::SyncSender<Command>,
     pub statuses: Arc<ArrayQueue<Status>>,
     pub effect_audio: Arc<ArrayQueue<piratewave_core::graph::EffectMonitor>>,
@@ -112,6 +150,8 @@ impl Engine {
         (
             Self {
                 tx,
+                workflow_events: Arc::new(ArrayQueue::new(256)),
+                workflow_overflow: Arc::new(AtomicBool::new(false)),
                 statuses: Arc::new(ArrayQueue::new(8)),
                 effect_audio: Arc::new(ArrayQueue::new(32)),
                 thread: None,
@@ -125,22 +165,32 @@ impl Engine {
         let dest = statuses.clone();
         let effect_audio = Arc::new(ArrayQueue::new(32));
         let monitor_dest = effect_audio.clone();
+        let workflow_events = Arc::new(ArrayQueue::new(256));
+        let events = workflow_events.clone();
+        let workflow_overflow = Arc::new(AtomicBool::new(false));
+        let overflow = workflow_overflow.clone();
         let thread = thread::Builder::new()
             .name("piratewave-audio-engine".into())
-            .spawn(move || run(rx, dest, monitor_dest))
+            .spawn(move || run(rx, dest, monitor_dest, events, overflow))
             .expect("Unable to start audio worker");
         Self {
             tx,
+            workflow_events,
+            workflow_overflow,
             statuses,
             effect_audio,
             thread: Some(thread),
         }
     }
     pub fn send(&self, command: Command) -> Result<(), String> {
-        if matches!(
-            &command,
-            Command::Start(_) | Command::StartIfStopped(_) | Command::Toggle(_)
-        ) {
+        fn requests_audio(command: &Command) -> bool {
+            match command {
+                Command::Start(_) | Command::StartIfStopped(_) | Command::Toggle(_) => true,
+                Command::Perform { command, .. } => requests_audio(command),
+                _ => false,
+            }
+        }
+        if requests_audio(&command) {
             crate::training::audio_requested();
         }
         self.tx.try_send(command).map_err(|error| {
@@ -167,11 +217,14 @@ impl Drop for Engine {
     }
 }
 struct Voice {
+    context: piratewave_core::automation::Context,
+    target: u64,
     clip: Clip,
     position: usize,
     volume: f32,
 }
 struct RecordingVoice {
+    context: piratewave_core::automation::Context,
     effects: piratewave_core::recording_effects::RecordingEffects,
     node: u64,
     slot: u64,
@@ -182,6 +235,9 @@ struct RecordingVoice {
     send: bool,
 }
 struct Listener {
+    gain: f32,
+    target: f32,
+    remaining: u64,
     stream: OutputStream,
 }
 
@@ -189,6 +245,7 @@ struct Listener {
 #[derive(Default)]
 struct RenderMappings {
     sources: Vec<(Option<usize>, Option<usize>)>,
+    hardware_sources: Vec<bool>,
     soundboards: Vec<usize>,
     outputs: HashMap<u64, usize>,
 }
@@ -205,6 +262,18 @@ impl RenderMappings {
             .map(|(i, id)| (id, i))
             .collect();
         Self {
+            hardware_sources: blocks
+                .iter()
+                .map(|(id, _)| {
+                    graph.nodes.iter().any(|n| {
+                        n.config.id == *id
+                            && matches!(
+                                n.config.kind,
+                                NodeKind::Input { .. } | NodeKind::ApplicationCapture { .. }
+                            )
+                    })
+                })
+                .collect(),
             sources: blocks
                 .iter()
                 .map(|(id, _)| (inputs.get(id).copied(), applications.get(id).copied()))
@@ -259,9 +328,21 @@ struct Session {
     load: f32,
     last_render: Instant,
     software_deadline: Option<Instant>,
+    take: Option<crate::session_io::Producer>,
+    scene_context: Option<piratewave_core::automation::Context>,
+    scene_voice_phase: u8,
 }
 impl Session {
+    #[cfg(test)]
     fn new(project: &Project) -> anyhow::Result<Self> {
+        Self::at_frame(project, 0, Arc::new(AtomicUsize::new(0)), None)
+    }
+    fn at_frame(
+        project: &Project,
+        frame: u64,
+        history_budget: Arc<AtomicUsize>,
+        history: Option<piratewave_core::recording::Recorder>,
+    ) -> anyhow::Result<Self> {
         crate::logging::info(format_args!(
             "Starting audio session: {} nodes, {} routes",
             project.nodes.len(),
@@ -350,7 +431,9 @@ impl Session {
             last_default_output: audio_io::default_output_identity(),
             last_effect_recovery: Instant::now(),
             voices: vec![],
-            recorder: Default::default(),
+            recorder: history.unwrap_or_else(|| {
+                piratewave_core::recording::Recorder::with_budget(history_budget)
+            }),
             recording_voices: vec![],
             message: if warnings.is_empty() {
                 "Audio engine running".into()
@@ -360,11 +443,40 @@ impl Session {
             load: 0.0,
             last_render: Instant::now(),
             software_deadline: None,
+            take: None,
+            scene_context: None,
+            scene_voice_phase: 0,
         };
         session.refresh_render_mappings();
+        session.recorder.block = frame / BLOCK_SIZE as u64;
+        session
+            .recorder
+            .validate_memory(project)
+            .map_err(anyhow::Error::msg)?;
         session.recorder.sync(project);
+        if let Some(e) = &session.recorder.error {
+            anyhow::bail!("{e}");
+        }
+        session.refresh_workflow_points();
         session.sync_listeners(project);
         Ok(session)
+    }
+    fn refresh_workflow_points(&mut self) {
+        self.graph.workflow_taps = !self.recorder.histories.is_empty() || self.take.is_some();
+        for node in &mut self.graph.nodes {
+            node.capture_raw = self.recorder.histories.keys().any(|tap| {
+                tap.node == node.config.id
+                    && tap.stage == piratewave_core::workflows::CaptureStage::Raw
+            });
+        }
+        if let Some(take) = &mut self.take {
+            if take.remap(&self.graph).is_err() {
+                take.pool.fault.store(4, Ordering::Release);
+                take.pool.stop();
+            } else {
+                take.mark_raw(&mut self.graph);
+            }
+        }
     }
     fn refresh_render_mappings(&mut self) {
         self.render_mappings = RenderMappings::new(
@@ -405,6 +517,22 @@ impl Session {
         default: &str,
         available: Option<&audio_io::DeviceSnapshot>,
     ) {
+        let mut keep;
+        let project = if self.graph.scene.as_ref().is_some_and(|s| !s.finished) {
+            keep = project.clone();
+            for node in &mut keep.nodes {
+                if self
+                    .listeners
+                    .iter()
+                    .any(|l| l.stream.node_id == node.id && l.remaining > 0)
+                {
+                    node.listen_enabled = true;
+                }
+            }
+            &keep
+        } else {
+            project
+        };
         let desired = listener_routes(project, default, |id| {
             self.outputs.iter().any(|o| o.node_id == id)
         });
@@ -426,7 +554,7 @@ impl Session {
             }
             let errors = Arc::new(ArrayQueue::new(4));
             match audio_io::open_output(id, &Some(endpoint), self.counters.clone(), errors.clone()) {
-                Ok(stream) => self.listeners.push(Listener { stream }),
+                Ok(stream) => self.listeners.push(Listener { stream,gain:1.,target:1.,remaining:0 }),
                 Err(error) => self.message = format!("Listen output for bus {id} unavailable: {error:#}. Primary output continues; retrying automatically."),
             }
         }
@@ -567,11 +695,15 @@ impl Session {
     fn render(&mut self) {
         self.last_render = Instant::now();
         let start = Instant::now();
+        let mut discontinuity = false;
         while let Some(message) = self.application_errors.pop() {
             self.message = message;
         }
-        for ((id, frames), &(input, application)) in
-            self.blocks.iter_mut().zip(&self.render_mappings.sources)
+        for (block_index, ((id, frames), &(input, application))) in self
+            .blocks
+            .iter_mut()
+            .zip(&self.render_mappings.sources)
+            .enumerate()
         {
             if let Some(index) = input {
                 let input = &mut self.inputs[index].1;
@@ -580,6 +712,7 @@ impl Session {
                     *frame = input.resampler.next_frame().unwrap_or([0.0; 2]);
                 }
                 if input.resampler.underruns() != previous {
+                    discontinuity = true;
                     self.voice_changer.source_discontinuity(*id);
                 }
             } else if let Some(index) = application {
@@ -589,9 +722,11 @@ impl Session {
                     *frame = input.resampler.next_frame().unwrap_or([0.0; 2]);
                 }
                 if input.resampler.underruns() != previous {
+                    discontinuity = true;
                     self.voice_changer.source_discontinuity(*id);
                 }
             } else {
+                discontinuity |= self.render_mappings.hardware_sources[block_index];
                 frames.fill([0.0; 2]);
             }
         }
@@ -607,8 +742,9 @@ impl Session {
             }
             voice.position += BLOCK_SIZE;
         }
-        self.voices.retain(|v| v.position < v.clip.frames.len());
-        self.graph.process_recording(
+
+        let scene_values = self.graph.scene.as_ref().is_some_and(|s| !s.finished);
+        self.graph.process_workflows(
             &self.blocks,
             |node, frames| {
                 if matches!(node.kind, NodeKind::VoiceChanger) {
@@ -630,6 +766,11 @@ impl Session {
                         &voice.clip.frames[voice.position..voice.position + count],
                     );
                     voice.position += count;
+                    if scene_values {
+                        voice
+                            .effects
+                            .scene_values(&node.effects, node.effects_disabled);
+                    }
                     voice.effects.process(&mut processed);
                     for i in 0..count {
                         for c in 0..2 {
@@ -643,23 +784,68 @@ impl Session {
                     }
                 }
             },
-            |id, port, selected, frames| self.recorder.tap(id, port, selected, frames),
+            |id, frames| {
+                self.recorder.tap_stage(
+                    id,
+                    piratewave_core::project::OutputPort::Passthrough,
+                    piratewave_core::workflows::CaptureStage::Raw,
+                    None,
+                    frames,
+                )
+            },
+            |id, port, selected, frames| {
+                if let Some(destination) = selected {
+                    self.recorder.tap_route(id, port, destination, frames);
+                } else {
+                    self.recorder.tap(id, port, None, frames);
+                }
+            },
         );
+        if let Some(take) = &self.take {
+            take.copy_block(
+                &self.graph,
+                self.recorder.block * BLOCK_SIZE as u64,
+                discontinuity,
+            );
+        }
         self.recorder.finish_block();
-        self.recording_voices.retain(|v| v.position < v.end);
+
         if !self.plugins.warnings.is_empty() {
             self.message = std::mem::take(&mut self.plugins.warnings).join("; ");
         }
-        for output in self
-            .outputs
-            .iter()
-            .chain(self.listeners.iter().map(|l| &l.stream))
-        {
+        for output in &self.outputs {
             if let Some(&index) = self.render_mappings.outputs.get(&output.node_id) {
                 for frame in &self.graph.nodes[index].frames {
                     if output.queue.push(*frame).is_err() {
                         self.counters.overflows.fetch_add(1, Ordering::Relaxed);
                     }
+                }
+            }
+        }
+        for listener in &mut self.listeners {
+            if let Some(&index) = self.render_mappings.outputs.get(&listener.stream.node_id) {
+                let count = listener.remaining.min(BLOCK_SIZE as u64);
+                let step = if listener.remaining > 0 {
+                    (listener.target - listener.gain) / listener.remaining as f32
+                } else {
+                    0.
+                };
+                for (i, frame) in self.graph.nodes[index].frames.iter().enumerate() {
+                    if (i as u64) < count {
+                        listener.gain += step;
+                    }
+                    let value = if listener.gain == 1. {
+                        *frame
+                    } else {
+                        [frame[0] * listener.gain, frame[1] * listener.gain]
+                    };
+                    if listener.stream.queue.push(value).is_err() {
+                        self.counters.overflows.fetch_add(1, Ordering::Relaxed);
+                    }
+                }
+                listener.remaining -= count;
+                if listener.remaining == 0 {
+                    listener.gain = listener.target;
                 }
             }
         }
@@ -669,6 +855,35 @@ impl Session {
     }
     fn status(&mut self) -> Status {
         Status {
+            scene_controls: self
+                .graph
+                .scene
+                .as_ref()
+                .filter(|s| !s.finished)
+                .map_or_else(Vec::new, |s| s.values(&self.graph.nodes)),
+            available: self
+                .project
+                .nodes
+                .iter()
+                .filter_map(|n| match n.kind {
+                    NodeKind::Input { .. } => {
+                        Some((n.id, self.inputs.iter().any(|(id, _)| *id == n.id)))
+                    }
+                    NodeKind::ApplicationCapture { .. } => Some((
+                        n.id,
+                        self.application_inputs.iter().any(|(id, _)| *id == n.id),
+                    )),
+                    NodeKind::Output { .. } => {
+                        Some((n.id, self.outputs.iter().any(|o| o.node_id == n.id)))
+                    }
+                    _ => None,
+                })
+                .collect(),
+            scene: self
+                .graph
+                .scene
+                .as_ref()
+                .map(|s| (s.id, s.progress(), s.modified)),
             devices: self.device_watcher.published_devices.clone(),
             running: true,
             ducking: self
@@ -685,12 +900,7 @@ impl Session {
                 .map(|n| (n.id, self.recorder.available(n.id)))
                 .collect(),
             recording_buffers: self.recorder.histories.len(),
-            recording_bytes: self
-                .recorder
-                .histories
-                .values()
-                .map(|h| piratewave_core::recording::history_bytes(h.capacity()))
-                .sum(),
+            recording_bytes: self.recorder.allocated_bytes(),
             plugins: self.plugins.statuses(),
             voice_changers: self.voice_changer.status().into_iter().collect(),
             peaks: self
@@ -778,9 +988,15 @@ fn publish(queue: &ArrayQueue<Status>, status: Status) {
     }
     let _ = queue.push(status);
 }
-fn start_session(project: &Project, statuses: &ArrayQueue<Status>) -> Option<Session> {
+fn start_session(
+    project: &Project,
+    statuses: &ArrayQueue<Status>,
+    frame: u64,
+    history_budget: Arc<AtomicUsize>,
+    history: Option<piratewave_core::recording::Recorder>,
+) -> Option<Session> {
     crate::training::audio_running(true);
-    match Session::new(project) {
+    match Session::at_frame(project, frame, history_budget, history) {
         Ok(mut session) => {
             publish(statuses, session.status());
             Some(session)
@@ -815,7 +1031,18 @@ fn run(
     rx: mpsc::Receiver<Command>,
     statuses: Arc<ArrayQueue<Status>>,
     effect_audio: Arc<ArrayQueue<piratewave_core::graph::EffectMonitor>>,
+    workflow_events: Arc<ArrayQueue<WorkflowEvent>>,
+    workflow_overflow: Arc<AtomicBool>,
 ) {
+    let emit = |event: WorkflowEvent| {
+        if workflow_events.push(event).is_err() {
+            workflow_overflow.store(true, Ordering::Release);
+        }
+    };
+    let mut generation = 0u64;
+    let mut last_available: HashMap<u64, bool> = HashMap::new();
+    let history_budget = Arc::new(AtomicUsize::new(0));
+    let mut frame_clock = 0u64;
     let mut monitor_expiry = Instant::now();
     let _plugin_thread = crate::plugins::PluginThread::default();
     let registry = EffectRegistry::default();
@@ -825,7 +1052,230 @@ fn run(
     let mut last_metrics = Instant::now();
     loop {
         while let Ok(command) = rx.try_recv() {
+            let (context, target, command, tracked) = match command {
+                Command::Perform {
+                    context,
+                    target,
+                    command,
+                } => {
+                    if context.generation != generation {
+                        emit(WorkflowEvent {
+                            context,
+                            event: None,
+                            result: Err("Workspace changed; command cancelled".into()),
+                        });
+                        continue;
+                    }
+                    (context, target, *command, true)
+                }
+                command => (
+                    piratewave_core::automation::Context {
+                        generation,
+                        operation: piratewave_core::recording::RecordSlot::new("").id,
+                        ..Default::default()
+                    },
+                    0,
+                    command,
+                    false,
+                ),
+            };
+            let was_running = session.is_some();
+            let requested_start =
+                matches!(&command, Command::Start(_) | Command::StartIfStopped(_))
+                    || matches!(&command, Command::Toggle(_)) && !was_running
+                    || matches!(&command, Command::Reconfigure(_)) && was_running;
+            if matches!(
+                &command,
+                Command::Stop | Command::Start(_) | Command::Shutdown
+            ) || matches!(&command, Command::Toggle(_)) && session.is_some()
+            {
+                if let Some(active) = &mut session {
+                    if let Some(old) = active.scene_context.take() {
+                        emit(WorkflowEvent {
+                            context: old,
+                            event: None,
+                            result: Err("Cancelled: audio stopped before scene completion".into()),
+                        });
+                    }
+                    for voice in &active.voices {
+                        emit(WorkflowEvent {
+                            context: voice.context,
+                            event: Some(piratewave_core::automation::EventKind::Completion(
+                                piratewave_core::workflows::Operation::Sound,
+                                voice.target,
+                                false,
+                            )),
+                            result: Err("Cancelled: audio stopped during sound playback".into()),
+                        });
+                    }
+                    for voice in &active.recording_voices {
+                        emit(WorkflowEvent {
+                            context: voice.context,
+                            event: Some(piratewave_core::automation::EventKind::Completion(
+                                piratewave_core::workflows::Operation::SlotPlayback,
+                                voice.node,
+                                false,
+                            )),
+                            result: Err("Cancelled: audio stopped during recording playback".into()),
+                        });
+                    }
+                }
+            }
+
+            let deferred = matches!(
+                &command,
+                Command::Play { .. }
+                    | Command::PlayRecording { .. }
+                    | Command::RecallScene { .. }
+                    | Command::CaptureRecording { .. }
+            );
+            let mut outcome = Ok(());
+            let mut accepted_deferred = matches!(
+                &command,
+                Command::CaptureRecording { .. } | Command::RecallScene { .. }
+            );
             match command {
+                Command::Generation(next) => {
+                    generation = next;
+                    last_available.clear();
+                }
+                Command::Perform { .. } => {
+                    outcome = Err("Nested command batches are not supported".into());
+                }
+
+                Command::RecallScene { scene, reply } => {
+                    let result = session
+                        .as_mut()
+                        .ok_or_else(|| "Audio is stopped".to_owned())
+                        .and_then(|s| {
+                            let target = s.graph.recall_scene(&scene, &s.project, &registry)?;
+                            s.scene_voice_phase = 0;
+                            for voice in &mut s.recording_voices {
+                                voice.effects.prepare_scene(&scene.settings, voice.node);
+                            }
+                            if let Some(old) = s.scene_context.replace(context) {
+                                emit(WorkflowEvent {
+                                    context: old,
+                                    event: None,
+                                    result: Err(
+                                        "Cancelled: Scene replaced by another recall".into()
+                                    ),
+                                });
+                            }
+                            // Opening monitoring devices belongs to this control-side handler.
+                            let mut monitoring = target.clone();
+                            for n in &mut monitoring.nodes {
+                                n.listen_enabled |= s
+                                    .project
+                                    .nodes
+                                    .iter()
+                                    .any(|old| old.id == n.id && old.listen_enabled);
+                            }
+                            let old_listeners: Vec<_> =
+                                s.listeners.iter().map(|l| l.stream.node_id).collect();
+                            s.sync_listeners(&monitoring);
+                            let frames = s.graph.scene.as_ref().map_or(1, |s| s.total);
+                            for listener in &mut s.listeners {
+                                if scene.settings.iter().any(|setting| {
+                                    setting.included
+                                        && setting.node == listener.stream.node_id
+                                        && matches!(
+                                            setting.value,
+                                            piratewave_core::workflows::Control::Listening { .. }
+                                        )
+                                }) {
+                                    if !old_listeners.contains(&listener.stream.node_id) {
+                                        listener.gain = 0.;
+                                    }
+                                    listener.target = if target.nodes.iter().any(|n| {
+                                        n.id == listener.stream.node_id && n.listen_enabled
+                                    }) {
+                                        1.
+                                    } else {
+                                        0.
+                                    };
+                                    listener.remaining = frames;
+                                }
+                            }
+                            s.project = target.clone();
+                            Ok(target)
+                        });
+                    if let Err(e) = &result {
+                        emit(WorkflowEvent {
+                            context,
+                            event: None,
+                            result: Err(e.clone()),
+                        });
+                    }
+                    let _ = reply.try_send(result);
+                }
+                Command::ArmSession { id, armed, reply } => {
+                    let result = session
+                        .as_mut()
+                        .ok_or_else(|| "Start audio before arming history".to_owned())
+                        .and_then(|s| {
+                            s.recorder.arm_session(&s.project, id, armed)?;
+                            s.refresh_workflow_points();
+                            for node in &mut s.graph.nodes {
+                                node.capture_raw = s.recorder.histories.keys().any(|tap| {
+                                    tap.node == node.config.id
+                                        && tap.stage
+                                            == piratewave_core::workflows::CaptureStage::Raw
+                                });
+                            }
+                            Ok(s.recorder.session_memory(&s.project, id, armed))
+                        });
+                    let _ = reply.try_send(result);
+                }
+                Command::SnapshotSession { id, reply } => {
+                    let result = session
+                        .as_ref()
+                        .ok_or_else(|| "Start audio before capturing".to_owned())
+                        .and_then(|s| s.recorder.snapshot_session(&s.project, id));
+                    let _ = reply.try_send(result);
+                }
+                Command::AttachTake {
+                    pool,
+                    tracks,
+                    reply,
+                } => {
+                    let result = session
+                        .as_mut()
+                        .ok_or_else(|| "Audio stopped before recording began".to_owned())
+                        .and_then(|s| {
+                            if s.take
+                                .as_ref()
+                                .is_some_and(|p| !p.pool.stopped.load(Ordering::Acquire))
+                            {
+                                return Err("A take is already recording".into());
+                            }
+                            let producer =
+                                crate::session_io::Producer::new(pool.clone(), &tracks, &s.graph)
+                                    .map_err(|e| format!("{e:#}"))?;
+                            for node in &mut s.graph.nodes {
+                                node.capture_raw |= tracks.iter().any(|t| {
+                                    t.point.node == node.config.id
+                                        && t.point.stage
+                                            == piratewave_core::workflows::CaptureStage::Raw
+                                });
+                            }
+                            s.take = Some(producer);
+                            s.refresh_workflow_points();
+                            Ok(())
+                        });
+                    if result.is_err() {
+                        pool.fault.store(4, Ordering::Release);
+                        pool.stop();
+                    }
+                    let _ = reply.try_send(result);
+                }
+                Command::StopTake => {
+                    if let Some(s) = &mut session {
+                        s.take = None;
+                        s.refresh_workflow_points();
+                    }
+                }
+
                 Command::MonitorEffect(target) => {
                     monitor_expiry = Instant::now() + Duration::from_millis(600);
                     if let Some(active) = &mut session {
@@ -871,11 +1321,23 @@ fn run(
                 }
                 Command::Start(project) => {
                     drop(session.take());
-                    session = start_session(&project, &statuses);
+                    session = start_session(
+                        &project,
+                        &statuses,
+                        frame_clock,
+                        history_budget.clone(),
+                        None,
+                    );
                 }
                 Command::StartIfStopped(project) => {
                     if session.is_none() {
-                        session = start_session(&project, &statuses);
+                        session = start_session(
+                            &project,
+                            &statuses,
+                            frame_clock,
+                            history_budget.clone(),
+                            None,
+                        );
                     }
                 }
                 Command::Toggle(project) => {
@@ -890,19 +1352,32 @@ fn run(
                             },
                         );
                     } else {
-                        session = start_session(&project, &statuses);
+                        session = start_session(
+                            &project,
+                            &statuses,
+                            frame_clock,
+                            history_budget.clone(),
+                            None,
+                        );
                     }
                 }
                 Command::Reconfigure(project) => {
                     if let Some(mut old) = session.take() {
-                        let mut histories = std::mem::take(&mut old.recorder);
+                        let histories = std::mem::take(&mut old.recorder);
+                        let take = old.take.take();
                         let voices = std::mem::take(&mut old.recording_voices);
                         drop(old);
-                        session = start_session(&project, &statuses);
+                        session = start_session(
+                            &project,
+                            &statuses,
+                            frame_clock,
+                            history_budget.clone(),
+                            Some(histories),
+                        );
                         if let Some(active) = &mut session {
-                            histories.sync(&project);
-                            active.recorder = histories;
                             active.recording_voices = voices;
+                            active.take = take;
+                            active.refresh_workflow_points();
                             if let Err(error) = active.sync_recording_effects(&project, &registry) {
                                 active.message = format!("Recording effects: {error}");
                             }
@@ -915,7 +1390,20 @@ fn run(
                 Command::Update(project) => {
                     let result = validate_hardware_routes(&project).and_then(|()| {
                         if let Some(active) = &mut session {
+                            active.recorder.validate_memory(&project)?;
                             active.graph.update(&project, &registry)?;
+                            if active.graph.scene.is_none() {
+                                if let Some(context) = active.scene_context.take() {
+                                    emit(WorkflowEvent {
+                                        context,
+                                        event: None,
+                                        result: Err(
+                                            "Graph structure changed; scene transition cancelled"
+                                                .into(),
+                                        ),
+                                    });
+                                }
+                            }
                             active.refresh_render_mappings();
                             active.voice_changer.sync(&project);
                             let plugin_update = Instant::now();
@@ -924,6 +1412,7 @@ fn run(
                             active.last_render += plugin_update.elapsed();
                             active.sync_listeners(&project);
                             active.recorder.sync(&project);
+                            active.refresh_workflow_points();
                             active.sync_recording_effects(&project, &registry)?;
                             active.project = project.clone();
                             Ok(())
@@ -932,6 +1421,7 @@ fn run(
                         }
                     });
                     if let Err(error) = result {
+                        outcome = Err(error.clone());
                         crate::logging::error(format_args!("Live audio edit rejected: {error}"));
                         if let Some(active) = &mut session {
                             active.message =
@@ -942,7 +1432,10 @@ fn run(
                 Command::Play { clip, volume } => {
                     if let Some(active) = &mut session {
                         if active.voices.len() < 32 {
+                            accepted_deferred = true;
                             active.voices.push(Voice {
+                                context,
+                                target,
                                 clip,
                                 position: 0,
                                 volume: volume.clamp(0.0, 2.0),
@@ -1057,7 +1550,9 @@ fn run(
                                             continue;
                                         }
                                     };
+                                accepted_deferred = true;
                                 active.recording_voices.push(RecordingVoice {
+                                    context,
                                     effects,
                                     node,
                                     slot,
@@ -1073,6 +1568,21 @@ fn run(
                 }
                 Command::StopRecordingPlayback { node, slot } => {
                     if let Some(active) = &mut session {
+                        for voice in active
+                            .recording_voices
+                            .iter()
+                            .filter(|v| v.node == node && (slot.is_none() || slot == Some(v.slot)))
+                        {
+                            emit(WorkflowEvent {
+                                context: voice.context,
+                                event: Some(piratewave_core::automation::EventKind::Completion(
+                                    piratewave_core::workflows::Operation::SlotPlayback,
+                                    voice.node,
+                                    false,
+                                )),
+                                result: Err("Cancelled: Recording playback stopped".into()),
+                            });
+                        }
                         active
                             .recording_voices
                             .retain(|v| v.node != node || slot.is_some_and(|s| s != v.slot));
@@ -1080,13 +1590,143 @@ fn run(
                 }
                 Command::StopSounds => {
                     if let Some(active) = &mut session {
+                        for voice in &active.voices {
+                            emit(WorkflowEvent {
+                                context: voice.context,
+                                event: Some(piratewave_core::automation::EventKind::Completion(
+                                    piratewave_core::workflows::Operation::Sound,
+                                    voice.target,
+                                    false,
+                                )),
+                                result: Err("Cancelled: Sound playback stopped".into()),
+                            });
+                        }
+                        for voice in &active.recording_voices {
+                            emit(WorkflowEvent {
+                                context: voice.context,
+                                event: Some(piratewave_core::automation::EventKind::Completion(
+                                    piratewave_core::workflows::Operation::SlotPlayback,
+                                    voice.node,
+                                    false,
+                                )),
+                                result: Err("Cancelled: Recording playback stopped".into()),
+                            });
+                        }
                         active.voices.clear();
                         active.recording_voices.clear();
                     }
                 }
             }
+            if was_running != session.is_some() {
+                emit(WorkflowEvent {
+                    context,
+                    event: Some(piratewave_core::automation::EventKind::Audio(
+                        session.is_some(),
+                    )),
+                    result: Ok(()),
+                });
+            }
+            if deferred && !accepted_deferred {
+                emit(WorkflowEvent{context,event:None,result:Err("Audio is stopped, playback limit reached, or recording target is unavailable".into())});
+            }
+            if requested_start && session.is_none() {
+                outcome = Err("Audio could not start; see the audio status for details".into());
+            }
+            if tracked && !deferred {
+                emit(WorkflowEvent {
+                    context,
+                    event: None,
+                    result: outcome,
+                });
+            }
         }
         if let Some(active) = &mut session {
+            let phase = active.graph.scene.as_ref().map_or(0, |scene| {
+                if scene.finished {
+                    2
+                } else if scene.elapsed >= (BLOCK_SIZE * 3) as u64 {
+                    1
+                } else {
+                    0
+                }
+            });
+            if phase > active.scene_voice_phase {
+                if active
+                    .graph
+                    .nodes
+                    .iter()
+                    .any(|n| matches!(n.config.kind, NodeKind::VoiceChanger))
+                {
+                    let runtime = Project {
+                        version: active.project.version,
+                        name: String::new(),
+                        nodes: active
+                            .graph
+                            .nodes
+                            .iter()
+                            .map(|n| n.config.clone())
+                            .collect(),
+                        connections: active.project.connections.clone(),
+                        sounds: vec![],
+                        workflows: Default::default(),
+                    };
+                    active.voice_changer.sync(&runtime);
+                }
+                active.scene_voice_phase = phase;
+            }
+
+            if active
+                .take
+                .as_ref()
+                .is_some_and(|t| t.pool.stopped.load(Ordering::Acquire))
+            {
+                active.take = None;
+                active.refresh_workflow_points();
+            }
+            active.voices.retain(|voice| {
+                let ended = voice.position >= voice.clip.frames.len();
+                if ended {
+                    emit(WorkflowEvent {
+                        context: voice.context,
+                        event: Some(piratewave_core::automation::EventKind::Completion(
+                            piratewave_core::workflows::Operation::Sound,
+                            voice.target,
+                            true,
+                        )),
+                        result: Ok(()),
+                    });
+                }
+                !ended
+            });
+            active.recording_voices.retain(|voice| {
+                let ended = voice.position >= voice.end;
+                if ended {
+                    emit(WorkflowEvent {
+                        context: voice.context,
+                        event: Some(piratewave_core::automation::EventKind::Completion(
+                            piratewave_core::workflows::Operation::SlotPlayback,
+                            voice.node,
+                            true,
+                        )),
+                        result: Ok(()),
+                    });
+                }
+                !ended
+            });
+            if active.graph.scene.as_ref().is_some_and(|s| s.finished) {
+                if let Some(context) = active.scene_context.take() {
+                    emit(WorkflowEvent {
+                        context,
+                        event: active
+                            .graph
+                            .scene
+                            .as_ref()
+                            .map(|s| piratewave_core::automation::EventKind::Scene(s.id)),
+                        result: Ok(()),
+                    });
+                }
+            }
+
             if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| active.recover_devices()))
                 .is_err()
             {
@@ -1096,6 +1736,8 @@ fn run(
                     "Device/plugin recovery fault; mixer continues and will retry".into();
             }
             if active.render_ready() {
+                active.recorder.block = frame_clock / BLOCK_SIZE as u64;
+                frame_clock = frame_clock.saturating_add(BLOCK_SIZE as u64);
                 if active.graph.monitor.is_some() && Instant::now() >= monitor_expiry {
                     active.graph.monitor = None;
                 }
@@ -1123,6 +1765,24 @@ fn run(
             if last.elapsed() >= Duration::from_millis(50) {
                 crate::plugins::pump_messages();
                 let status = active.status();
+                for (id, available) in &status.available {
+                    if last_available
+                        .insert(*id, *available)
+                        .is_some_and(|old| old != *available)
+                    {
+                        emit(WorkflowEvent {
+                            context: piratewave_core::automation::Context {
+                                generation,
+                                ..Default::default()
+                            },
+                            event: Some(piratewave_core::automation::EventKind::Device(
+                                *id, *available,
+                            )),
+                            result: Ok(()),
+                        });
+                    }
+                }
+                last_available.retain(|id, _| status.available.contains_key(id));
                 if status.message != logged_message {
                     if active.graph.nodes.iter().any(|n| n.has_effect_fault()) {
                         crate::logging::error(format_args!(
@@ -1253,6 +1913,8 @@ mod tests {
         p.connect_port(4, 6, OutputPort::Send).unwrap();
         let mut s = Session::new(&p).unwrap();
         s.voices.push(Voice {
+            context: Default::default(),
+            target: 0,
             clip: Clip {
                 frames: Arc::new(vec![[0.2, 0.1]; 48000]),
             },
@@ -1272,6 +1934,7 @@ mod tests {
             .all(|f| *f == [0.2, 0.1]));
         let frames = Arc::new(vec![[0.4, -0.2]; 2048]);
         s.recording_voices.push(RecordingVoice {
+            context: Default::default(),
             node: 4,
             slot,
             clip: Clip {
@@ -1389,6 +2052,8 @@ mod tests {
         p.connect_port(4, 6, OutputPort::Send).unwrap();
         let mut s = Session::new(&p).unwrap();
         s.voices.push(Voice {
+            context: Default::default(),
+            target: 0,
             clip: Clip {
                 frames: Arc::new(vec![[0.2, 0.1]; 48000]),
             },
@@ -1402,6 +2067,7 @@ mod tests {
         assert_eq!(frames.len(), 4800);
         assert!(frames.iter().all(|f| *f == [0.2, 0.1]));
         s.recording_voices.push(RecordingVoice {
+            context: Default::default(),
             effects: piratewave_core::recording_effects::RecordingEffects::new(
                 &[],
                 false,
@@ -1448,6 +2114,7 @@ mod tests {
         );
         s.recording_voices.clear();
         s.recording_voices.push(RecordingVoice {
+            context: Default::default(),
             effects: piratewave_core::recording_effects::RecordingEffects::new(
                 &[],
                 false,
@@ -1518,6 +2185,8 @@ mod tests {
         let mut session = Session::new(&project).unwrap();
         assert!(session.inputs.is_empty() && session.outputs.is_empty());
         session.voices.push(Voice {
+            context: Default::default(),
+            target: 0,
             clip: Clip {
                 frames: Arc::new(vec![[0.1; 2]; 48000]),
             },
@@ -1555,6 +2224,8 @@ mod tests {
         let output_queue = s.outputs[0].queue.clone();
         let graph = s.graph.nodes.as_ptr();
         s.voices.push(Voice {
+            context: Default::default(),
+            target: 0,
             clip: Clip {
                 frames: Arc::new(vec![[0.; 2]; 48000 * 10]),
             },

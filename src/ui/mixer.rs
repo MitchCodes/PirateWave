@@ -209,6 +209,7 @@ fn mixer_effects(ui: &mut egui::Ui, node: &mut Node, registry: &EffectRegistry) 
 }
 impl PirateWaveApp {
     pub(super) fn mixer(&mut self, ui: &mut egui::Ui) {
+        self.scene_selector(ui);
         let switch_outputs = switch_routes(&self.project);
         let mut changed = false;
         let mut restart = false;

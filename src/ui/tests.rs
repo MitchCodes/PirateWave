@@ -14,6 +14,7 @@ pub(super) fn app() -> PirateWaveApp {
     let settings = AppSettings::default();
     PirateWaveApp {
         effect_tuning: Default::default(),
+        workflow_ui: Default::default(),
         tools_ui: Default::default(),
         layout: Default::default(),
         extension_ui: Default::default(),
@@ -375,6 +376,9 @@ pub(super) fn render(
         app.record_shortcut_input(ctx);
         egui::CentralPanel::default().show(ctx, |ui| match app.view {
             View::Cookbook => app.cookbook_page(ui),
+            View::Scenes => app.scenes_page(ui),
+            View::Sessions => app.sessions_page(ui),
+            View::Automation => app.automation_page(ui),
             View::Tools => app.tools_page(ui),
             View::Tool(tool) => app.tool_page(ui, tool),
             View::Plugins => app.plugin_library_page(ui),
@@ -1590,7 +1594,10 @@ fn recorder_stop_button_and_shortcut_stop_all_slots_for_only_that_node() {
         action: NodeAction::StopPlayingRecording,
     });
     assert!(matches!(
-        rx.try_recv().unwrap(),
+        match rx.try_recv().unwrap() {
+            Command::Perform { command, .. } => *command,
+            c => c,
+        },
         Command::StopRecordingPlayback {
             node: 91,
             slot: None

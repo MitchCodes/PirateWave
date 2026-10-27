@@ -5,6 +5,10 @@ export const nodeKey = s => JSON.stringify([s.node_kind, s.node]);
 export const targetKey = s => JSON.stringify([s.target, s.plugin ?? '']);
 export const specs = [
   ['application', 'Application', false, 'application'],
+  ['scenes', 'Audio scenes', false, 'scene'],
+  ['sessions', 'Multitrack sessions', false, 'session'],
+  ['automation', 'Automation arm / disarm', false, 'automation'],
+  ['rules', 'Automation rules', false, 'automation_rule'],
   ['nodes', 'Inputs, outputs & nodes', false, 'node'],
   ['effects', 'Rack effects', false, 'effect'],
   ['switches', 'Switch destinations', false, 'switch'],
@@ -29,7 +33,7 @@ export function choices(entries, settings = {}, filter = '') {
   for (const e of entries) { const key = selectorKey(e.selector); counts.set(key, (counts.get(key) || 0) + 1); }
   const unique = (list, key, label) => [...new Map(list.map(e => [key(e.selector), { value: key(e.selector), label: label(e) }])).values()];
   return {
-    nodes: unique(entries.filter(e => `${e.selector.node} ${e.selector.node_kind}`.toLowerCase().includes(filter.toLowerCase())), nodeKey,
+    nodes: unique(entries.filter(e => `${e.selector.node} ${e.selector.node_kind} ${e.selector.target}`.toLowerCase().includes(filter.toLowerCase())), nodeKey,
       e => e.selector.node ? `${e.selector.node} (${e.selector.node_kind})` : 'PirateWave'),
     targets: unique(entries.filter(e => nodeKey(e.selector) === settings.node), targetKey, e => e.selector.target || 'This node'),
     actions: unique(entries.filter(e => nodeKey(e.selector) === settings.node && targetKey(e.selector) === settings.target), selectorKey,

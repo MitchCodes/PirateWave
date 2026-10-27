@@ -208,6 +208,7 @@ mod win {
         gain.parameters.insert("gain".into(), -6.0206);
         source.effects.push(gain);
         let mut project = Project {
+            workflows: Default::default(),
             version: 1,
             name: "Application capture test".into(),
             nodes: vec![

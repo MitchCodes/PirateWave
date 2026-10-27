@@ -63,6 +63,7 @@ pub fn continuity_self_test() -> Result<()> {
     )?;
     capture.play()?;
     let project = |input_kind, device: String| Project {
+        workflows: Default::default(),
         version: 1,
         name: "Continuity diagnostic".into(),
         nodes: vec![
@@ -236,6 +237,7 @@ pub fn cable_self_test() -> Result<()> {
     spec.parameters.insert("gain".into(), -6.0206);
     fx.effects.push(spec);
     let mut project = Project {
+        workflows: Default::default(),
         version: 1,
         name: "Cable integration test".into(),
         nodes: vec![
@@ -440,6 +442,7 @@ pub fn listen_self_test() -> Result<()> {
     );
     bus.listen_device = Some(secondary.id.clone());
     let mut project = Project {
+        workflows: Default::default(),
         version: 1,
         name: "Listen integration test".into(),
         nodes: vec![Node::new(1, "Tone", NodeKind::Soundboard, [0.0; 2]), bus],

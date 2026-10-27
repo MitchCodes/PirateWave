@@ -14,7 +14,7 @@ with zipfile.ZipFile(sys.argv[1]) as z:
  assert all(n.startswith(root) and n[len(root):] in allowed for n in names if not n.endswith('/')), 'File outside package allowlist'
  assert m['UUID']=='com.piratewave.streamdeck' and m['SDKVersion']==2
  assert m['Nodejs']['Version']=='24' and m['Software']['MinimumVersion']=='7.1'
- assert len(m['Actions'])==12 and len({a['UUID'] for a in m['Actions']})==12
+ assert len(m['Actions'])==16 and len({a['UUID'] for a in m['Actions']})==16
  for f in ('bin/plugin.mjs','ui/index.html','ui/inspector.mjs','ui/model.mjs','ui/style.css','images/key.png','LICENSE','THIRD_PARTY_NOTICES.txt'):
   assert root+f in names, 'Missing '+f
  for a in m['Actions']:

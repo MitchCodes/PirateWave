@@ -47,6 +47,7 @@ pub fn run(vst3: &Path, vst2: &Path) -> Result<()> {
             [600.0, 0.0],
         );
         let mut project = Project {
+            workflows: Default::default(),
             version: 1,
             name: "Plugin integration test".into(),
             nodes: vec![source, fx, fx2, out],
@@ -351,6 +352,7 @@ pub fn audio(vst3: &Path) -> Result<()> {
     out.listen_enabled = true;
     out.listen_device = Some(secondary.id.clone());
     let mut project = Project {
+        workflows: Default::default(),
         version: 1,
         name: "VST audio integration".into(),
         nodes: vec![source, fx, out],

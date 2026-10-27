@@ -41,7 +41,13 @@ fn controller_invokes_shared_dispatcher_and_rejects_stale_projects() {
         assert!(rx.try_recv().is_err());
         req.generation = 77;
         app.controller_request(&req).unwrap();
-        let commands: Vec<_> = rx.try_iter().collect();
+        let commands: Vec<_> = rx
+            .try_iter()
+            .map(|c| match c {
+                Command::Perform { command, .. } => *command,
+                c => c,
+            })
+            .collect();
         match entry.selector.action.as_str() {
             "capture" => assert!(commands.iter().any(|c| matches!(
                 c,
@@ -90,7 +96,10 @@ fn controller_invokes_shared_dispatcher_and_rejects_stale_projects() {
     app.controller_request(&request(selector, "execute", 77))
         .unwrap();
     assert!(matches!(
-        rx.try_recv().unwrap(),
+        match rx.try_recv().unwrap() {
+            Command::Perform { command, .. } => *command,
+            c => c,
+        },
         Command::StopRecordingPlayback {
             node: 91,
             slot: None

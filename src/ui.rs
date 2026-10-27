@@ -1,5 +1,6 @@
 mod cookbook;
 mod theme;
+mod workflows;
 mod workspaces;
 use crate::{
     assets::{self, Clip},
@@ -45,6 +46,9 @@ use std::{
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum View {
+    Scenes,
+    Sessions,
+    Automation,
     Cookbook,
     Tools,
     Tool(crate::tools::Tool),
@@ -65,6 +69,9 @@ enum View {
 impl View {
     fn name(self) -> &'static str {
         match self {
+            Self::Scenes => "Scenes",
+            Self::Sessions => "Sessions",
+            Self::Automation => "Automation",
             Self::Cookbook => "Cookbook",
             Self::Tools => "Tools",
             Self::Tool(tool) => tool.name(),
@@ -85,6 +92,9 @@ impl View {
     }
     fn title(self) -> &'static str {
         match self {
+            Self::Scenes => "Recall your mix.",
+            Self::Sessions => "Record your session.",
+            Self::Automation => "Guide your workflow.",
             Self::Cookbook => "Recipes for your sound.",
             Self::Tools => "Your audio workbench.",
             Self::Tool(_) => "Explore your signal.",
@@ -105,6 +115,9 @@ impl View {
     }
     fn description(self) -> &'static str {
         match self {
+            Self::Scenes => "Save mixer settings and recall smooth transitions.",
+            Self::Sessions => "Synchronized raw and processed tracks.",
+            Self::Automation => "When something happens, choose what follows.",
             Self::Cookbook => "Import an example workspace and make it your own.",
             Self::Tools => "Test, measure, learn and create without changing your mix.",
             Self::Tool(tool) => tool.description(),
@@ -130,6 +143,7 @@ struct Loaded {
     result: Result<Clip, String>,
 }
 pub struct PirateWaveApp {
+    workflow_ui: workflows::WorkflowUi,
     effect_tuning: effect_tuning::TuningUi,
     tools_ui: tools::ToolsUi,
     layout: layout::LayoutState,
@@ -332,6 +346,7 @@ impl PirateWaveApp {
             .expect("Asset loader thread");
         let mut app = Self {
             effect_tuning: Default::default(),
+            workflow_ui: Default::default(),
             tools_ui: Default::default(),
             layout: Default::default(),
             extension_ui: Default::default(),
@@ -386,7 +401,11 @@ impl PirateWaveApp {
             needs_apply: false,
             needs_restart: false,
             smoke,
-            smoke_stage: 0,
+            smoke_stage: if std::env::args().any(|a| a == "--workflows-ui-smoke") {
+                96
+            } else {
+                0
+            },
             smoke_at: Instant::now(),
             smoke_waiting: false,
             smoke_error: None,
@@ -418,16 +437,35 @@ impl PirateWaveApp {
     fn notify_error(&mut self, text: impl Into<String>) {
         let text = text.into();
         self.controller.last_error = Some(text.clone());
+        if self.workflow_ui.context.is_some() {
+            self.workflow_ui.action_error = Some(text.clone());
+        }
         crate::logging::error(format_args!("UI error: {text}"));
         self.notify(text);
     }
     fn changed(&mut self, restart: bool) {
+        if self.workflow_ui.context.is_some() {
+            self.record_level_cause(self.workflow_ui.target, 150);
+        } else {
+            self.workflow_ui.level_causes.clear();
+        }
+        self.workflow_ui.snapshot_dirty = true;
         self.dirty = true;
         self.changed_at = Instant::now();
         self.needs_apply = true;
         self.needs_restart |= restart;
     }
     fn command(&mut self, command: Command) {
+        let command = if let Some(context) = self.workflow_ui.context {
+            self.workflow_ui.command_sent = true;
+            Command::Perform {
+                context,
+                target: self.workflow_ui.target,
+                command: Box::new(command),
+            }
+        } else {
+            command
+        };
         if let Err(error) = self.engine.send(command) {
             crate::logging::error(format_args!("Engine command failed: {error}"));
             self.notify_error(error);
@@ -454,6 +492,9 @@ impl PirateWaveApp {
         }
     }
     fn play(&mut self, id: u64) {
+        self.handle_shortcut(ShortcutAction::Sound(id));
+    }
+    fn play_clip(&mut self, id: u64) {
         if !self.status.running {
             self.notify("Start audio before playing a sound.");
             return;
@@ -493,6 +534,7 @@ impl PirateWaveApp {
             }
         }
 
+        self.poll_workflows();
         self.poll_recordings();
         self.poll_controller();
         while let Some(status) = self.engine.statuses.pop() {
@@ -536,7 +578,7 @@ impl PirateWaveApp {
         }
         let events = self.hotkeys.as_ref().map(|h| h.poll()).unwrap_or_default();
         for event in events {
-            self.handle_shortcut(event);
+            self.dispatch_action(event, piratewave_core::automation::Origin::Keyboard);
         }
         if self.needs_apply && self.last_apply.elapsed() > Duration::from_millis(33) {
             if self.needs_restart {
@@ -599,6 +641,9 @@ impl PirateWaveApp {
                         for (view, icon) in [
                             (View::Mixer, "M"),
                             (View::Effects, "FX"),
+                            (View::Scenes, "SC"),
+                            (View::Sessions, "REC"),
+                            (View::Automation, "A"),
                             (View::Soundboard, "S"),
                             (View::Routing, "R"),
                             (View::Tools, "T"),
@@ -724,6 +769,9 @@ impl PirateWaveApp {
                 | View::VoiceNode(_)
                 | View::PluginNode(_)
                 | View::Recording(_)
+                | View::Scenes
+                | View::Sessions
+                | View::Automation
         ) {
             ui.horizontal_wrapped(|ui| {
                 ui.strong(&self.project.name);
@@ -2253,6 +2301,12 @@ impl PirateWaveApp {
                     "extension-add",
                     "cookbook-1000",
                     "cookbook-1380",
+                    "scenes-1380",
+                    "sessions-1380",
+                    "session-take-1380",
+                    "automation-1380",
+                    "scene-mixer-1000",
+                    "automation-1000",
                 ];
                 let Some(name) = names.get(self.smoke_stage) else {
                     continue;
@@ -2273,11 +2327,13 @@ impl PirateWaveApp {
                 self.smoke_at = Instant::now();
             }
         }
-        if self.smoke_stage >= 96 {
+        if self.smoke_stage >= 102 {
             let text = if let Some(error) = &self.smoke_error {
                 format!("FAIL: {error}")
+            } else if std::env::args().any(|a| a == "--workflows-ui-smoke") {
+                "PASS: six native workflow views rendered: Scenes, Sessions tracks, take review, Automation, narrow Mixer scene selector and narrow Automation".into()
             } else {
-                "PASS: 96 native views rendered, including Cookbook at narrow and wide sizes, including extension install/settings, node/processor controls, keybinds, named ports, unavailable fallback and creation, including responsive mixer panes, large/negative routing scenes and grouped node editors, including Auto Ducking level/speech controls, routing and keybinds, including recording effects racks and keybinds, recording nodes, waveform/crop controls, recording and slot keybinds, three recording ports, switches, voice effects, VST, capture and settings.".into()
+                "PASS: 102 native views rendered, including scenes, session tracks/takes and guided automation, including Cookbook at narrow and wide sizes, including extension install/settings, node/processor controls, keybinds, named ports, unavailable fallback and creation, including responsive mixer panes, large/negative routing scenes and grouped node editors, including Auto Ducking level/speech controls, routing and keybinds, including recording effects racks and keybinds, recording nodes, waveform/crop controls, recording and slot keybinds, three recording ports, switches, voice effects, VST, capture and settings.".into()
             };
             let _ = std::fs::write("dist/ui-smoke-result.txt", text);
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
@@ -2381,7 +2437,29 @@ impl PirateWaveApp {
                 View::Routing,
                 View::Cookbook,
                 View::Cookbook,
+                View::Scenes,
+                View::Sessions,
+                View::Sessions,
+                View::Automation,
+                View::Mixer,
+                View::Automation,
             ][self.smoke_stage];
+            if self.smoke_stage >= 96 {
+                self.workflow_smoke_fixture(self.smoke_stage);
+                ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(
+                    if self.smoke_stage >= 100 {
+                        Vec2::new(1000., 700.)
+                    } else {
+                        Vec2::new(1380., 960.)
+                    },
+                ));
+                ctx.request_repaint();
+                if self.smoke_at.elapsed() > Duration::from_millis(600) {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+                    self.smoke_waiting = true;
+                }
+                return;
+            }
             if self.smoke_stage == 40 {
                 self.settings_section = keybinds::SettingsSection::Training;
             }
@@ -2969,6 +3047,9 @@ impl eframe::App for PirateWaveApp {
                 egui::ScrollArea::vertical()
                     .id_salt(("page", self.view))
                     .show(ui, |ui| match self.view {
+                        View::Scenes => self.scenes_page(ui),
+                        View::Sessions => self.sessions_page(ui),
+                        View::Automation => self.automation_page(ui),
                         View::Cookbook => self.cookbook_page(ui),
                         View::Tools => self.tools_page(ui),
                         View::Tool(tool) => self.tool_page(ui, tool),
@@ -2997,6 +3078,7 @@ impl eframe::App for PirateWaveApp {
         self.poll_voice_jobs();
         self.voice_help(ctx);
         self.dialogs(ctx);
+        self.workflow_recovery_dialog(ctx);
         self.smoke_tick(ctx);
         ctx.request_repaint_after(Duration::from_millis(33));
     }

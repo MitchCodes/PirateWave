@@ -75,13 +75,39 @@ impl PirateWaveApp {
                         );
                         self.recording_ui.cache.insert(key, audio);
                         if captured {
+                            if let Some(context) = self.workflow_ui.slot_contexts.remove(&token) {
+                                self.workflow_completion(
+                                    context,
+                                    Some(piratewave_core::automation::EventKind::Completion(
+                                        piratewave_core::workflows::Operation::SlotCapture,
+                                        node,
+                                        true,
+                                    )),
+                                    Ok(()),
+                                );
+                            }
                             self.changed(false);
                             self.notify("Recording captured into slot");
                         }
                         if let Some(action) = self.recording_ui.pending_play.remove(&key) {
+                            let previous = self.workflow_ui.context;
+                            self.workflow_ui.context =
+                                self.workflow_ui.pending_slot_contexts.remove(&key);
                             self.recording_slot_action(node, slot, action);
+                            self.workflow_ui.context = previous;
                         }
                     } else if captured {
+                        if let Some(context) = self.workflow_ui.slot_contexts.remove(&token) {
+                            self.workflow_completion(
+                                context,
+                                Some(piratewave_core::automation::EventKind::Completion(
+                                    piratewave_core::workflows::Operation::SlotCapture,
+                                    node,
+                                    false,
+                                )),
+                                Err("Recording target changed; capture cancelled".into()),
+                            );
+                        }
                         // This result was never attached to a project and is safe to discard.
                         self.recording_job(Job::Delete(audio.asset));
                     }
@@ -96,6 +122,28 @@ impl PirateWaveApp {
                     error,
                 } => {
                     let key = (node, slot);
+                    if let Some(context) = self.workflow_ui.pending_slot_contexts.remove(&key) {
+                        self.workflow_completion(
+                            context,
+                            Some(piratewave_core::automation::EventKind::Completion(
+                                piratewave_core::workflows::Operation::SlotPlayback,
+                                node,
+                                false,
+                            )),
+                            Err(error.clone()),
+                        );
+                    }
+                    if let Some(context) = self.workflow_ui.slot_contexts.remove(&token) {
+                        self.workflow_completion(
+                            context,
+                            Some(piratewave_core::automation::EventKind::Completion(
+                                piratewave_core::workflows::Operation::SlotCapture,
+                                node,
+                                false,
+                            )),
+                            Err(error.clone()),
+                        );
+                    }
                     if self.recording_ui.versions.get(&key).copied().unwrap_or(0) == token {
                         self.controller
                             .recordings
@@ -157,6 +205,26 @@ impl PirateWaveApp {
         }
     }
     pub(super) fn stop_recording_playback(&mut self, node: u64, slot: Option<u64>) {
+        let cancelled: Vec<_> = self
+            .workflow_ui
+            .pending_slot_contexts
+            .keys()
+            .filter(|&&(id, slot_id)| id == node && (slot.is_none() || slot == Some(slot_id)))
+            .copied()
+            .collect();
+        for key in cancelled {
+            if let Some(context) = self.workflow_ui.pending_slot_contexts.remove(&key) {
+                self.workflow_completion(
+                    context,
+                    Some(piratewave_core::automation::EventKind::Completion(
+                        piratewave_core::workflows::Operation::SlotPlayback,
+                        node,
+                        false,
+                    )),
+                    Err("Deferred recording playback cancelled".into()),
+                );
+            }
+        }
         // Cancel deferred plays too: a late asset load must not restart stopped audio.
         self.recording_ui
             .pending_play
@@ -221,6 +289,24 @@ impl PirateWaveApp {
             false
         }
     }
+    fn recording_configuration_barrier(&mut self) -> bool {
+        let command = if self.needs_restart {
+            Command::Reconfigure(self.project.clone())
+        } else {
+            Command::Update(self.project.clone())
+        };
+        match self.engine.send(command) {
+            Ok(()) => {
+                self.needs_apply = false;
+                self.needs_restart = false;
+                true
+            }
+            Err(e) => {
+                self.notify_error(e);
+                false
+            }
+        }
+    }
     pub(super) fn recording_slot_action(&mut self, node: u64, slot_id: u64, action: SlotAction) {
         let Some(slot) = self
             .project
@@ -239,22 +325,45 @@ impl PirateWaveApp {
                     .recordings
                     .insert(key, "Capture queued".into());
                 if !self.status.running {
-                    self.notify("Start recording before capturing recent audio.");
+                    self.notify_error("Start recording before capturing recent audio");
+                    return;
+                }
+                if !self.recording_configuration_barrier() {
                     return;
                 }
                 let token = RecordSlot::new("").id;
+                let context = self.workflow_context();
                 self.recording_ui.versions.insert(key, token);
+                self.workflow_ui.slot_contexts.insert(token, context);
                 self.recording_ui.pending_play.remove(&key);
-                // Order a live configuration barrier before the capture request.
-                self.command(Command::Update(self.project.clone()));
-                self.notify("Capturing recent audio...");
-                self.command(Command::CaptureRecording {
-                    node,
-                    slot: slot_id,
-                    token,
-                    jobs: self.recording_ui.service.tx.clone(),
-                    events: self.recording_ui.service.events.clone(),
-                });
+                if let Some(old) = self.workflow_ui.pending_slot_contexts.remove(&key) {
+                    self.workflow_completion(
+                        old,
+                        None,
+                        Err("Cancelled: capture replaced deferred playback".into()),
+                    );
+                }
+                let command = Command::Perform {
+                    context,
+                    target: node,
+                    command: Box::new(Command::CaptureRecording {
+                        node,
+                        slot: slot_id,
+                        token,
+                        jobs: self.recording_ui.service.tx.clone(),
+                        events: self.recording_ui.service.events.clone(),
+                    }),
+                };
+                match self.engine.send(command) {
+                    Ok(()) => {
+                        self.workflow_ui.command_sent = true;
+                        self.notify("Capturing recent audio...");
+                    }
+                    Err(e) => {
+                        self.workflow_ui.slot_contexts.remove(&token);
+                        self.notify_error(e);
+                    }
+                }
             }
             SlotAction::Delete => {
                 self.controller.recordings.remove(&key);
@@ -287,7 +396,7 @@ impl PirateWaveApp {
             }
             SlotAction::Preview | SlotAction::Send | SlotAction::PreviewAndSend => {
                 if !self.status.running {
-                    self.notify("Start audio before playing a recording.");
+                    self.notify_error("Start audio before playing a recording.");
                     return;
                 }
                 if let Some(audio) = self.recording_ui.cache.get(&key).cloned() {
@@ -299,7 +408,9 @@ impl PirateWaveApp {
                     }
                     let preview = action != SlotAction::Send;
                     let send = action != SlotAction::Preview;
-                    self.command(Command::Update(self.project.clone()));
+                    if !self.recording_configuration_barrier() {
+                        return;
+                    }
                     self.command(Command::PlayRecording {
                         node,
                         slot: slot_id,
@@ -315,11 +426,22 @@ impl PirateWaveApp {
                     }
                     if self.request_recording_load(node, &slot) {
                         self.recording_ui.pending_play.insert(key, action);
+                        let context = self.workflow_context();
+                        if let Some(previous) =
+                            self.workflow_ui.pending_slot_contexts.insert(key, context)
+                        {
+                            self.workflow_completion(
+                                previous,
+                                None,
+                                Err("Deferred playback replaced".into()),
+                            );
+                        }
+                        self.workflow_ui.command_sent = true;
                     } else {
                         self.notify_error("Recording worker is busy; try playback again shortly.");
                     }
                 } else {
-                    self.notify("Capture audio into this slot first.");
+                    self.notify_error("Capture audio into this slot first.");
                 }
             }
         }

@@ -268,6 +268,41 @@ fn binding_plan(project: &Project, settings: &AppSettings) -> Result<Vec<Binding
             sound.shortcut.as_str(),
         ));
     }
+    for s in &project.workflows.scenes {
+        items.push((
+            ShortcutAction::Scene(s.id),
+            format!("Scene: {}", s.name),
+            s.keybind.as_str(),
+        ));
+    }
+    for s in &project.workflows.sessions {
+        for (action, key) in &s.keybinds {
+            items.push((
+                ShortcutAction::Session {
+                    id: s.id,
+                    action: *action,
+                },
+                format!("Session {}: {action:?}", s.name),
+                key.as_str(),
+            ));
+        }
+    }
+    for (action, key) in &project.workflows.automation_keybinds {
+        items.push((
+            ShortcutAction::Automation {
+                armed: *action == piratewave_core::workflows::AutomationAction::Arm,
+            },
+            format!("Automation: {action:?}"),
+            key.as_str(),
+        ));
+    }
+    for r in &project.workflows.rules {
+        items.push((
+            ShortcutAction::Rule(r.id),
+            format!("Automation: {}", r.name),
+            r.keybind.as_str(),
+        ));
+    }
     let mut plan = vec![];
     let mut seen = HashMap::new();
     let mut errors = vec![];
@@ -466,6 +501,35 @@ pub fn self_test() -> Result<(), String> {
             }
             let text = "Ctrl+Alt+Shift+F11".to_string();
             match *expected {
+                ShortcutAction::Scene(id) => {
+                    project
+                        .workflows
+                        .scenes
+                        .iter_mut()
+                        .find(|s| s.id == id)
+                        .unwrap()
+                        .keybind = text
+                }
+                ShortcutAction::Session { id, action } => {
+                    project
+                        .workflows
+                        .sessions
+                        .iter_mut()
+                        .find(|s| s.id == id)
+                        .unwrap()
+                        .keybinds
+                        .insert(action, text);
+                }
+                ShortcutAction::Rule(id) => {
+                    project
+                        .workflows
+                        .rules
+                        .iter_mut()
+                        .find(|r| r.id == id)
+                        .unwrap()
+                        .keybind = text
+                }
+                ShortcutAction::Automation { .. } => continue,
                 ShortcutAction::Extension { id, effect, action } => {
                     piratewave_core::extensions::set_binding(
                         project.nodes.iter_mut().find(|n| n.id == id).unwrap(),

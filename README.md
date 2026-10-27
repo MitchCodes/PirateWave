@@ -12,7 +12,8 @@ PirateWave is in beta. Optional voice conversion and local voice training have a
 - Visual routing with processors, switches, recording nodes, and automatic ducking.
 - Microphone cleanup, RNNoise suppression, dynamics, EQ, pitch correction, modulation, delay, and reverb.
 - Soundboard playback, global shortcuts, recent-history recording, cropping, and WAV/MP3 export.
-- Autosaved workspaces and five importable **Cookbook** recipes.
+- Autosaved workspaces and seven importable **Cookbook** recipes.
+- [Audio scenes, synchronized multitrack sessions and guided automation](docs/WORKFLOWS.md).
 - Loupedeck and Stream Deck controls, VST hosting, and extensions for custom nodes and effects.
 - Audio checks, test signals, references, and controller-icon creation on the **Tools** page.
 
@@ -62,6 +63,7 @@ Start with the [documentation index](docs/README.md), or choose a guide:
 
 | Topic | Guide |
 | --- | --- |
+| Scenes, multitrack recording and automation | [Workflow guide](docs/WORKFLOWS.md) |
 | Example setups | [Cookbook](docs/COOKBOOK.md) |
 | Saving and switching setups | [Workspaces](docs/WORKSPACES.md) |
 | Mixer and routing | [Workspace layout](docs/WORKSPACE_LAYOUT.md) |

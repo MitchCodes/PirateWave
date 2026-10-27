@@ -123,6 +123,16 @@ impl PirateWaveApp {
         if self.workspaces.as_ref().is_none_or(|s| s.active() == id) {
             return;
         }
+        if self.workflow_ui.media.busy() && self.workflow_ui.pending_workspace.is_none() {
+            if let Some((_, pool)) = &self.workflow_ui.live {
+                pool.stop();
+            }
+            self.workflow_ui.media.stop();
+            self.command(Command::StopTake);
+            self.workflow_ui.pending_workspace = Some((id, Instant::now()));
+            self.notify("Finishing the active take before switching workspaces");
+            return;
+        }
         if self.dirty {
             self.save();
             if self.dirty {
@@ -144,8 +154,10 @@ impl PirateWaveApp {
                     h.clear();
                 }
                 self.controller.generation = piratewave_core::recording::RecordSlot::new("").id;
+                self.command(Command::Generation(self.controller.generation));
                 self.controller.recordings.clear();
                 self.layout.reset_navigation();
+                self.reset_workflow_runtime();
                 self.recording_ui = Default::default();
                 self.effect_tuning = Default::default();
                 self.project = project;
@@ -207,6 +219,19 @@ impl PirateWaveApp {
         };
         self.switch_workspace(replacement);
         if self.workspaces.as_ref().unwrap().active() == id {
+            if self.workflow_ui.pending_workspace.is_some() {
+                self.workflow_ui.pending_workspace_delete = Some(id);
+            }
+            return;
+        }
+        self.finish_workspace_deletion(id);
+    }
+    pub(super) fn finish_workspace_deletion(&mut self, id: u64) {
+        if self
+            .workspaces
+            .as_ref()
+            .is_none_or(|store| store.active() == id)
+        {
             return;
         }
         match self.workspaces.as_mut().unwrap().delete(id) {
@@ -241,7 +266,7 @@ impl PirateWaveApp {
         {
             // Export does not change autosave's managed destination.
             match storage::save(&path, &self.project) {
-                Ok(()) => self.notify("Workspace exported"),
+                Ok(()) => self.notify(if self.project.workflows.sessions.iter().any(|s|!s.take_ids.is_empty()){"Workspace exported. Recording media is separate; export takes from Sessions to transfer their audio."}else{"Workspace exported"}),
                 Err(e) => self.notify_error(format!("Cannot export workspace: {e:#}")),
             }
         }

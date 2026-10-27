@@ -75,30 +75,15 @@ impl PirateWaveApp {
                         continue;
                     }
                     let mut value = node.ducking.value(p.id);
-                    ui.horizontal(|ui| {
-                        ui.add_sized([150., 22.], egui::Label::new(p.label));
-                        if p.choices.is_empty() {
-                            changed |= ui
-                                .add(
-                                    egui::Slider::new(&mut value, p.min..=p.max)
-                                        .suffix(format!(" {}", p.unit)),
-                                )
-                                .changed();
-                        } else {
-                            egui::ComboBox::from_id_salt(("duck", id, p.id))
-                                .selected_text(p.choices[value as usize])
-                                .show_ui(ui, |ui| {
-                                    for (i, label) in p.choices.iter().enumerate() {
-                                        changed |= ui
-                                            .selectable_value(&mut value, i as f32, *label)
-                                            .changed();
-                                    }
-                                });
-                        }
-                    });
-                    node.ducking
-                        .set(p.id, value)
-                        .expect("UI constrains ducking parameters");
+                    if ui
+                        .push_id(id, |ui| parameter_widget(ui, &mut value, p))
+                        .inner
+                    {
+                        node.ducking
+                            .set(p.id, value)
+                            .expect("UI constrains ducking parameters");
+                        changed = true;
+                    }
                 }
             });
             ui.add_space(10.);
@@ -114,4 +99,32 @@ impl PirateWaveApp {
             self.changed(false);
         }
     }
+}
+/// Shared scalar/choice editor used by node controls and absolute automation steps.
+pub(super) fn parameter_widget(
+    ui: &mut egui::Ui,
+    value: &mut f32,
+    p: &piratewave_core::ducking::Parameter,
+) -> bool {
+    let before = *value;
+    ui.horizontal_wrapped(|ui| {
+        ui.add_sized([150., 22.], egui::Label::new(p.label));
+        if p.choices.is_empty() {
+            ui.add(egui::Slider::new(value, p.min..=p.max).suffix(format!(" {}", p.unit)));
+        } else {
+            egui::ComboBox::from_id_salt(("duck-parameter", p.id))
+                .selected_text(
+                    p.choices
+                        .get(*value as usize)
+                        .copied()
+                        .unwrap_or("Unavailable"),
+                )
+                .show_ui(ui, |ui| {
+                    for (i, label) in p.choices.iter().enumerate() {
+                        ui.selectable_value(value, i as f32, *label);
+                    }
+                });
+        }
+    });
+    *value != before
 }
