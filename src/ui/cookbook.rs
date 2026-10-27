@@ -5,14 +5,16 @@ use piratewave_core::project::{Connection, InputPort, OutputPort};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Recipe {
     Clean,
+    Quiet,
     Music,
     Voices,
     Recording,
     Studio,
 }
 impl Recipe {
-    const ALL: [Self; 5] = [
+    const ALL: [Self; 6] = [
         Self::Clean,
+        Self::Quiet,
         Self::Music,
         Self::Voices,
         Self::Recording,
@@ -21,6 +23,7 @@ impl Recipe {
     fn name(self) -> &'static str {
         match self {
             Self::Clean => "Clear Waters",
+            Self::Quiet => "Silent Seas",
             Self::Music => "Music Mate",
             Self::Voices => "Voice Party",
             Self::Recording => "Replay Deck",
@@ -29,6 +32,7 @@ impl Recipe {
     }
     fn description(self) -> &'static str {
         match self {
+        Self::Quiet => "Quiet the background with RNNoise suppression and a complete microphone cleaning chain.",
         Self::Clean => "A simple microphone cleaning chain, from rumble removal to peak control.",
         Self::Music => "Keep Spotify beneath your voice with automatic music ducking.",
         Self::Voices => "Switch between two voice changers, then add automatic tuning and reverb.",
@@ -38,6 +42,7 @@ impl Recipe {
     }
     fn route(self) -> &'static str {
         match self {
+        Self::Quiet => "Microphone > Quiet Mic > Stream Mix",
         Self::Clean => "Microphone > Clean Mic > Stream Mix",
         Self::Music => "Microphone (Priority) + Spotify (Ducked) > Auto Ducking > Stream Mix",
         Self::Voices => "Microphone > Change Voice > Voice A / Voice B > Autotune & Reverb > Stream Mix",
@@ -47,6 +52,7 @@ impl Recipe {
     }
     fn setup(self) -> &'static str {
         match self {
+        Self::Quiet => "High-pass filter > Noise Suppression (RNNoise) > Expander > De-esser > Parametric EQ > Compressor > Limiter. Select your microphone and Stream Mix output after import. Suppression starts at 100%; lower Strength if your voice sounds processed. It adds about 20 ms of latency and is intended for speech. Tune the remaining thresholds to your microphone and room.",
         Self::Clean => "Effects run in order: High-pass filter > Expander > De-esser > Parametric EQ > Compressor > Limiter. Start with the supplied gentle settings, then tune the thresholds to your microphone and room.",
         Self::Music => "Select Spotify in the Spotify node’s application picker. Adjust the ducking threshold until the activity indicator follows your speech. Music is reduced by 18 dB while you speak.",
         Self::Voices => "Choose and qualify voice packs in the two Voice Changer nodes. Both initially reference the default pack; choose your preferred pack for each voice. Switching voices briefly reloads conversion. Use Change Voice to select a branch or assign its keybinds. Autotune starts chromatic; choose a key and scale for singing. Unavailable voice packs need setup before conversion produces audio.",
@@ -92,7 +98,7 @@ impl Recipe {
         route(&mut project, 2, 3, OutputPort::Passthrough, InputPort::Main);
         route(&mut project, 2, 4, OutputPort::Passthrough, InputPort::Main);
         let mut mic = 1;
-        if matches!(self, Self::Clean | Self::Studio) {
+        if matches!(self, Self::Clean | Self::Quiet | Self::Studio) {
             let mut node = Node::new(5, "Clean Mic", NodeKind::Processor, [300., 40.]);
             node.effects = vec![
                 effect(registry, "high_pass", &[("cutoff", 80.)]),
@@ -106,6 +112,13 @@ impl Recipe {
                 effect(registry, "compressor", &[("ratio", 3.)]),
                 effect(registry, "limiter", &[]),
             ];
+            if self == Self::Quiet {
+                node.name = "Quiet Mic".into();
+                node.effects.insert(
+                    1,
+                    effect(registry, "noise_suppression", &[("strength", 100.)]),
+                );
+            }
             project.nodes.push(node);
             route(
                 &mut project,
@@ -354,22 +367,28 @@ mod tests {
                 .nodes
                 .iter()
                 .all(|node| node.keybinds.is_empty() && node.switch_keybinds.is_empty()));
-            if matches!(recipe, Recipe::Clean | Recipe::Studio) {
+            if matches!(recipe, Recipe::Clean | Recipe::Quiet | Recipe::Studio) {
                 let clean = p.nodes.iter().find(|n| n.id == 5).unwrap();
+                let mut expected = vec![
+                    "high_pass",
+                    "expander",
+                    "de_esser",
+                    "equalizer",
+                    "compressor",
+                    "limiter",
+                ];
+                if recipe == Recipe::Quiet {
+                    expected.insert(1, "noise_suppression");
+                    assert_eq!(clean.name, "Quiet Mic");
+                    assert!(clean.effects[1].enabled);
+                }
                 assert_eq!(
                     clean
                         .effects
                         .iter()
                         .map(|e| e.kind.as_str())
                         .collect::<Vec<_>>(),
-                    [
-                        "high_pass",
-                        "expander",
-                        "de_esser",
-                        "equalizer",
-                        "compressor",
-                        "limiter"
-                    ]
+                    expected
                 );
                 assert!(connected(
                     &p,

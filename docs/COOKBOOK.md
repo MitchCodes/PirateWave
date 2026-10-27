@@ -7,6 +7,7 @@ Every recipe contains a regular Microphone input, a Soundboard routed to both St
 | Recipe | Workflow |
 | --- | --- |
 | Clear Waters | Microphone → Clean Mic → Stream Mix. High-pass filter, expander, de-esser, parametric EQ, compressor and limiter, in that order. |
+| Silent Seas | Clear Waters with RNNoise Noise Suppression after the high-pass filter. Suppression starts at 100% strength; lower it if speech sounds processed. Adds about 20 ms latency. |
 | Music Mate | Microphone enters Auto Ducking’s Priority input; Spotify enters Ducked. Mixed goes to Stream Mix. |
 | Voice Party | Microphone → Change Voice switch → Voice A or Voice B → Autotune & Reverb → Stream Mix. |
 | Replay Deck | Recording Input application capture → Recorder. Preview → Monitor; Send → Stream Mix. Microphone goes directly to Stream Mix. |
