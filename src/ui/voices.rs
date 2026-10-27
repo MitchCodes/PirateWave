@@ -151,7 +151,7 @@ impl PirateWaveApp {
                 }
             }
             ui.small("Install the optional PirateWave-LLVC-Voice pack supplied with this build. The pack includes its native runtime and notices.");
-            ui.hyperlink_to("Download the matching voice pack", "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/v0.2.0-beta.1/Patch-LLVC-Voice-v1-beta1.zip");
+            ui.hyperlink_to("Download the matching voice pack", "https://github.com/MitchCodes/PirateWave/releases/download/support-assets-v1/PirateWave-LLVC-Voice-v1-beta1.zip");
             ui.separator();
             ui.label("Preview through");
             egui::ComboBox::from_id_salt("voice-preview-sample")

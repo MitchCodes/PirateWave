@@ -36,7 +36,7 @@ for (const [name, size] of [['plugin',256],['plugin@2x',512],['category',28],['c
 const manifest = {
   Name: 'PirateWave Audio Mixer', UUID: 'com.piratewave.streamdeck', Version: '1.1.0.0', Author: 'PirateWave contributors',
   Description: 'Control PirateWave audio nodes, effects, soundboard and recording slots using buttons and dials.',
-  Icon: 'images/plugin', Category: 'PirateWave Audio Mixer', CategoryIcon: 'images/category', URL: 'https://github.com/MitchCodes/PatchAudio-Releases',
+  Icon: 'images/plugin', Category: 'PirateWave Audio Mixer', CategoryIcon: 'images/category', URL: 'https://github.com/MitchCodes/PirateWave',
   CodePath: 'bin/plugin.mjs', Nodejs: { Version: '24' }, SDKVersion: 2,
   OS: [{ Platform: 'windows', MinimumVersion: '10' }], Software: { MinimumVersion: '7.1' },
   Actions: specs.map(spec => ({ UUID: `com.piratewave.streamdeck.${spec.id}`, Name: spec.name, Icon: 'images/action',

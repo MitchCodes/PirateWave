@@ -379,9 +379,8 @@ pub fn install(workspace: PathBuf, backend: String, offline: Option<PathBuf>) ->
                     )?;
                 }
                 ensure!(
-                    part.url.starts_with(
-                        "https://github.com/MitchCodes/PatchAudio-Releases/releases/download/"
-                    ),
+                    part.url
+                        .starts_with("https://github.com/MitchCodes/PirateWave/releases/download/"),
                     "Untrusted download origin"
                 );
                 let mut cmd = Command::new("curl.exe");

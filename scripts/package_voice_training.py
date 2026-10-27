@@ -84,7 +84,7 @@ def package(folder, catalog=CATALOG, cache=None):
     temporary = destination.with_suffix(".tmp")
     try:
         with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_STORED) as archive:
-            archive.writestr("README.txt", "PirateWave optional CPU Voice Creation tools and shared assets.\nExtract this ZIP into one folder; do not extract the .part files.\nIn Voices > Create voice > Tools/storage, select this folder for offline tools installation.\nChoose CPU. Both CPU tools and shared assets are included.\nInstall the matching voice pack through Voices first.\nCUDA tools remain a separate optional in-app download.\nOriginal part filenames are retained to match the executable's pinned catalog.\nLicenses and speech/model notices are contained in the verified bundles.\n")
+            archive.writestr("README.txt", "PirateWave optional CPU Voice Creation tools and shared assets.\nExtract this ZIP into one folder; do not extract the .part files.\nIn Voices > Create voice > Tools/storage, select this folder for offline tools installation.\nChoose CPU. Both CPU tools and shared assets are included.\nInstall the matching voice pack through Voices first.\nCUDA tools remain a separate optional in-app download.\nPinned catalog part filenames are retained to match the executable's pinned catalog.\nLicenses and speech/model notices are contained in the verified bundles.\n")
             for part in expected:
                 archive.write(cache / part["name"], part["name"])
         validate_training_archive(temporary, catalog)

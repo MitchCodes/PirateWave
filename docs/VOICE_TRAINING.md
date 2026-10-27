@@ -40,7 +40,7 @@ unavailable; the curated voice's live DirectML conversion is separate.
 The current GitHub release also provides **PirateWave-Voice-Training-CPU.zip**, containing the pinned CPU tools and shared assets separately from the app. Extract it into one folder, leave the `.part` files intact, and select that folder in Tools/storage for offline CPU installation. CUDA remains a separate in-app download.
 
 Public portable builds and optional bundles are distributed through
-[legacy voice downloads](https://github.com/MitchCodes/PatchAudio-Releases/releases).
+[pinned voice downloads](https://github.com/MitchCodes/PirateWave/releases/tag/support-assets-v1).
 The source repository remains private. Download all parts for the chosen backend
 and shared bundle for offline import; do not extract individual part files.
 

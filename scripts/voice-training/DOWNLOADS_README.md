@@ -2,7 +2,7 @@
 
 This page is a download-guide template for optional voice tools. For current PirateWave application builds, use the source repository's Releases or successful CI artifacts; see [Getting started](../../README.md#get-started).
 
-Pinned voice/runtime assets are hosted in the [legacy asset releases](https://github.com/MitchCodes/PatchAudio-Releases/releases). Those releases also contain historical desktop binaries; they are not the source of current PirateWave application builds. Install the matching optional assets through PirateWave's Voices page or Voice Creation tools controls.
+Pinned voice/runtime assets are hosted in the [pinned support assets](https://github.com/MitchCodes/PirateWave/releases/tag/support-assets-v1). The support-assets release contains pinned dependencies only; current application downloads are published by the main build workflow. Install the matching optional assets through PirateWave's Voices page or Voice Creation tools controls.
 
 ## Voice Creation Beta
 

@@ -11,7 +11,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--folder',type=Path,required=True)
     p.add_argument('--catalog',type=Path,required=True)
-    p.add_argument('--tag',default='v0.2.0-beta.1')
+    p.add_argument('--tag',default='support-assets-v1')
     args=p.parse_args()
     bundles=[]
     for backend in ('cpu','cuda','shared'):
@@ -33,7 +33,7 @@ def main():
                         if size>=1024**3:break
                         block=source.read(min(1024*1024,1024**3-size))
                 parts.append(dict(name=part.name,bytes=size,sha256=digest.hexdigest(),
-                    url=f'https://github.com/MitchCodes/PatchAudio-Releases/releases/download/{args.tag}/{part.name}'))
+                    url=f'https://github.com/MitchCodes/PirateWave/releases/download/{args.tag}/{part.name}'))
                 index+=1
         bundles.append(dict(id=f'training-{backend}-{metadata["sha256"][:12]}',backend=backend,
             bytes=metadata['bytes'],installed_bytes=metadata['installed_bytes'],sha256=metadata['sha256'],

@@ -27,7 +27,7 @@ Publication starts as a draft and becomes public only after all four downloads a
 
 CI installs Rust, Node.js 24 and .NET 10. `scripts/prepare-ci-dependencies.ps1` downloads pinned worker/runtime and Logi SDK dependencies, verifies SHA-256 hashes, and extracts only allowlisted files. SDK host assemblies are not distributed. `PIRATEWAVE_LOUPEDECK_SDK_DIR` selects the SDK location.
 
-`scripts/package_voice_training.py` obtains the CPU/shared parts from `src/training/catalog.json`, verifies their pinned sizes and hashes, and packages them without unpacking or altering them. Existing part names are preserved because offline installation validates them against the executable's trusted catalog. The source asset host must remain available until catalogs are deliberately updated.
+`scripts/package_voice_training.py` obtains the CPU/shared parts from `src/training/catalog.json`, verifies their pinned sizes and hashes, and packages them without unpacking or altering them. Catalog part names are preserved because offline installation validates them against the executable's trusted catalog. The source asset host must remain available until catalogs are deliberately updated.
 
 CI runs workspace checks, native plugin/controller tests, allocation checks, official controller package validation, and release safeguards. The publisher rejects optional installers/training parts embedded in the main ZIP, invalid training bundles, missing assets and oversized uploads. Hashing and large uploads stream data rather than reading the training archive into memory.
 
@@ -42,3 +42,7 @@ python scripts/publish-main-release.py --folder dist --version 0.2.0-beta.10 --c
 ```
 
 The training packaging command downloads approximately 1.14 GB if its verified cache is absent. Application builds do not download that data; CI invokes the packager separately.
+
+## Pinned support assets
+
+The versioned `support-assets-v1` release in this repository hosts the native CI runtime, optional voice pack, and CPU/CUDA/shared training parts. These are dependencies, separate from automated main-build application releases. CI and the application use public URLs and pinned checksums; no cross-repository credential is needed. The small native bootstrap ZIP contains only the existing worker, its runtime support DLL, and dependency notices, rather than a historical desktop application. Optional training parts and voice-pack bytes retain their original hashes; the public filenames use PirateWave branding.
