@@ -1,6 +1,6 @@
 # Voice Creation — Beta
 
-PirateWave 0.2.0-beta.1 exposes local voice creation with optional embedded Python 3.12
+PirateWave provides local voice creation with optional embedded Python 3.12
 CPU/CUDA tools. No system Python, pip, Conda, compiler or CUDA toolkit is needed.
 CUDA needs a compatible installed NVIDIA driver. Other training backends remain
 unavailable; the curated voice's live DirectML conversion is separate.
@@ -9,31 +9,14 @@ unavailable; the curated voice's live DirectML conversion is separate.
 
 ## Create a voice
 
-1. On Voices, install the matching optional LLVC voice pack. It supplies the
-   shared, application-trusted native inference libraries.
-2. Open **Create voice → Introduction**. Read the Beta limitations, choose CPU or
-   CUDA, name the voice and create a persistent training project. Choose the
-   workspace in Settings → Voice Training & Storage before creating the project.
-3. Import WAV, FLAC, MP3 or Ogg, or record the selected raw microphone. Recordings
-   bypass the effects graph. Imported audio is copied to application-owned WAV;
-   originals are preserved. Imports are limited to 30 minutes per file, raw takes
-   to five minutes. Make separate training, validation and test recordings.
-   This Beta limits included training speech to eight minutes and included audio
-   across all roles to thirty minutes. Use shorter takes to allow clip exclusions.
-4. Review levels and quiet/clipped sections; audition only through a selected
-   monitoring output. Exclude poor clips and assign their roles before training.
-   Dataset edits lock when training starts. Create a new project to change data.
-5. In **Tools/storage**, explicitly download or import the selected runtime and
-   shared bundle. For offline installation, put all matching part files in one
-   folder. The app checks hashes pinned into this build, combined archive hashes,
-   file hashes, paths, installed sizes and disk headroom before execution.
-6. In **Train**, start/resume the fixed Beta recipe: no-F0 RVC teacher (250
-   updates), 100 generated source pairs and LLVC adaptation (1,000 updates).
-   Heavy work pauses when audio starts; resume is explicit. A worker that misses
-   the five-second pause deadline is terminated, retaining the prior checkpoint.
-7. Compare held-out original, teacher, LLVC and native streaming samples through
-   the monitoring output. Complete jobs can install immutable CPU voice revisions.
-   Select the new voice on a Voice Changer node and route it to an output bus.
+1. Open **Voices** and install the optional LLVC voice pack. It provides the files needed to play voices.
+2. Choose **Create voice**. Give your voice a name and select **CPU** (Intel or AMD) or **CUDA** (NVIDIA graphics). Choose where to store training files in **Settings → Voice Training & Storage**.
+3. Record or import clean speech from one person. Avoid music, echo and effects. Use several short takes, with up to eight minutes marked for training. Keep separate takes for **validation** (checking progress) and **test** (listening to the finished result).
+4. Listen to your recordings and exclude noisy or distorted takes. Once training starts, the recordings for that project cannot be changed.
+5. Open **Tools/storage** and download the tools for your selected CPU or CUDA option plus the shared files. For offline setup, extract the optional training download and select the folder containing its `.part` files. Leave those files intact.
+6. Open **Train** and start training. Keep PirateWave audio stopped while it works. Training can take a long time; you can resume from a saved checkpoint after an interruption.
+7. Listen to the comparison samples using headphones. When the job finishes successfully, install the voice. Select it in a **Voice Changer** node and connect your microphone through that node to **Stream Mix**.
+
 
 ## Downloads, disk space and compatibility
 
@@ -41,7 +24,7 @@ The current GitHub release also provides **PirateWave-Voice-Training-CPU.zip**, 
 
 Public portable builds and optional bundles are distributed through
 [pinned voice downloads](https://github.com/MitchCodes/PirateWave/releases/tag/support-assets-v1).
-The source repository remains private. Download all parts for the chosen backend
+Download all parts for the chosen backend
 and shared bundle for offline import; do not extract individual part files.
 
 | Optional bundle | Download bytes | Installed bytes |
@@ -377,3 +360,11 @@ claim about all future AMD runtimes.
 No prototype model replaces the existing curated voice, and no incomplete model
 can be activated through the current pack installer. Broader hardware remains
 unqualified until tested end-to-end on representative physical devices.
+
+## Using another computer
+
+Choose CPU training on Intel or AMD computers. CUDA requires a compatible NVIDIA graphics card. CPU training does not require an NVIDIA GPU.
+
+On first playback, PirateWave checks that the voice loads and runs fast enough on your CPU. Successful checks are remembered for that processor and model. Close demanding apps and restart the voice if the check fails.
+
+To delete a voice, stop audio and previews, open Voices, choose Delete installed voice, and confirm. Training projects and recordings are kept. Select another voice in workspaces that used the deleted voice.

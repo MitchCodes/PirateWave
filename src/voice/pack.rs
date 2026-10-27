@@ -235,6 +235,7 @@ fn install_at(archive: &Path, base: &Path) -> Result<PathBuf> {
     }
     Ok(target)
 }
+#[cfg(test)]
 pub fn cpu_matches() -> bool {
     let expected = manifest();
     std::env::var("PROCESSOR_IDENTIFIER").unwrap_or_default() == expected.cpu_identifier
@@ -246,7 +247,7 @@ pub fn cpu_matches() -> bool {
             == Some(expected.logical_processors)
 }
 #[cfg(windows)]
-fn cpu_name() -> String {
+pub(super) fn cpu_name() -> String {
     use windows_sys::Win32::System::Registry::{RegGetValueW, HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ};
     let key: Vec<u16> = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0\0"
         .encode_utf16()
@@ -272,7 +273,7 @@ fn cpu_name() -> String {
     String::from_utf16_lossy(&buffer[..end]).trim().into()
 }
 #[cfg(not(windows))]
-fn cpu_name() -> String {
+pub(super) fn cpu_name() -> String {
     String::new()
 }
 #[cfg(test)]

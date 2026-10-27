@@ -55,6 +55,18 @@ impl PirateWaveApp {
             };
         }
     }
+    fn delete_voice_button(&mut self, ui: &mut egui::Ui, id: Option<&str>) {
+        if ui.add_enabled(!self.status.running && self.voice_ui.job.is_none(), egui::Button::new("Delete installed voice…"))
+            .on_hover_text("Stop audio and previews before deleting. Training recordings and projects are kept.").clicked()
+            && rfd::MessageDialog::new().set_title("Delete installed voice?")
+                .set_description("Remove this installed voice? Workspaces using it will report a missing voice. Training projects and recordings are kept.")
+                .set_buttons(rfd::MessageButtons::YesNo).show() == rfd::MessageDialogResult::Yes {
+            self.voice_ui.notice = match crate::voice::delete_installed(id) {
+                Ok(()) => "Installed voice deleted".into(),
+                Err(e) => format!("Could not delete voice: {e:#}"),
+            };
+        }
+    }
     pub(super) fn voices_page(&mut self, ui: &mut egui::Ui) {
         if self.voice_ui.training.open {
             self.voice_creation_page(ui);
@@ -72,6 +84,7 @@ impl PirateWaveApp {
                 ui.heading(format!("{} — Beta", voice.name));
                 ui.label("User-trained LLVC voice. CPU only; short native validation passed. Long-run and gaming-impact qualification remain pending.");
                 ui.small(format!("Revision: {}", voice.id));
+                self.delete_voice_button(ui, Some(&voice.id));
                 device_combo(
                     ui,
                     egui::Id::new(("custom-preview", &voice.id)).value(),
@@ -117,6 +130,9 @@ impl PirateWaveApp {
         let manifest = crate::voice::pack::manifest();
         show_card(ui, |ui| {
             ui.heading("LLVC voice — Beta");
+            if crate::voice::pack::locate().is_ok_and(|p| p.is_dir()) {
+                self.delete_voice_button(ui, None);
+            }
             ui.label(
                 "A locally processed voice for live speech. No reference recording is needed.",
             );

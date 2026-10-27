@@ -89,7 +89,7 @@ flushes the generation. One model stream feeds every connected destination.
 
 ## Remaining acceptance
 
-Live Beta use is enabled at the user's request after automated CPU qualification.
+CPU playback checks each model on the current computer automatically before first use. Intel and AMD processors use the same path. A successful short loading, valid-output and timing check is cached for the processor, worker and model. This does not establish speech quality or sustained gaming performance.
 Complete hardware latency, repeatable game/Discord comparison, manual listening
 and clean-Windows acceptance remain unverified; the release acceptance record
 stays false. `docs/VOICE_ACCEPTANCE.example.json` records those human checks.
@@ -97,8 +97,7 @@ Copy it to an ignored local folder before filling it in.
 
 Launch PirateWave.exe normally for live conversion. The existing **Voice Qualification.cmd**
 and `--voice-qualification` flag remain optional labels for manual test sessions;
-they no longer unlock additional functionality. Missing/corrupt packs, unqualified
-processors and unavailable GPU profiles still produce an explanation and silence.
+they no longer unlock additional functionality. Missing/corrupt packs, failed local CPU checks and unavailable GPU profiles still produce an explanation and silence.
 
 For the game test, run three baseline captures and three captures with the native
 pipeline qualification workload active. Keep PirateWave/Discord open in both conditions,

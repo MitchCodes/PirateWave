@@ -616,12 +616,24 @@ fn run_generation(shared: &Shared, generation: u64, config: &Config) -> anyhow::
             pack::load()?
         };
         if !custom {
-            anyhow::ensure!(pack::cpu_matches(),"CPU profile is unqualified on this processor; run qualification before enabling this pack");
             let manifest = pack::manifest();
             pack::require_backend(&manifest, config.voice.backend)?;
         }
         path
     };
+    if config.voice.backend != VoiceBackend::DirectMl {
+        message(
+            shared,
+            "Checking voice compatibility on this computer".into(),
+        );
+        qualify_cpu(
+            &path,
+            custom_model
+                .as_deref()
+                .unwrap_or(&path.join("llvc-stream.pt")),
+            Some((shared, generation)),
+        )?;
+    }
     let mut worker = if let Some(model) = custom_model {
         Worker::open_model(
             &path,
@@ -767,4 +779,114 @@ fn enqueue(shared: &Shared, block: Block) -> anyhow::Result<()> {
         anyhow::bail!("Converted backlog flushed");
     }
     Ok(())
+}
+
+/// Runs on the supervisor, never on the render thread. The disposable worker
+/// keeps qualification state out of live conversion.
+fn qualify_cpu(
+    runtime: &std::path::Path,
+    model: &std::path::Path,
+    cancellation: Option<(&Shared, u64)>,
+) -> anyhow::Result<()> {
+    use sha2::{Digest, Sha256};
+    let identity = format!(
+        "v2:{}:{}:{}:{}:{}",
+        crate::training::release::digest(model)?,
+        crate::training::release::digest(&runtime.join("PatchVoiceWorker.exe"))?,
+        std::env::var("PROCESSOR_IDENTIFIER").unwrap_or_default(),
+        std::env::var("NUMBER_OF_PROCESSORS").unwrap_or_default(),
+        pack::cpu_name()
+    );
+    let key = format!("{:x}", Sha256::digest(identity.as_bytes()));
+    let directory = crate::storage::default_path().with_file_name("voice-cpu-checks");
+    let record = directory.join(key);
+    if std::fs::read_to_string(&record).is_ok_and(|v| v == identity) {
+        return Ok(());
+    }
+    let mut worker = Worker::open_model(runtime, VoiceBackend::Cpu, model, None)?;
+    anyhow::ensure!(
+        matches!(
+            worker.replies.recv_timeout(Duration::from_secs(30))?,
+            Reply::Ready
+        ),
+        "Voice CPU check could not load the model"
+    );
+    let receive = |worker: &Worker, timeout| -> anyhow::Result<Reply> {
+        if let Some((shared, generation)) = cancellation {
+            worker.receive(shared, generation, timeout)
+        } else {
+            Ok(worker.replies.recv_timeout(timeout)?)
+        }
+    };
+    let mut measured = Duration::ZERO;
+    for block in 0..220 {
+        let bytes: Vec<u8> = (0..HOP + CONTEXT)
+            .flat_map(|i| (0.08 * (((block * HOP + i) as f32) * 0.061).sin()).to_le_bytes())
+            .collect();
+        let start = Instant::now();
+        worker.input.write_all(&bytes)?;
+        worker.input.flush()?;
+        let Reply::Audio(audio) = receive(&worker, Duration::from_secs(2))? else {
+            anyhow::bail!("Voice CPU check failed: worker stopped");
+        };
+        anyhow::ensure!(
+            audio.iter().all(|v| v.is_finite()),
+            "Voice CPU check produced invalid audio"
+        );
+        if block >= 20 {
+            anyhow::ensure!(
+                start.elapsed() < MAX_AGE,
+                "Voice CPU check stalled; close demanding apps and restart the voice"
+            );
+            measured += start.elapsed();
+        }
+    }
+    anyhow::ensure!(measured.as_secs_f64() < 200.0 * HOP as f64 / 16000.0 * 0.8,
+        "This computer did not finish the voice CPU check fast enough. Close demanding apps and restart the voice to retry.");
+    std::fs::create_dir_all(directory)?;
+    std::fs::write(record, identity)?;
+    Ok(())
+}
+
+pub fn delete_installed(id: Option<&str>) -> anyhow::Result<()> {
+    let (root, path) = if let Some(id) = id {
+        anyhow::ensure!(
+            local::list().iter().any(|v| v.id == id),
+            "Unknown installed voice"
+        );
+        (local::root(), local::root().join(id))
+    } else {
+        let path = pack::locate()?;
+        (
+            path.parent()
+                .ok_or_else(|| anyhow::anyhow!("Invalid voice location"))?
+                .to_path_buf(),
+            path,
+        )
+    };
+    let root = root.canonicalize()?;
+    let path = path.canonicalize()?;
+    anyhow::ensure!(
+        path.parent() == Some(root.as_path()),
+        "Voice must be inside the installed voice directory"
+    );
+    std::fs::remove_dir_all(path)?;
+    if id.is_none() {
+        std::fs::remove_file(root.join("active.json"))?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod cpu_check_tests {
+    #[test]
+    #[ignore = "Requires installed optional voice runtime"]
+    fn installed_cpu_model_qualifies() {
+        let runtime = super::pack::load_cpu_voice().unwrap();
+        super::qualify_cpu(&runtime, &runtime.join("llvc-stream.pt"), None).unwrap();
+    }
+    #[test]
+    fn unknown_voice_cannot_be_deleted() {
+        assert!(super::delete_installed(Some("../outside")).is_err());
+    }
 }

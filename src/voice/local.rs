@@ -52,12 +52,6 @@ pub fn resolve(id: &str) -> Result<PathBuf> {
         "Voice revision is incompatible with this worker"
     );
     ensure!(
-        voice.cpu_identifier == std::env::var("PROCESSOR_IDENTIFIER").unwrap_or_default()
-            && voice.logical_processors
-                == std::env::var("NUMBER_OF_PROCESSORS").unwrap_or_default(),
-        "This CPU differs from the custom voice validation machine; revalidate the training job"
-    );
-    ensure!(
         digest(&path.join("llvc-stream.pt"))? == voice.model_sha256
             && digest(&path.join("validation.json"))? == voice.report_sha256,
         "Custom voice checksum mismatch; reinstall the completed job"
