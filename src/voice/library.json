@@ -1,0 +1,42 @@
+[
+  {
+    "id": "local-library-iron-captain",
+    "name": "Iron Captain",
+    "description": "Experimental LibriSpeech voice (reader 1272). CPU playback; local compatibility check on first use.",
+    "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-iron-captain-v1.zip",
+    "bytes": 12788874,
+    "sha256": "72ef298fd22714aebf96da5a67eae04fef722817893262cb52691bd0592b6892"
+  },
+  {
+    "id": "local-library-sirens-call",
+    "name": "Siren\u2019s Call",
+    "description": "Experimental LibriSpeech voice (reader 84). CPU playback; local compatibility check on first use.",
+    "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-sirens-call-v1.zip",
+    "bytes": 12782899,
+    "sha256": "278cb653602a0eb33d252a28b62d4deef3cc421b6b819a98fb1a25fab6b0563f"
+  },
+  {
+    "id": "local-library-crows-nest",
+    "name": "Crow\u2019s Nest",
+    "description": "Experimental LibriSpeech voice (reader 174). CPU playback; local compatibility check on first use.",
+    "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-crows-nest-v1.zip",
+    "bytes": 12766228,
+    "sha256": "86743ecd3ea7d9fee6d84a058ff5708c2bfbc4360953fc78d2b890763cbe21b0"
+  },
+  {
+    "id": "local-library-storm-corsair",
+    "name": "Storm Corsair",
+    "description": "Experimental LibriSpeech voice (reader 251). CPU playback; local compatibility check on first use.",
+    "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-storm-corsair-v1.zip",
+    "bytes": 12786971,
+    "sha256": "534c0a3ded1a90eca48d12f53ee6f1f944f3ae860d82905689c31b27f4a24be5"
+  },
+  {
+    "id": "local-library-ghost-of-the-galleon",
+    "name": "Ghost of the Galleon",
+    "description": "Experimental LibriSpeech voice (reader 1462). CPU playback; local compatibility check on first use.",
+    "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-ghost-of-the-galleon-v1.zip",
+    "bytes": 12736039,
+    "sha256": "49aec44a927b93e9554af72cb4a8ba6fcf25ae08f67523fe0c02e6e0342b17ef"
+  }
+]

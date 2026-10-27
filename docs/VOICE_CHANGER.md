@@ -172,3 +172,15 @@ After completing the manual record and all automated gates, rebuild the pack wit
 The script checks model/CPU/worker identities, measured game results, latency,
 listening, clean Windows acceptance, causal alignment and all continuous tests. Without that record it always
 produces a live Beta with manual release acceptance still pending. The repository's example records no acceptance.
+
+## Downloadable pirate voice library
+
+Open **Voices** and choose **Download and install** beside a library voice. The five optional voices are Iron Captain, Siren’s Call, Crow’s Nest, Storm Corsair and Ghost of the Galleon. Their names are fictional branding; they are adapted from distinct LibriSpeech audiobook readers, not performed pirate accents.
+
+Downloads come directly from this repository’s GitHub Releases. PirateWave verifies the pinned ZIP checksum and installs model data into your user profile. If shared playback libraries are missing, it downloads and installs the matching base pack first. You do not need training tools to use these voices. Choose an installed voice on a Voice Changer node; its first CPU playback runs a local compatibility check.
+
+Downloaded ZIPs are removed after installation or failure. If Windows prevents deletion, PirateWave attempts to move the ZIP to `voice-downloads` beside the executable; a read-only application folder or locked file may leave it in Windows’ temporary folder. Installed models do not depend on these ZIPs. Stop audio and previews to delete an installed voice on the Voices page.
+
+These are experimental short adaptations. Numerical export and CPU timing checks are automated; they do not establish perceptual quality, accent fidelity, long-run stability or gaming performance. The model ZIPs include reader identity, source/recipe hashes, validation results and attribution. LibriSpeech is CC BY 4.0; LLVC and RVC notices are retained. Do not imply endorsement by the original readers.
+
+See the [voice-library validation record](VOICE_LIBRARY_VALIDATION.json) for per-model training, checksum and native timing results. Crow’s Nest failed its first timing run and passed an unchanged rerun; both results are recorded.

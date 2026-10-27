@@ -32,6 +32,8 @@ The initial workspace routes Microphone and Desktop audio to Stream Mix, and Sou
 
 Workspaces autosave. The workspace menu creates, renames, clones, switches, and deletes them. **Export workspace** and **Import workspace** exchange JSON files; soundboard files remain at their original paths.
 
+Optional pirate-themed LLVC voices can be downloaded on the **Voices** page. These experimental LibriSpeech adaptations use CPU playback and include attribution. See [voice setup](docs/VOICE_CHANGER.md#downloadable-pirate-voice-library).
+
 ## Virtual audio device setup
 
 A virtual audio device lets another application receive PirateWave's processed mix as a microphone input. PirateWave can play directly to headphones or speakers, but it does not install its own virtual microphone. Use a virtual cable when you want Discord, OBS, or another app to receive your effects, soundboard, and mixed sources. You do not need one for local listening alone.

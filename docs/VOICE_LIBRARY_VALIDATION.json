@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "release": "https://github.com/MitchCodes/PirateWave/releases/tag/voices-v1",
+  "training_gpu": "NVIDIA GeForce RTX 4070 SUPER",
+  "cpu_profile": "Intel Core i9-10900K, 20 logical processors",
+  "manual_listening_acceptance": false,
+  "long_run_qualification": false,
+  "asr_notes": "Three held-out clips per model; automated transcription checks are not listening acceptance. Storm Corsair clip 3 had extra words with Whisper small; Whisper medium produced matching original and converted text.",
+  "voices": [
+    {
+      "voice": {
+        "id": "local-library-iron-captain",
+        "name": "Iron Captain",
+        "description": "Experimental LibriSpeech voice (reader 1272). CPU playback; local compatibility check on first use.",
+        "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-iron-captain-v1.zip",
+        "bytes": 12788874,
+        "sha256": "72ef298fd22714aebf96da5a67eae04fef722817893262cb52691bd0592b6892"
+      },
+      "speaker": "1272",
+      "model_sha256": "ca8353e849bd8e42fc5e0c9f0637dee1dadc5e2c5b0473494eabc24f7dcd820e",
+      "dataset_sha256": "723bc1f6eb10d7f965403540a142fbae1f359444df011a15e35aa444af9815af",
+      "teacher_updates": 250,
+      "llvc_updates": 1000,
+      "target_audio_seconds": 321.649875,
+      "paired_audio_seconds": 549.46,
+      "training_seconds": 445.31292990001384,
+      "native": {
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 8.05194664871151,
+        "native_p99_ms": 12.075144995469605,
+        "timing_pass": true
+      },
+      "asr_comparison_clips": 3,
+      "prior_native_attempts": []
+    },
+    {
+      "voice": {
+        "id": "local-library-sirens-call",
+        "name": "Siren\u2019s Call",
+        "description": "Experimental LibriSpeech voice (reader 84). CPU playback; local compatibility check on first use.",
+        "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-sirens-call-v1.zip",
+        "bytes": 12782899,
+        "sha256": "278cb653602a0eb33d252a28b62d4deef3cc421b6b819a98fb1a25fab6b0563f"
+      },
+      "speaker": "84",
+      "model_sha256": "5ab4b46d68d32a663de8bcbcb058a50714301cb8352723337cdcb1dcede7700c",
+      "dataset_sha256": "6dd03871628eb45503d57d130541b945f04ba901d87b4e16cee759fd367bfbec",
+      "teacher_updates": 250,
+      "llvc_updates": 1000,
+      "target_audio_seconds": 349.62,
+      "paired_audio_seconds": 570.98,
+      "training_seconds": 392.0585459000431,
+      "native": {
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 7.74022610416649,
+        "native_p99_ms": 11.185564994812013,
+        "timing_pass": true
+      },
+      "asr_comparison_clips": 3,
+      "prior_native_attempts": []
+    },
+    {
+      "voice": {
+        "id": "local-library-crows-nest",
+        "name": "Crow\u2019s Nest",
+        "description": "Experimental LibriSpeech voice (reader 174). CPU playback; local compatibility check on first use.",
+        "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-crows-nest-v1.zip",
+        "bytes": 12766228,
+        "sha256": "86743ecd3ea7d9fee6d84a058ff5708c2bfbc4360953fc78d2b890763cbe21b0"
+      },
+      "speaker": "174",
+      "model_sha256": "655bc3ff01ec6ed5a1ecf6b5a00f78736648a9b3bf045d6a3444dec79d8a3189",
+      "dataset_sha256": "d04492dfb7a189b6ac691361122f55519e7085dee400e594e0e553bc4e5e05e0",
+      "teacher_updates": 250,
+      "llvc_updates": 1000,
+      "target_audio_seconds": 288.9950625,
+      "paired_audio_seconds": 592.5,
+      "training_seconds": 389.4258104999899,
+      "native": {
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 9.775527248674809,
+        "native_p99_ms": 19.448997991275984,
+        "timing_pass": true
+      },
+      "asr_comparison_clips": 3,
+      "prior_native_attempts": [
+        {
+          "attempt": 1,
+          "model_sha256": "655bc3ff01ec6ed5a1ecf6b5a00f78736648a9b3bf045d6a3444dec79d8a3189",
+          "waveform_and_state_pass": true,
+          "native_mean_ms": 11.61965599564451,
+          "native_p99_ms": 42.871282031992514,
+          "timing_pass": false,
+          "normal_protocol_parity": {
+            "finite": true,
+            "max": 0.0,
+            "rms": 0.0,
+            "normalized_max": 0.0,
+            "normalized_rms": 0.0,
+            "pass": true
+          }
+        }
+      ]
+    },
+    {
+      "voice": {
+        "id": "local-library-storm-corsair",
+        "name": "Storm Corsair",
+        "description": "Experimental LibriSpeech voice (reader 251). CPU playback; local compatibility check on first use.",
+        "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-storm-corsair-v1.zip",
+        "bytes": 12786971,
+        "sha256": "534c0a3ded1a90eca48d12f53ee6f1f944f3ae860d82905689c31b27f4a24be5"
+      },
+      "speaker": "251",
+      "model_sha256": "a8228d746ecd7c1f5ddcaeed4469cf0fc2a81ec46efa089a17882133ff36a012",
+      "dataset_sha256": "9b0021d5e7e7254ff486258a4fdce4db52c41b8d5b4061254bd5f3850817a0b6",
+      "teacher_updates": 250,
+      "llvc_updates": 1000,
+      "target_audio_seconds": 348.335,
+      "paired_audio_seconds": 590.62,
+      "training_seconds": 401.6290022999747,
+      "native": {
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 10.766726542683893,
+        "native_p99_ms": 21.179143013432622,
+        "timing_pass": true
+      },
+      "asr_comparison_clips": 3,
+      "prior_native_attempts": []
+    },
+    {
+      "voice": {
+        "id": "local-library-ghost-of-the-galleon",
+        "name": "Ghost of the Galleon",
+        "description": "Experimental LibriSpeech voice (reader 1462). CPU playback; local compatibility check on first use.",
+        "url": "https://github.com/MitchCodes/PirateWave/releases/download/voices-v1/PirateWave-Voice-ghost-of-the-galleon-v1.zip",
+        "bytes": 12736039,
+        "sha256": "49aec44a927b93e9554af72cb4a8ba6fcf25ae08f67523fe0c02e6e0342b17ef"
+      },
+      "speaker": "1462",
+      "model_sha256": "82614820cee918c5a5abf00b35ce4b528399a0c6727a58d3db2d54f7c97163cf",
+      "dataset_sha256": "d5dda4cc0c9c1dbdb3df3779a9c89ccd2716ae4130158f28dc24a31a68304aa9",
+      "teacher_updates": 250,
+      "llvc_updates": 1000,
+      "target_audio_seconds": 289.61,
+      "paired_audio_seconds": 605.64,
+      "training_seconds": 421.8628469000105,
+      "native": {
+        "seconds": 30.004,
+        "waveform_and_state_pass": true,
+        "normal_protocol_parity": {
+          "finite": true,
+          "max": 0.0,
+          "rms": 0.0,
+          "normalized_max": 0.0,
+          "normalized_rms": 0.0,
+          "pass": true
+        },
+        "native_mean_ms": 9.35033809627091,
+        "native_p99_ms": 13.256390988826752,
+        "timing_pass": true
+      },
+      "asr_comparison_clips": 3,
+      "prior_native_attempts": []
+    }
+  ],
+  "application_checks": {
+    "workspace_tests": "passed",
+    "clippy_deny_warnings": "passed",
+    "public_download_install_cleanup": "passed for all five published ZIPs, isolated install directory",
+    "malformed_archive_and_checksum_rejection": "passed",
+    "cached_runtime_tamper_rejection": "passed",
+    "catalog_browsing_starts_no_download": "passed",
+    "physical_audio_listening": "not qualified",
+    "amd_hardware": "not tested on this build machine; local CPU qualification remains required"
+  }
+}

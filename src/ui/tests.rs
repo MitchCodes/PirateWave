@@ -181,7 +181,12 @@ fn voice_pages_shortcuts_and_second_activation_are_safe() {
     app.view = View::Voices;
     let _ = render(&ctx, &mut app, vec![]);
     let output = render(&ctx, &mut app, vec![]);
-    assert!(labels(&output).iter().any(|(s, _)| s == "Play preview"));
+    // The downloadable library now precedes the bundled voice preview.
+    assert!(labels(&output).iter().any(|(s, _)| s == "Iron Captain"));
+    assert!(labels(&output)
+        .iter()
+        .any(|(s, _)| s == "Download and install"));
+    assert!(!app.voice_ui.has_job());
     app.remove_audio_node(41);
     assert!(!app.project.nodes.iter().any(|n| n.id == 41));
 }
@@ -221,7 +226,12 @@ fn voice_creation_preparation_opens_help_without_changing_the_mixer() {
         egui::PointerButton::Primary,
     );
     let output = render(&ctx, &mut app, vec![]);
-    assert!(labels(&output).iter().any(|(s, _)| s == "Play preview"));
+    // The downloadable library now precedes the bundled voice preview.
+    assert!(labels(&output).iter().any(|(s, _)| s == "Iron Captain"));
+    assert!(labels(&output)
+        .iter()
+        .any(|(s, _)| s == "Download and install"));
+    assert!(!app.voice_ui.has_job());
 }
 
 #[test]

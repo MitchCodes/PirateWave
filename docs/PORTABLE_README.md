@@ -15,6 +15,10 @@ Audio starts stopped by default. Settings → General offers Start with Windows,
 Start minimized and Start audio automatically. After moving this folder, toggle
 Start with Windows off/on to update its registered executable path.
 
+## Optional voice library
+
+On **Voices**, choose **Download and install** beside a pirate-themed voice. The app downloads and verifies its model ZIP from GitHub and sets up shared playback libraries if needed. No training tools are required. Downloaded ZIPs are deleted afterward; if deletion is blocked, the app attempts to move them to `voice-downloads` beside the executable. Select the installed voice on a Voice Changer node. These LibriSpeech adaptations are experimental; their names do not imply pirate accents.
+
 ## Voice Creation — experimental Beta
 
 Install the matching optional LLVC voice pack on Voices, then choose Create voice.
@@ -29,8 +33,7 @@ native numerical/timing checks; complete clean-Windows, long-run custom-model
 and gaming-impact qualification remain pending. Custom DirectML playback is
 unavailable until separately validated. The curated voice has its own hardware
 profiles, independently of training.
-The curated live profiles currently target the i9-10900K and RTX 4070 SUPER;
-custom CPU voices are checked locally against the training machine's processor.
+CPU playback checks compatibility locally on first use, including on Intel and AMD processors. The curated DirectML GPU profile remains separate.
 
 The Beta accepts up to eight minutes of training takes and thirty minutes overall.
 Read `docs/VOICE_TRAINING.md` for download sizes, storage, recording recommendations,

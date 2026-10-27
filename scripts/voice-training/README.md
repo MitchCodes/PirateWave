@@ -225,3 +225,11 @@ does not confer final acceptance on any model.
 unexpected paths/entries/links, checks each file and reconciles installed bytes.
 It performs no extraction or execution and does not authenticate the catalog's
 origin. Production catalog trust and application installation remain unimplemented.
+
+## Reproduce the optional voice library
+
+`build_library.py` trains one named voice with the pinned CUDA tools and shared LibriSpeech corpus, exports its streaming model, checks native waveform/state parity and timing, then writes a model-only ZIP and a catalog entry. Pass `--runtime`, `--shared`, `--worker`, `--worker-runtime`, `--out`, and `--voice` (see `--help`). Run with the training runtime’s Python. The worker runtime is the installed, verified CPU LLVC library folder. Existing matching checkpoints resume; `--skip-training` is for exporting an already completed run.
+
+Each voice uses a distinct reader, up to 60 target clips, 100 source clips, 8-second maximum clips, 250 teacher updates and 1,000 LLVC updates. The deterministic split holds target recordings and source speakers apart for validation/test. This small recipe is experimental, not the original paper’s full-scale training. See [upstream training requirements](https://github.com/KoeAI/LLVC#dataset). Retain the dataset manifest and full build reports when publishing.
+
+The build tool never uploads or installs voices. After reviewing candidate results, publish verified ZIPs under `voices-v1`, and compile their exact sizes and SHA-256 hashes into `src/voice/library.json`. Never overwrite a published ZIP at a pinned URL; release a new version instead. Include LibriSpeech CC BY 4.0 attribution, reader metadata, modification notice and model licenses. Loss values and finite-output tests do not substitute for listening review.

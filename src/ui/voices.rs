@@ -13,6 +13,12 @@ pub(super) struct VoiceUi {
     notice: String,
     stop: Arc<AtomicBool>,
 }
+#[cfg(test)]
+impl VoiceUi {
+    pub(super) fn has_job(&self) -> bool {
+        self.job.is_some()
+    }
+}
 impl Default for VoiceUi {
     fn default() -> Self {
         Self {
@@ -79,10 +85,50 @@ impl PirateWaveApp {
             ui.small("Local CPU / CUDA training — Beta");
         });
         ui.add_space(12.0);
-        for voice in crate::voice::local::list() {
+        ui.horizontal_wrapped(|ui| {
+            if self.voice_ui.job.is_some() {
+                ui.spinner();
+            }
+            ui.colored_label(theme::palette().accent, &self.voice_ui.notice);
+        });
+        ui.small("Library downloads include a preview. The first install also downloads shared playback libraries if needed. No training tools required.");
+        let installed_voices = crate::voice::local::list();
+        for entry in crate::voice::library::catalog() {
+            show_card(ui, |ui| {
+                ui.heading(&entry.name);
+                ui.label(&entry.description);
+                ui.small(format!(
+                    "Download: {:.1} MB",
+                    entry.bytes as f64 / 1_000_000.
+                ));
+                let installed = installed_voices.iter().any(|v| v.id == entry.id);
+                if ui
+                    .add_enabled(
+                        !installed && self.voice_ui.job.is_none(),
+                        egui::Button::new(if installed {
+                            "Installed"
+                        } else {
+                            "Download and install"
+                        }),
+                    )
+                    .clicked()
+                {
+                    let (tx, rx) = mpsc::channel();
+                    thread::spawn(move || {
+                        let _ = tx.send(
+                            crate::voice::library::download(&entry.id)
+                                .map_err(|e| format!("Installation failed: {e:#}")),
+                        );
+                    });
+                    self.voice_ui.job = Some((rx, false));
+                    self.voice_ui.notice = "Downloading and verifying voice…".into();
+                }
+            });
+        }
+        for voice in installed_voices {
             show_card(ui, |ui| {
                 ui.heading(format!("{} — Beta", voice.name));
-                ui.label("User-trained LLVC voice. CPU only; short native validation passed. Long-run and gaming-impact qualification remain pending.");
+                ui.label(if voice.id.starts_with("local-library-") { "Library LLVC voice. CPU playback; compatibility is checked on this computer when first used." } else { "User-trained LLVC voice. CPU playback; compatibility is checked on this computer when first used." });
                 ui.small(format!("Revision: {}", voice.id));
                 self.delete_voice_button(ui, Some(&voice.id));
                 device_combo(
@@ -136,14 +182,11 @@ impl PirateWaveApp {
             ui.label(
                 "A locally processed voice for live speech. No reference recording is needed.",
             );
-            ui.colored_label(theme::palette().accent, &self.voice_ui.notice);
+
             if !manifest.release_qualified {
                 ui.colored_label(theme::palette().peach, if manifest.automated_qualified {
                     "Live CPU conversion is available. Beta: listening, hardware latency, gaming impact and clean-Windows acceptance remain pending."
                 } else { "Live conversion is unavailable: automated CPU qualification has not passed." });
-            }
-            if self.voice_ui.job.is_some() {
-                ui.spinner();
             }
             if ui
                 .add_enabled(

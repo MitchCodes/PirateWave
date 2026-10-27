@@ -43,10 +43,9 @@ fn valid_id(id: &str) -> bool {
 pub fn resolve(id: &str) -> Result<PathBuf> {
     ensure!(valid_id(id), "Unknown local voice identifier");
     let path = root().join(id);
-    let voice: Voice = serde_json::from_slice(
-        &fs::read(path.join("voice.json"))
-            .context("Custom voice is missing; reinstall its training job")?,
-    )?;
+    let voice: Voice = serde_json::from_slice(&fs::read(path.join("voice.json")).context(
+        "Voice is missing; reinstall it from Voices or its completed training project",
+    )?)?;
     ensure!(
         voice.id == id && voice.schema == 1 && voice.worker_sha256 == NATIVE_WORKER_SHA256,
         "Voice revision is incompatible with this worker"

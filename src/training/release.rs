@@ -65,12 +65,15 @@ pub fn native_worker() -> Result<PathBuf> {
 }
 pub fn native_runtime() -> Result<PathBuf> {
     let worker = native_worker()?;
-    let source = crate::voice::pack::load_cpu_runtime()?;
     let target = crate::storage::default_path()
         .with_file_name("voice-runtimes")
         .join(format!("cpu-{}", &NATIVE_WORKER_SHA256[..12]));
     fs::create_dir_all(&target)?;
     let manifest = crate::voice::pack::manifest();
+    if cached_native_runtime_valid(&target, &manifest, NATIVE_WORKER_SHA256) {
+        return Ok(target);
+    }
+    let source = crate::voice::pack::load_cpu_runtime()?;
     for &name in crate::voice::pack::CPU_RUNTIME_FILES {
         let dest = target.join(name);
         if !dest.exists() {
@@ -107,6 +110,22 @@ pub fn native_runtime() -> Result<PathBuf> {
         );
     }
     Ok(target)
+}
+fn cached_native_runtime_valid(
+    path: &Path,
+    manifest: &crate::voice::pack::Manifest,
+    worker_hash: &str,
+) -> bool {
+    crate::voice::pack::CPU_RUNTIME_FILES
+        .iter()
+        .copied()
+        .chain(["msvcp140_1.dll"])
+        .all(|name| {
+            let spec = &manifest.files[name];
+            fs::metadata(path.join(name)).is_ok_and(|m| m.len() == spec.bytes)
+                && digest(&path.join(name)).is_ok_and(|hash| hash == spec.sha256)
+        })
+        && digest(&path.join("PatchVoiceWorker.exe")).is_ok_and(|hash| hash == worker_hash)
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Part {
@@ -1233,6 +1252,47 @@ fn walk_files(root: &Path) -> Result<Vec<PathBuf>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn cached_runtime_is_independent_and_rejects_tampering() {
+        let root = std::env::temp_dir().join(format!(
+            "piratewave-runtime-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir(&root).unwrap();
+        let mut manifest = crate::voice::pack::manifest();
+        for name in crate::voice::pack::CPU_RUNTIME_FILES
+            .iter()
+            .copied()
+            .chain(["msvcp140_1.dll"])
+        {
+            std::fs::write(root.join(name), b"runtime").unwrap();
+            manifest.files.insert(
+                name.into(),
+                crate::voice::pack::FileSpec {
+                    bytes: 7,
+                    sha256: super::digest(&root.join(name)).unwrap(),
+                },
+            );
+        }
+        std::fs::write(root.join("PatchVoiceWorker.exe"), b"worker").unwrap();
+        let worker = super::digest(&root.join("PatchVoiceWorker.exe")).unwrap();
+        assert!(super::cached_native_runtime_valid(
+            &root, &manifest, &worker
+        ));
+        std::fs::write(root.join("c10.dll"), b"changed").unwrap();
+        assert!(!super::cached_native_runtime_valid(
+            &root, &manifest, &worker
+        ));
+        std::fs::write(root.join("c10.dll"), b"runtime").unwrap();
+        std::fs::write(root.join("PatchVoiceWorker.exe"), b"unsafe").unwrap();
+        assert!(!super::cached_native_runtime_valid(
+            &root, &manifest, &worker
+        ));
+        std::fs::remove_dir_all(root).unwrap();
+    }
     use super::*;
     #[test]
     fn tool_repair_retains_previous_files_and_rejects_missing_staging() {

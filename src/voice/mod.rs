@@ -2,6 +2,7 @@
 //! by a supervisor thread and optional native worker, never the graph renderer.
 #[cfg(windows)]
 pub(crate) mod job;
+pub mod library;
 pub mod local;
 pub mod pack;
 mod resample;
