@@ -20,7 +20,9 @@ jobs:
   build:
     name: Check, test, and package Windows x64
     runs-on: windows-2022
-    timeout-minutes: 30
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.release.outputs.version }}
     defaults:
       run:
         shell: pwsh
@@ -91,6 +93,9 @@ jobs:
       - name: Test release publication safeguards
         run: python -m unittest discover -s scripts -p test_publish_main_release.py
 
+      - name: Package optional CPU voice-training tools and shared assets
+        run: python scripts/package_voice_training.py --folder dist
+
       - name: Prepare release checksums
         id: release
         run: |
@@ -109,19 +114,36 @@ jobs:
             dist/PirateWave-*-windows-x64.zip
             dist/PirateWave.lplug4
             dist/PirateWave.streamDeckPlugin
+            dist/PirateWave-Voice-Training-CPU.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14
-
-      - name: Publish public GitHub release on main push
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PUBLISH_RELEASES == 'true'
-        env:
-          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
-          RELEASES_REPOSITORY: ${{ vars.RELEASES_REPOSITORY }}
-          PIRATEWAVE_VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          python scripts/publish-main-release.py --folder dist --version $env:PIRATEWAVE_VERSION --commit $env:GITHUB_SHA --run $env:GITHUB_RUN_NUMBER
-          if ($LASTEXITCODE -ne 0) { throw 'Public GitHub release failed; check RELEASES_TOKEN and the release logs' }
+          compression-level: 0
 
       # Audio hardware, virtual-cable, global shortcut, and graphical smoke tests
       # are opt-in local diagnostics, not requirements on headless hosted runners.
+
+  release:
+    name: Publish downloads to this repository
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Check out the tested source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Download verified build assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name PirateWave-windows-x64 --dir dist
+      - name: Publish GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PIRATEWAVE_VERSION: ${{ needs.build.outputs.version }}
+        run: python3 scripts/publish-main-release.py --folder dist --version "$PIRATEWAVE_VERSION" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_NUMBER"

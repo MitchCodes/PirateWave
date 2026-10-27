@@ -86,7 +86,7 @@ cargo run --locked                       # development app
 
 The portable folder is `dist/PirateWave/`; the archive is `dist/PirateWave-v<VERSION>-windows-x64.zip`. The build also creates the 32-bit VST bridge. Controller builds require additional SDK/tooling described in their guides. Voice assets are optional separate downloads.
 
-CI checks builds and retains artifacts. Release publication requires explicit repository configuration; see [Releasing](docs/RELEASING.md).
+CI checks builds and retains artifacts. Successful main-branch pushes publish four separate downloads in this repository; see [Releasing](docs/RELEASING.md).
 
 ## Current limits
 

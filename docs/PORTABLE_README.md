@@ -60,7 +60,7 @@ Recording nodes support recent-history capture, independent passthrough/preview/
 
 ## Loupedeck
 
-If included, double-click `PirateWave.lplug4` to install the optional controller plugin. In PirateWave, enable Settings > General > Enable external controllers. See `docs/LOUPEDECK.md` for assigning actions, volume/effect knobs and recording slots. Names must uniquely match in the current project.
+Download the separate `PirateWave.lplug4` release asset, then double-click it to install the optional controller plugin. In PirateWave, enable Settings > General > Enable external controllers. See `docs/LOUPEDECK.md` for assigning actions, volume/effect knobs and recording slots. Names must uniquely match in the current project.
 
 ## Auto Ducking
 
@@ -74,7 +74,7 @@ Mixer keeps input/source strips and output buses in independent scrolling panes.
 
 Optional `PirateWaveExamples.piratewaveext` demonstrates a stereo-width effect and multiport node. Install trusted packages in Settings → General → PirateWave extensions, then restart. The build does not install anything automatically. See [developer guide](PLUGIN_DEVELOPMENT.md) for creating plugins.
 
-For Stream Deck buttons and Stream Deck+ dials, install the included `PirateWave.streamDeckPlugin` explicitly and follow [Stream Deck setup](STREAM_DECK.md). Loupedeck and Stream Deck can be used together.
+For Stream Deck buttons and Stream Deck+ dials, download and install the separate `PirateWave.streamDeckPlugin` release asset and follow [Stream Deck setup](STREAM_DECK.md). Loupedeck and Stream Deck can be used together.
 
 Open **Tools** in the sidebar for microphone checks, spectrum/latency/stereo tests, test tones, voice auditions, references and controller-icon export. See [Tools](TOOLS.md). Tests use separate streams and leave your project unchanged.
 

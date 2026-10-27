@@ -36,4 +36,4 @@ Device and native UI diagnostics are described in [Native diagnostics](docs/DEVE
 
 Do not commit imported sound files, personal studio configurations, secrets, generated binaries, or `target/` and `dist/`. Put local test projects/assets under ignored `local/`; synthetic test fixtures may be added deliberately with tests. Bug reports should include the app version, Windows version, reproduction steps, and relevant device names; recordings are not required.
 
-GitHub CI validates pull requests and pushes and retains portable build artifacts. Main-branch release publication is opt-in and requires explicit configuration; see [Releasing](docs/RELEASING.md). Builds do not install drivers or controller profiles.
+GitHub CI validates pull requests and pushes and retains portable build artifacts. Successful main-branch pushes publish separate app, controller, and optional CPU-training downloads in this repository; see [Releasing](docs/RELEASING.md). Builds do not install drivers or controller profiles.

@@ -5,7 +5,7 @@ PirateWave's Windows plugin controls the mixer directly, including actions with 
 ## Install and connect
 
 1. Run PirateWave and enable **Settings → General → Enable external controllers**.
-2. Double-click `PirateWave.lplug4` from the portable distribution to install it using Logi Plugin Service. This is a separate plugin installation; building PirateWave does not install it or alter profiles.
+2. Double-click `PirateWave.lplug4` from the GitHub release assets to install it using Logi Plugin Service. This is a separate plugin installation; building PirateWave does not install it or alter profiles.
 3. Find **PirateWave Audio Mixer** in your Loupedeck/Logi configuration software. Assign a PirateWave press action to a button or a rotation adjustment to a dial.
 4. Choose the node/source, effect/slot/destination, then action or parameter in its editor. For application actions choose PirateWave; for sound pads choose Soundboard.
 

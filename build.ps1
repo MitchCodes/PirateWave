@@ -107,8 +107,6 @@ foreach ($taskReadmeGuide in @('PLUGIN_DEVELOPMENT','STREAM_DECK','TOOLS','COOKB
 }
 [IO.File]::WriteAllText((Join-Path (Resolve-Path $taskPublicStage).Path 'README.md'), $taskPortableReadme, [Text.UTF8Encoding]::new($false))
 New-Item -ItemType Directory -Path (Join-Path $taskPublicStage 'docs') | Out-Null
-if ($WithLoupedeck) { Copy-Item -LiteralPath 'dist/PirateWave.lplug4' -Destination (Join-Path $taskPublicStage 'PirateWave.lplug4') }
-if ($WithStreamDeck) { Copy-Item -LiteralPath 'dist/PirateWave.streamDeckPlugin' -Destination (Join-Path $taskPublicStage 'PirateWave.streamDeckPlugin') }
 foreach ($taskPublicDoc in @('COOKBOOK.md','AUDIO_RECOVERY.md','DEVICE_DISCOVERY_MEMORY.md','WORKSPACES.md','EFFECT_TUNING.md','TOOLS.md','STREAM_DECK.md','PLUGIN_DEVELOPMENT.md','WORKSPACE_LAYOUT.md','AUTO_DUCKING.md','LOUPEDECK.md','RECORDING.md','RACK_PROCESSORS.md','APPLICATION_CAPTURE.md','AUTOMATIC_VOICE_CORRECTION.md','VST_PLUGINS.md','VOICE_CHANGER.md','VOICE_TRAINING_NOTICES.txt','VOICE_TRAINING_BETA_VALIDATION.json')) {
     Copy-Item -LiteralPath (Join-Path 'docs' $taskPublicDoc) -Destination (Join-Path $taskPublicStage 'docs')
 }

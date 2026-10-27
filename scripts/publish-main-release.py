@@ -1,8 +1,9 @@
-"""Publish verified main-build binaries to the public downloads repository.
+"""Publish verified main-build binaries to the current GitHub repository.
 
-Uses only RELEASES_TOKEN from Actions; never reads a developer's Git credential.
+Uses only GITHUB_TOKEN from Actions; never reads a developer's Git credential.
 Published releases are immutable here. A retry can replace incomplete draft assets.
 """
+from contextlib import ExitStack
 import argparse
 import hashlib
 import json
@@ -14,25 +15,31 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-REPOSITORY = os.environ.get("RELEASES_REPOSITORY", "")
+from package_voice_training import NAME as TRAINING_NAME, digest_file, validate_training_archive
 
 
 class GitHub:
     def __init__(self, token):
-        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", REPOSITORY):
-            raise ValueError("Set RELEASES_REPOSITORY explicitly before publishing")
+        self.repository = os.environ.get("GITHUB_REPOSITORY", "")
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", self.repository):
+            raise ValueError("GITHUB_REPOSITORY must identify the current repository")
         self.headers = {"Authorization": "Bearer " + token, "Accept": "application/vnd.github+json",
                         "User-Agent": "PirateWave-main-release", "X-GitHub-Api-Version": "2022-11-28"}
 
     def request(self, path, method="GET", body=None, raw=None):
-        url = path if path.startswith("https://uploads.github.com/") else "https://api.github.com/repos/" + REPOSITORY + path
+        url = path if path.startswith("https://uploads.github.com/") else "https://api.github.com/repos/" + self.repository + path
         headers = dict(self.headers)
         data = json.dumps(body).encode() if body is not None else raw
         if raw is not None:
             headers["Content-Type"] = "application/octet-stream"
-        request = urllib.request.Request(url, data=data, headers=headers, method=method)
-        with urllib.request.urlopen(request, timeout=120) as response:
-            return json.load(response) if response.status != 204 else None
+        with ExitStack() as stack:
+            if isinstance(raw, Path):
+                headers["Content-Length"] = str(raw.stat().st_size)
+                data = stack.enter_context(raw.open("rb"))
+            request = urllib.request.Request(url, data=data, headers=headers, method=method)
+            with urllib.request.urlopen(request, timeout=600) as response:
+                return json.load(response) if response.status != 204 else None
+
 
 
 def release_plan(folder, version, commit, run):
@@ -40,20 +47,27 @@ def release_plan(folder, version, commit, run):
         raise ValueError("Invalid application version")
     if not re.fullmatch(r"[0-9a-f]{40}", commit) or not re.fullmatch(r"[1-9][0-9]*", run):
         raise ValueError("Invalid source commit or workflow run number")
-    paths = [folder / f"PirateWave-v{version}-windows-x64.zip", folder / "PirateWave.lplug4", folder / "PirateWave.streamDeckPlugin"]
+    paths = [folder / f"PirateWave-v{version}-windows-x64.zip", folder / "PirateWave.lplug4", folder / "PirateWave.streamDeckPlugin", folder / TRAINING_NAME]
     for path in paths:
         if not path.is_file() or path.stat().st_size == 0:
             raise ValueError("Missing release asset: " + path.name)
+        if path.stat().st_size >= 2 ** 31:
+            raise ValueError("Release asset exceeds GitHub's 2 GiB limit: " + path.name)
     with zipfile.ZipFile(paths[0]) as archive:
-        if archive.testzip() is not None or any(archive.read(p.name) != p.read_bytes() for p in paths[1:]):
-            raise ValueError("Portable ZIP integrity or embedded controller plugin mismatch")
-    for package in paths[1:]:
+        if archive.testzip() is not None:
+            raise ValueError("Portable ZIP integrity failure")
+        if "PirateWave.exe" not in archive.namelist():
+            raise ValueError("Portable executable missing")
+        if any(n.lower().endswith((".lplug4", ".streamdeckplugin", ".pt", ".pth", ".onnx")) or re.search(r"\.part[0-9]+$", n.lower()) or "training-cpu" in n.lower() or "training-shared" in n.lower() or n == TRAINING_NAME for n in archive.namelist()):
+            raise ValueError("Optional download embedded in main app ZIP")
+    for package in paths[1:3]:
         with zipfile.ZipFile(package) as archive:
             if archive.testzip() is not None:
                 raise ValueError("Controller package integrity failure: " + package.name)
-    checksums = "".join(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n" for path in paths)
+    validate_training_archive(paths[3])
+    checksums = "".join(f"{digest_file(path)}  {path.name}\n" for path in paths)
     return dict(tag=f"v{version}-main.{run}.{commit[:12]}", name=f"PirateWave {version} — main {commit[:12]}",
-                marker=f"Source commit: `{commit}`\nWorkflow run: `{run}`", paths=paths, checksums=checksums)
+                commit=commit, marker=f"Source commit: `{commit}`\nWorkflow run: `{run}`", paths=paths, checksums=checksums)
 
 
 def publish(api, plan):
@@ -75,19 +89,19 @@ def publish(api, plan):
             return
     else:
         release = api.request("/releases", "POST", dict(
-            tag_name=plan["tag"], name=plan["name"], draft=True, prerelease=True,
+            tag_name=plan["tag"], target_commitish=plan["commit"], name=plan["name"], draft=True, prerelease=True,
             body="Automated, validated Windows x64 build from main.\n\n" + plan["marker"] +
-                 "\n\nDownload the portable ZIP and optional PirateWave.lplug4 or PirateWave.streamDeckPlugin controller plugins. "
+                 "\n\nSeparate downloads: Windows x64 app (no training data), PirateWave.lplug4, PirateWave.streamDeckPlugin, and PirateWave-Voice-Training-CPU.zip (CPU tools plus shared assets). "
                  "Install the plugin explicitly and enable external controllers in PirateWave Settings > General. "
-                 "SHA256SUMS.txt lists asset checksums.\n\nOptional voice and training bundles remain in the v0.2.0-beta.1 release."))
+                 "Extract the optional training ZIP and select its folder in Voice Creation Tools/storage for offline CPU setup. CUDA tools remain available through the app. SHA256SUMS.txt lists asset checksums."))
     assets = {a["name"]: a for a in api.request(f'/releases/{release["id"]}/assets?per_page=100')}
     upload = release["upload_url"].split("{", 1)[0]
     parsed = urllib.parse.urlsplit(upload)
     if parsed.scheme != "https" or parsed.hostname != "uploads.github.com":
         raise ValueError("Unexpected GitHub upload endpoint")
-    payloads = [(p.name, p.read_bytes()) for p in plan["paths"]] + [("SHA256SUMS.txt", plan["checksums"].encode())]
+    payloads = [(p.name, p) for p in plan["paths"]] + [("SHA256SUMS.txt", plan["checksums"].encode())]
     for name, data in payloads:
-        digest = "sha256:" + hashlib.sha256(data).hexdigest()
+        digest = "sha256:" + (digest_file(data) if isinstance(data, Path) else hashlib.sha256(data).hexdigest())
         old = assets.get(name)
         if old and old.get("state") == "uploaded" and old.get("digest") == digest:
             continue
@@ -111,13 +125,13 @@ def main():
     plan = release_plan(args.folder, args.version, args.commit, args.run)
     (args.folder / "SHA256SUMS.txt").write_text(plan["checksums"], encoding="utf-8")
     if args.dry_run:
-        print(json.dumps({"repository": REPOSITORY, "tag": plan["tag"], "assets": [p.name for p in plan["paths"]] + ["SHA256SUMS.txt"]}))
+        print(json.dumps({"repository": os.environ.get("GITHUB_REPOSITORY", ""), "tag": plan["tag"], "assets": [p.name for p in plan["paths"]] + ["SHA256SUMS.txt"]}))
         return
     if os.environ.get("GITHUB_EVENT_NAME") != "push" or os.environ.get("GITHUB_REF") != "refs/heads/main":
         raise RuntimeError("Release publishing is restricted to main-branch push events")
-    token = os.environ.get("RELEASES_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN")
     if not token:
-        raise RuntimeError("Configure RELEASES_REPOSITORY and RELEASES_TOKEN for the new public repository")
+        raise RuntimeError("GITHUB_TOKEN is required for release publication")
     publish(GitHub(token), plan)
 
 

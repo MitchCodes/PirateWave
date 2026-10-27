@@ -9,7 +9,7 @@ shortcuts are optional. Loupedeck and Stream Deck can connect at the same time.
 2. Run the matching PirateWave build and enable **Settings > General > External
    controllers > Enable external controllers**. Only one PirateWave instance per
    Windows user can own controller support.
-3. Open **PirateWave.streamDeckPlugin** from the portable distribution or GitHub release
+3. Open **PirateWave.streamDeckPlugin** from the separate GitHub release asset
    and confirm installation in Stream Deck. Installation is never automatic.
 4. Drag an action from **PirateWave Audio Mixer** to a key or, for adjustable controls,
    a Stream Deck+ dial. Select the node, effect/slot/destination, and action or
@@ -97,8 +97,8 @@ The official CLI packages the SDKVersion 2 installer for direct distribution,
 without Marketplace processing. Locked dependencies and archive allowlists keep
 development files and credentials out of packages.
 
-When publication is explicitly enabled, main-branch release automation publishes the portable ZIP, PirateWave.lplug4 and
-PirateWave.streamDeckPlugin plus checksums. See [release configuration](RELEASING.md). Build scripts never install or link a
+After a successful main-branch push, release automation publishes the portable ZIP, PirateWave.lplug4 and
+PirateWave.streamDeckPlugin and an optional CPU-training ZIP plus checksums. See [release configuration](RELEASING.md). Build scripts never install or link a
 plugin. Marketplace publication is a separate operation.
 
 Native Stream Deck host installation and physical device tests are distinct from
