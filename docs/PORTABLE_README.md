@@ -87,4 +87,4 @@ Open **Cookbook** in the sidebar to import microphone-cleaning, music-ducking, s
 
 ## Scenes, multitrack sessions and automation
 
-**Scenes** recall mixer and built-in effect settings. **Sessions** record aligned raw/processed tracks or capture armed history. **Automation** builds When / If / Then rules and always starts disarmed. Import **Captain’s Log** from Cookbook for an example. See [the workflow guide](WORKFLOWS.md) for setup, controller actions, export and interrupted-take recovery. Take audio is stored separately from workspace JSON.
+**Scenes** recall mixer and built-in effect settings. **Recording** record aligned raw/processed tracks or capture armed history. **Automation** builds When / If / Then rules and always starts disarmed. Import **Captain’s Log** from Cookbook for an example. See [the workflow guide](WORKFLOWS.md) for setup, controller actions, export and interrupted-take recovery. Take audio is stored separately from workspace JSON.

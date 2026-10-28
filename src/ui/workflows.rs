@@ -1319,7 +1319,7 @@ impl PirateWaveApp {
         }
     }
     pub(super) fn sessions_page(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Sessions");
+        ui.heading("Recording");
         ui.horizontal_wrapped(|ui| {
             ui.selectable_value(&mut self.workflow_ui.take_view, false, "Tracks & recording");
             ui.selectable_value(&mut self.workflow_ui.take_view, true, "Take browser");
@@ -1336,7 +1336,7 @@ impl PirateWaveApp {
             ui.text_edit_singleline(&mut self.workflow_ui.marker_name);
         });
         ui.label("Raw tracks bypass mixer effects, volume, mute and solo. Processed tracks record the selected output as heard. All tracks share one timeline.");
-        if ui.button("New session").clicked() {
+        if ui.button("New recording setup").clicked() {
             let name = unique(
                 "Session",
                 self.project
@@ -1391,7 +1391,7 @@ impl PirateWaveApp {
             ui.push_id(("session-card",session.id),|ui| card().show(ui,|ui| {
                 changed|=ui.add_enabled(!locked,egui::TextEdit::singleline(&mut session.name).hint_text("Session name")).changed();
                 ui.horizontal_wrapped(|ui|{for (label,a) in [("Start live",SessionAction::Start),("Stop",SessionAction::Stop),("Capture history",SessionAction::Capture),("Marker",SessionAction::Marker)]{if ui.button(label).clicked(){action=Some((session.id,a));}}});
-                ui.collapsing("Session shortcuts",|ui|{for action in [SessionAction::Start,SessionAction::Stop,SessionAction::Capture,SessionAction::Marker]{ui.push_id((session.id,action),|ui|{ui.label(format!("{action:?}"));match binding_control(ui,session.keybinds.get(&action).map_or("",String::as_str)){BindingChoice::Record=>record_binding=Some((ShortcutAction::Session{id:session.id,action},format!("{} · {action:?}",session.name))),BindingChoice::Clear=>{session.keybinds.remove(&action);changed=true;binding_cleared=true;},BindingChoice::None=>{}}});}});
+                ui.collapsing("Recording shortcuts",|ui|{for action in [SessionAction::Start,SessionAction::Stop,SessionAction::Capture,SessionAction::Marker]{ui.push_id((session.id,action),|ui|{ui.label(format!("{action:?}"));match binding_control(ui,session.keybinds.get(&action).map_or("",String::as_str)){BindingChoice::Record=>record_binding=Some((ShortcutAction::Session{id:session.id,action},format!("{} · {action:?}",session.name))),BindingChoice::Clear=>{session.keybinds.remove(&action);changed=true;binding_cleared=true;},BindingChoice::None=>{}}});}});
                 let mut armed=self.workflow_ui.history.contains(&session.id);if ui.checkbox(&mut armed,"Arm retrospective history").changed(){arm=Some((session.id,armed));}
                 ui.add_enabled_ui(!locked,|ui|{
                     changed|=ui.add(egui::Slider::new(&mut session.history_seconds,0.1..=600.).text("History (seconds)")).changed();
@@ -1799,7 +1799,7 @@ if let Some(id)=node {match operation{Operation::Session=>changed|=pick_named(ui
             for (index,step) in rule.actions.iter_mut().enumerate(){ui.push_id((rule.id,"step",index),|ui|{
                 ui.horizontal_wrapped(|ui|{ui.label(format!("Step {}",index+1));if index>0&&ui.small_button("Move up").clicked(){move_step=Some(index);}
 if ui.small_button("Remove step").clicked(){delete_step=Some(index);}});
-                let choices=[("Catalog action",Step::Action{action:ShortcutAction::App(AppAction::StopSounds)}),("Set control",Step::Set{node:nodes.first().map_or(0,|n|n.id),control:piratewave_core::workflows::Control::Gain{value:0.}}),("Recall scene",Step::Scene{id:scenes.first().map_or(0,|s|s.id)}),("Session control",Step::Session{id:sessions.first().map_or(0,|s|s.id),action:SessionAction::Start}),("Wait",Step::Wait{milliseconds:1000}),("Notification",Step::Notify{text:"Workflow completed".into()})];
+                let choices=[("Catalog action",Step::Action{action:ShortcutAction::App(AppAction::StopSounds)}),("Set control",Step::Set{node:nodes.first().map_or(0,|n|n.id),control:piratewave_core::workflows::Control::Gain{value:0.}}),("Recall scene",Step::Scene{id:scenes.first().map_or(0,|s|s.id)}),("Recording control",Step::Session{id:sessions.first().map_or(0,|s|s.id),action:SessionAction::Start}),("Wait",Step::Wait{milliseconds:1000}),("Notification",Step::Notify{text:"Workflow completed".into()})];
                 let label=choices.iter().find(|(_,s)|std::mem::discriminant(s)==std::mem::discriminant(step)).map_or("Step",|(s,_)|*s);
                 egui::ComboBox::from_id_salt("type").selected_text(label).show_ui(ui,|ui|{for (label,s) in choices {if ui.selectable_label(false,label).clicked(){*step=s;changed=true;}}});
                 match step {
@@ -2315,7 +2315,7 @@ impl PirateWaveApp {
         }
         let mut open = false;
         let mut later = false;
-        egui::Modal::new(egui::Id::new("interrupted-session-takes")).show(ctx,|ui|{ui.set_width(440.);ui.heading("An interrupted recording was found");ui.label("Your available audio was kept. Open Sessions to recover synchronized tracks, or delete the take after reviewing it.");ui.horizontal_wrapped(|ui|{open=ui.button("Open recording recovery").clicked();later=ui.button("Later").clicked();});});
+        egui::Modal::new(egui::Id::new("interrupted-session-takes")).show(ctx,|ui|{ui.set_width(440.);ui.heading("An interrupted recording was found");ui.label("Your available audio was kept. Open Recording to recover synchronized tracks, or delete the take after reviewing it.");ui.horizontal_wrapped(|ui|{open=ui.button("Open recording recovery").clicked();later=ui.button("Later").clicked();});});
         if open {
             self.view = View::Sessions;
         }

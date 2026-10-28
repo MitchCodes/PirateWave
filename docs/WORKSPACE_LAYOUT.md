@@ -12,6 +12,14 @@ Drag the divider above the cards to resize this section. It starts at 240 logica
 
 Compact cards retain their quick controls, Edit/controls links and keybind buttons. Right-click a card or its type heading to remove its node. Detailed effect chains and longer help are available in the corresponding editor.
 
+Use **Refresh Devices** on Mixer to rescan input and output choices after plugging in or removing hardware. Discovery runs in the background. Existing device assignments, including unavailable devices, are preserved; refreshing does not restart audio.
+
+## Undo and redo
+
+Use **Ctrl+Z** to undo a workspace edit, and **Ctrl+Y** or **Ctrl+Shift+Z** to redo. Mixer and Routing also have Undo/Redo buttons. Editing effect parameters, nodes, routes, positions, scenes, recording configurations and automation rules uses the same workspace history. A continuous drag or typing in one field forms one edit. Text fields keep their normal text-editing shortcuts while focused.
+
+History is temporary, bounded to 100 edits / 16 MiB, and cleared when switching workspaces. New edits clear redo. Undo preserves newer unrelated controller/background changes; if the same field changed externally, that field is skipped with a status message. Undoing routing positions or Mixer card order does not send audio updates. Restoring device choices or node/plugin structure uses the normal live reconfiguration path. Audio capture/playback, recorded files, take deletion/export, workspace management, and global settings are outside workspace edit history.
+
 ## Routing
 
 Click an output port, then the appropriate input port to connect. The canvas includes all saved node positions and their full dimensions, including negative positions; narrowing or shortening the window changes the viewport rather than moving nodes. Horizontal and vertical scrollbars provide access to the rest of the canvas.
@@ -19,6 +27,12 @@ Click an output port, then the appropriate input port to connect. The canvas inc
 Drag a node toward an edge to grow the canvas and auto-scroll in that direction. Wires and port hit targets follow the same canvas coordinates. Only dragging changes saved positions; scrolling, finding a node, resetting the view and resizing do not change audio routes or node locations.
 
 Use **Find node** to search by name or type and jump to that node. **Reset view** returns to the canvas origin without rearranging anything. Select a wire and use **Disconnect selected** to remove that particular port connection; right-click nodes for controls or removal. Existing cycle/feedback safeguards still apply.
+
+### Copy and paste nodes
+
+Click a node to select it; **Ctrl+click** adds or removes nodes from the selection. Use **Ctrl+C** and **Ctrl+V**, or the **Copy nodes** / **Paste nodes** buttons. Keyboard paste reads PirateWave node data from the system clipboard; the toolbar pastes the last nodes copied in this running instance. Text-field copy/paste keeps its usual behavior.
+
+Copies retain settings, effect chains, plugin configuration and references to existing immutable recording audio. Each pasted node, effect and recording slot gets a new ID; conflicting names gain an incrementing number. Shortcuts are cleared to prevent duplicate global registrations. Only routes between copied nodes are included. External connections are left for you to connect, and existing cycle/feedback validation applies before the paste is accepted. Repeated pastes are offset and brought into view. Paste is undoable. The clipboard is limited to 8 MiB.
 
 The grid is painted only within the visible viewport so a large amount of empty canvas does not produce a correspondingly large grid drawing workload.
 

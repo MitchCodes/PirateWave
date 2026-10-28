@@ -204,6 +204,32 @@ impl PirateWaveApp {
             }
         }
     }
+    pub(super) fn invalidate_recording_edits(&mut self, node: u64) {
+        self.stop_recording_playback(node, None);
+        let keys: Vec<_> = self
+            .recording_ui
+            .versions
+            .keys()
+            .filter(|(id, _)| *id == node)
+            .copied()
+            .collect();
+        for key in keys {
+            if let Some(old) = self
+                .recording_ui
+                .versions
+                .insert(key, piratewave_core::workflows::new_id())
+            {
+                if let Some(context) = self.workflow_ui.slot_contexts.remove(&old) {
+                    self.workflow_completion(
+                        context,
+                        None,
+                        Err("Cancelled: recording configuration restored by undo/redo".into()),
+                    );
+                }
+            }
+            self.recording_ui.loading.remove(&key);
+        }
+    }
     pub(super) fn stop_recording_playback(&mut self, node: u64, slot: Option<u64>) {
         let cancelled: Vec<_> = self
             .workflow_ui

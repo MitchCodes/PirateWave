@@ -13,6 +13,7 @@ pub(super) fn app() -> PirateWaveApp {
     let (_, load_rx) = mpsc::channel();
     let settings = AppSettings::default();
     PirateWaveApp {
+        editing: Default::default(),
         effect_tuning: Default::default(),
         workflow_ui: Default::default(),
         tools_ui: Default::default(),
@@ -374,6 +375,8 @@ pub(super) fn render(
     };
     ctx.run(input, |ctx| {
         app.record_shortcut_input(ctx);
+        let before = app.begin_edit_frame(ctx);
+        app.edit_shortcuts(ctx);
         egui::CentralPanel::default().show(ctx, |ui| match app.view {
             View::Cookbook => app.cookbook_page(ui),
             View::Scenes => app.scenes_page(ui),
@@ -397,6 +400,7 @@ pub(super) fn render(
         });
         app.dialogs(ctx);
         app.voice_help(ctx);
+        app.finish_edit_frame(ctx, before);
     })
 }
 pub(super) fn labels(output: &egui::FullOutput) -> Vec<(String, Pos2)> {

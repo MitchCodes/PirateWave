@@ -57,7 +57,7 @@ impl Recipe {
     }
     fn setup(self) -> &'static str {
         match self {
-        Self::Workflow=>"Choose your devices and applications, then start audio. Recall Full Deck or Interview on Scenes. On Sessions, arm history or start Captain’s Log to record aligned raw mic, cleaned mic, bus and separate ducking/recorder outputs. Automation starts disarmed; the manual Ten-second take rule demonstrates Start, Wait and Stop.",
+        Self::Workflow=>"Choose your devices and applications, then start audio. Recall Full Deck or Interview on Scenes. On Recording, arm history or start Captain’s Log to record aligned raw mic, cleaned mic, bus and separate ducking/recorder outputs. Automation starts disarmed; the manual Ten-second take rule demonstrates Start, Wait and Stop.",
         Self::Quiet => "High-pass filter > Noise Suppression (RNNoise) > Expander > De-esser > Parametric EQ > Compressor > Limiter. Select your microphone and Stream Mix output after import. Suppression starts at 100%; lower Strength if your voice sounds processed. It adds about 20 ms of latency and is intended for speech. Tune the remaining thresholds to your microphone and room.",
         Self::Clean => "Effects run in order: High-pass filter > Expander > De-esser > Parametric EQ > Compressor > Limiter. Start with the supplied gentle settings, then tune the thresholds to your microphone and room.",
         Self::Music => "Select Spotify in the Spotify node’s application picker. Adjust the ducking threshold until the activity indicator follows your speech. Music is reduced by 18 dB while you speak.",
@@ -433,7 +433,7 @@ pub(super) fn workflow_recipe(registry: &EffectRegistry, name: &str) -> Project 
                 action: SessionAction::Stop,
             },
             Step::Notify {
-                text: "Your ten-second take is ready on Sessions".into(),
+                text: "Your ten-second take is ready on Recording".into(),
             },
         ],
         cooldown_ms: 1000,

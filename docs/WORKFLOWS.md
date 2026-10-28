@@ -20,9 +20,9 @@ Volume moves smoothly in dB; pan moves linearly. Switch destinations crossfade. 
 
 A new recall replaces the previous transition, starting at the current values. Moving a control takes ownership of that control; the other scene controls keep moving. The selector shows progress and **Modified** after included settings are edited. Relative controller changes start from the current interpolated value. If a target was deleted or replaced, recall fails before applying any included setting. Exclude the missing control or update the scene to fix it.
 
-## Record synchronized tracks with Sessions
+## Record synchronized tracks with Recording
 
-Use **Sessions → Tracks & recording → New session**. Add up to 32 tracks, give them unique names and tick the tracks you want to record.
+Use **Recording → Tracks & recording → New recording setup**. Add up to 32 tracks, give them unique names and tick the tracks you want to record.
 
 For each track, select a node and capture point:
 

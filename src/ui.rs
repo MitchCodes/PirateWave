@@ -1,4 +1,5 @@
 mod cookbook;
+mod editing;
 mod theme;
 mod workflows;
 mod workspaces;
@@ -70,7 +71,7 @@ impl View {
     fn name(self) -> &'static str {
         match self {
             Self::Scenes => "Scenes",
-            Self::Sessions => "Sessions",
+            Self::Sessions => "Recording",
             Self::Automation => "Automation",
             Self::Cookbook => "Cookbook",
             Self::Tools => "Tools",
@@ -93,7 +94,7 @@ impl View {
     fn title(self) -> &'static str {
         match self {
             Self::Scenes => "Recall your mix.",
-            Self::Sessions => "Record your session.",
+            Self::Sessions => "Record your tracks.",
             Self::Automation => "Guide your workflow.",
             Self::Cookbook => "Recipes for your sound.",
             Self::Tools => "Your audio workbench.",
@@ -143,6 +144,7 @@ struct Loaded {
     result: Result<Clip, String>,
 }
 pub struct PirateWaveApp {
+    editing: editing::Editing,
     workflow_ui: workflows::WorkflowUi,
     effect_tuning: effect_tuning::TuningUi,
     tools_ui: tools::ToolsUi,
@@ -346,6 +348,7 @@ impl PirateWaveApp {
             .expect("Asset loader thread");
         let mut app = Self {
             effect_tuning: Default::default(),
+            editing: Default::default(),
             workflow_ui: Default::default(),
             tools_ui: Default::default(),
             layout: Default::default(),
@@ -1438,6 +1441,37 @@ impl PirateWaveApp {
                         }
                     }
                 });
+            if ui
+                .add_enabled(self.editing.can_undo(), egui::Button::new("Undo"))
+                .on_hover_text("Ctrl+Z")
+                .clicked()
+            {
+                self.undo_edit(false);
+            }
+            if ui
+                .add_enabled(self.editing.can_redo(), egui::Button::new("Redo"))
+                .on_hover_text("Ctrl+Y / Ctrl+Shift+Z")
+                .clicked()
+            {
+                self.undo_edit(true);
+            }
+            if ui
+                .button("Copy nodes")
+                .on_hover_text("Ctrl+C; Ctrl+click selects multiple nodes")
+                .clicked()
+            {
+                self.copy_routing_nodes(ui.ctx());
+            }
+            if ui
+                .add_enabled(
+                    self.editing.clipboard.is_some(),
+                    egui::Button::new("Paste nodes"),
+                )
+                .on_hover_text("Ctrl+V")
+                .clicked()
+            {
+                self.paste_routing_nodes(None);
+            }
             if ui.button("Reset view").clicked() {
                 self.layout.routing_offset = Vec2::ZERO;
                 self.layout.routing_focus = None;
@@ -1625,6 +1659,14 @@ impl PirateWaveApp {
                     }
                     if response.clicked() {
                         selected = Some(node.id);
+                        if ui.input(|i| i.modifiers.command) {
+                            if !self.editing.routing_selection.insert(node.id) {
+                                self.editing.routing_selection.remove(&node.id);
+                            }
+                        } else {
+                            self.editing.routing_selection.clear();
+                            self.editing.routing_selection.insert(node.id);
+                        }
                     }
                     response.context_menu(|ui| {
                         if ui
@@ -1665,7 +1707,9 @@ impl PirateWaveApp {
                         theme::surface(Color32::from_rgb(32, 29, 40)),
                         Stroke::new(
                             1.0_f32,
-                            if self.selected == node.id {
+                            if self.editing.routing_selection.contains(&node.id)
+                                || self.selected == node.id
+                            {
                                 color
                             } else {
                                 theme::surface(Color32::from_rgb(72, 59, 88))
@@ -2331,7 +2375,7 @@ impl PirateWaveApp {
             let text = if let Some(error) = &self.smoke_error {
                 format!("FAIL: {error}")
             } else if std::env::args().any(|a| a == "--workflows-ui-smoke") {
-                "PASS: six native workflow views rendered: Scenes, Sessions tracks, take review, Automation, narrow Mixer scene selector and narrow Automation".into()
+                "PASS: six native workflow views rendered: Scenes, Recording tracks, take review, Automation, narrow Mixer scene selector and narrow Automation".into()
             } else {
                 "PASS: 102 native views rendered, including scenes, session tracks/takes and guided automation, including Cookbook at narrow and wide sizes, including extension install/settings, node/processor controls, keybinds, named ports, unavailable fallback and creation, including responsive mixer panes, large/negative routing scenes and grouped node editors, including Auto Ducking level/speech controls, routing and keybinds, including recording effects racks and keybinds, recording nodes, waveform/crop controls, recording and slot keybinds, three recording ports, switches, voice effects, VST, capture and settings.".into()
             };
@@ -2989,6 +3033,9 @@ impl eframe::App for PirateWaveApp {
         self.effect_tuning.begin_frame(&self.project);
         self.record_shortcut_input(ctx);
         self.poll();
+        self.poll_device_refresh();
+        let edit_before = self.begin_edit_frame(ctx);
+        self.edit_shortcuts(ctx);
         self.sidebar(ctx);
         self.tools_ui.poll(match self.view {
             View::Tool(tool) => Some(tool),
@@ -3079,6 +3126,7 @@ impl eframe::App for PirateWaveApp {
         self.voice_help(ctx);
         self.dialogs(ctx);
         self.workflow_recovery_dialog(ctx);
+        self.finish_edit_frame(ctx, edit_before);
         self.smoke_tick(ctx);
         ctx.request_repaint_after(Duration::from_millis(33));
     }

@@ -160,6 +160,7 @@ impl PirateWaveApp {
                 self.reset_workflow_runtime();
                 self.recording_ui = Default::default();
                 self.effect_tuning = Default::default();
+                self.editing.clear_workspace();
                 self.project = project;
                 self.path = path;
                 self.dirty = false;
@@ -266,7 +267,7 @@ impl PirateWaveApp {
         {
             // Export does not change autosave's managed destination.
             match storage::save(&path, &self.project) {
-                Ok(()) => self.notify(if self.project.workflows.sessions.iter().any(|s|!s.take_ids.is_empty()){"Workspace exported. Recording media is separate; export takes from Sessions to transfer their audio."}else{"Workspace exported"}),
+                Ok(()) => self.notify(if self.project.workflows.sessions.iter().any(|s|!s.take_ids.is_empty()){"Workspace exported. Recording media is separate; export takes from Recording to transfer their audio."}else{"Workspace exported"}),
                 Err(e) => self.notify_error(format!("Cannot export workspace: {e:#}")),
             }
         }

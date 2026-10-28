@@ -245,6 +245,7 @@ impl PirateWaveApp {
             self.project.nodes.iter().any(|n| {
                 n.id == id && !matches!(n.kind, NodeKind::VoiceChanger | NodeKind::Recording)
             });
+        self.editing.routing_selection.remove(&id);
         self.project.remove_node(id);
         for asset in assets {
             self.cleanup_recording_asset(asset);
@@ -806,16 +807,14 @@ impl PirateWaveApp {
                 });
             }
             ui.separator();
-            if ui.button("Refresh device list").clicked() {
-                match audio_io::devices() {
-                    Ok(devices) => {
-                        self.devices = devices;
-                        self.endpoint_states =
-                            crate::windows_audio::cable_endpoints().unwrap_or_default();
-                        self.notify("Audio devices refreshed");
-                    }
-                    Err(error) => self.notify_error(format!("Device discovery failed: {error}")),
-                }
+            if ui
+                .add_enabled(
+                    !self.editing.refreshing(),
+                    egui::Button::new("Refresh device list"),
+                )
+                .clicked()
+            {
+                self.refresh_audio_devices();
             }
             ui.label("For Discord or OBS, select a virtual cable's playback endpoint as an output bus and its recording endpoint in the receiving app.");
             ui.colored_label(

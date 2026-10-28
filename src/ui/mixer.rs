@@ -209,6 +209,36 @@ fn mixer_effects(ui: &mut egui::Ui, node: &mut Node, registry: &EffectRegistry) 
 }
 impl PirateWaveApp {
     pub(super) fn mixer(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal_wrapped(|ui| {
+            if ui
+                .add_enabled(
+                    !self.editing.refreshing(),
+                    egui::Button::new(if self.editing.refreshing() {
+                        "Refreshing devices…"
+                    } else {
+                        "Refresh Devices"
+                    }),
+                )
+                .clicked()
+            {
+                self.refresh_audio_devices();
+            }
+            if ui
+                .add_enabled(self.editing.can_undo(), egui::Button::new("Undo"))
+                .on_hover_text("Ctrl+Z")
+                .clicked()
+            {
+                self.undo_edit(false);
+            }
+            if ui
+                .add_enabled(self.editing.can_redo(), egui::Button::new("Redo"))
+                .on_hover_text("Ctrl+Y / Ctrl+Shift+Z")
+                .clicked()
+            {
+                self.undo_edit(true);
+            }
+        });
+
         self.scene_selector(ui);
         let switch_outputs = switch_routes(&self.project);
         let mut changed = false;

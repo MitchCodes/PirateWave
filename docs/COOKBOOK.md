@@ -24,4 +24,4 @@ Recipes create ordinary project data; browsing the Cookbook performs no audio pr
 
 ## Captain’s Log
 
-Select your microphone, output devices and application targets, then start audio. **Full Deck** and **Interview** on Scenes keep or mute the music. The Sessions configuration includes raw and cleaned microphone, Stream Mix, separate ducking outputs and recorder preview/send tracks. History starts disarmed. On Automation, arm the master and manually run **Ten-second take** to try Start → Wait → Stop → notification. Existing recorder slots remain separate. See [the workflow guide](WORKFLOWS.md) before using raw capture or automation.
+Select your microphone, output devices and application targets, then start audio. **Full Deck** and **Interview** on Scenes keep or mute the music. The Recording configuration includes raw and cleaned microphone, Stream Mix, separate ducking outputs and recorder preview/send tracks. History starts disarmed. On Automation, arm the master and manually run **Ten-second take** to try Start → Wait → Stop → notification. Existing recorder slots remain separate. See [the workflow guide](WORKFLOWS.md) before using raw capture or automation.
