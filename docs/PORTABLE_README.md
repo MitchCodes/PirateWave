@@ -88,3 +88,7 @@ Open **Cookbook** in the sidebar to import microphone-cleaning, music-ducking, s
 ## Scenes, multitrack sessions and automation
 
 **Scenes** recall mixer and built-in effect settings. **Recording** record aligned raw/processed tracks or capture armed history. **Automation** builds When / If / Then rules and always starts disarmed. Import **Captain’s Log** from Cookbook for an example. See [the workflow guide](WORKFLOWS.md) for setup, controller actions, export and interrupted-take recovery. Take audio is stored separately from workspace JSON.
+
+## OBS Studio
+
+Open **OBS Studio** to connect to its local WebSocket server, switch program scenes, control OBS recording and source audio, and optionally link OBS scenes to PirateWave audio scenes. The connection carries controls; use a free virtual cable for Stream Mix audio. See [OBS setup](OBS.md).

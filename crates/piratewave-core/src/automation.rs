@@ -11,6 +11,7 @@ pub enum Origin {
     Ui,
     Keyboard,
     Controller,
+    Obs,
     Automation,
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

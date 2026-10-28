@@ -333,6 +333,7 @@ impl ShortcutAction {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppSettings {
+    pub obs_port: u16,
     pub loupedeck_enabled: bool,
     pub version: u32,
     pub keybinds: BTreeMap<AppAction, String>,
@@ -455,6 +456,7 @@ pub struct StartupSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
+            obs_port: 4455,
             loupedeck_enabled: false,
             version: 1,
             startup: StartupSettings::default(),

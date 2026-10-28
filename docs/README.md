@@ -14,6 +14,7 @@
 - [Recording and playback](RECORDING.md)
 - [Scenes, multitrack sessions and guided automation](WORKFLOWS.md)
 - [VST plugins](VST_PLUGINS.md)
+- [OBS Studio](OBS.md)
 - [Tools](TOOLS.md)
 - [Loupedeck](LOUPEDECK.md) and [Stream Deck](STREAM_DECK.md)
 - [Audio recovery](AUDIO_RECOVERY.md)

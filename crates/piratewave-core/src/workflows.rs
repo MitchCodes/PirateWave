@@ -14,6 +14,8 @@ pub fn new_id() -> u64 {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Workflows {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub obs_scene_links: Vec<ObsSceneLink>,
     pub scenes: Vec<Scene>,
     pub sessions: Vec<SessionConfig>,
     pub rules: Vec<Rule>,
@@ -21,11 +23,18 @@ pub struct Workflows {
 }
 impl Workflows {
     pub fn is_empty(&self) -> bool {
-        self.scenes.is_empty()
+        self.obs_scene_links.is_empty()
+            && self.scenes.is_empty()
             && self.sessions.is_empty()
             && self.rules.is_empty()
             && self.automation_keybinds.values().all(|s| s.is_empty())
     }
+}
+/// Exact OBS program-scene name mapped to a stable audio-scene ID.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ObsSceneLink {
+    pub obs_scene: String,
+    pub audio_scene: u64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Hash, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -496,6 +505,21 @@ pub enum Step {
     },
 }
 pub fn validate(project: &Project) -> Result<(), String> {
+    let mut obs_names = std::collections::HashSet::new();
+    if project.workflows.obs_scene_links.len() > 128
+        || project.workflows.obs_scene_links.iter().any(|link| {
+            link.obs_scene.trim().is_empty()
+                || link.obs_scene.len() > 256
+                || link.audio_scene == 0
+                || !obs_names.insert(&link.obs_scene)
+        })
+    {
+        return Err(
+            "OBS scene links need unique OBS names and valid audio-scene IDs (up to 128 links)"
+                .into(),
+        );
+    }
+
     use std::collections::HashSet;
     fn named<'a>(items: impl Iterator<Item = (u64, &'a str)>, limit: usize) -> Result<(), String> {
         let mut ids = HashSet::new();

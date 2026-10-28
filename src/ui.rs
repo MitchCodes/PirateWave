@@ -21,6 +21,7 @@ mod layout;
 #[cfg(test)]
 mod layout_tests;
 mod mixer;
+mod obs;
 use mixer::{switch_routes, switch_selector};
 mod plugins;
 mod recordings;
@@ -47,6 +48,7 @@ use std::{
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum View {
+    Obs,
     Scenes,
     Sessions,
     Automation,
@@ -70,6 +72,7 @@ enum View {
 impl View {
     fn name(self) -> &'static str {
         match self {
+            Self::Obs => "OBS Studio",
             Self::Scenes => "Scenes",
             Self::Sessions => "Recording",
             Self::Automation => "Automation",
@@ -93,6 +96,7 @@ impl View {
     }
     fn title(self) -> &'static str {
         match self {
+            Self::Obs => "Connect your broadcast.",
             Self::Scenes => "Recall your mix.",
             Self::Sessions => "Record your tracks.",
             Self::Automation => "Guide your workflow.",
@@ -116,6 +120,7 @@ impl View {
     }
     fn description(self) -> &'static str {
         match self {
+            Self::Obs => "Control OBS and link broadcast scenes to your audio mix.",
             Self::Scenes => "Save mixer settings and recall smooth transitions.",
             Self::Sessions => "Synchronized raw and processed tracks.",
             Self::Automation => "When something happens, choose what follows.",
@@ -144,6 +149,7 @@ struct Loaded {
     result: Result<Clip, String>,
 }
 pub struct PirateWaveApp {
+    obs_ui: obs::ObsUi,
     editing: editing::Editing,
     workflow_ui: workflows::WorkflowUi,
     effect_tuning: effect_tuning::TuningUi,
@@ -348,6 +354,7 @@ impl PirateWaveApp {
             .expect("Asset loader thread");
         let mut app = Self {
             effect_tuning: Default::default(),
+            obs_ui: Default::default(),
             editing: Default::default(),
             workflow_ui: Default::default(),
             tools_ui: Default::default(),
@@ -649,6 +656,7 @@ impl PirateWaveApp {
                             (View::Automation, "A"),
                             (View::Soundboard, "S"),
                             (View::Routing, "R"),
+                            (View::Obs, "OBS"),
                             (View::Tools, "T"),
                             (View::Cookbook, "CB"),
                             (View::Plugins, "VST"),
@@ -759,7 +767,10 @@ impl PirateWaveApp {
         });
         ui.add_space(7.0);
         ui.separator();
-        if matches!(self.view, View::Cookbook | View::Tools | View::Tool(_)) {
+        if matches!(
+            self.view,
+            View::Obs | View::Cookbook | View::Tools | View::Tool(_)
+        ) {
             ui.add_space(12.);
             return;
         }
@@ -2237,6 +2248,10 @@ impl PirateWaveApp {
         if !self.smoke {
             return;
         }
+        if std::env::args().any(|a| a == "--obs-ui-smoke") {
+            self.obs_smoke_tick(ctx);
+            return;
+        }
         if std::env::args().any(|a| a == "--effect-tuning-smoke") {
             self.effect_tuning_smoke_tick(ctx);
             return;
@@ -3034,6 +3049,7 @@ impl eframe::App for PirateWaveApp {
         self.record_shortcut_input(ctx);
         self.poll();
         self.poll_device_refresh();
+        self.poll_obs();
         let edit_before = self.begin_edit_frame(ctx);
         self.edit_shortcuts(ctx);
         self.sidebar(ctx);
@@ -3094,6 +3110,7 @@ impl eframe::App for PirateWaveApp {
                 egui::ScrollArea::vertical()
                     .id_salt(("page", self.view))
                     .show(ui, |ui| match self.view {
+                        View::Obs => self.obs_page(ui),
                         View::Scenes => self.scenes_page(ui),
                         View::Sessions => self.sessions_page(ui),
                         View::Automation => self.automation_page(ui),

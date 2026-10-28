@@ -14,6 +14,7 @@ PirateWave is in beta. Optional voice conversion and local voice training have a
 - Soundboard playback, global shortcuts, recent-history recording, cropping, and WAV/MP3 export.
 - Autosaved workspaces and seven importable **Cookbook** recipes.
 - [Audio scenes, synchronized multitrack sessions and guided automation](docs/WORKFLOWS.md).
+- [OBS Studio controls and audio-scene linking](docs/OBS.md), with virtual-cable audio routing.
 - Loupedeck and Stream Deck controls, VST hosting, and extensions for custom nodes and effects.
 - Audio checks, test signals, references, and controller-icon creation on the **Tools** page.
 
@@ -64,6 +65,7 @@ Start with the [documentation index](docs/README.md), or choose a guide:
 | Topic | Guide |
 | --- | --- |
 | Scenes, multitrack recording and automation | [Workflow guide](docs/WORKFLOWS.md) |
+| OBS Studio integration | [OBS setup and scene links](docs/OBS.md) |
 | Example setups | [Cookbook](docs/COOKBOOK.md) |
 | Saving and switching setups | [Workspaces](docs/WORKSPACES.md) |
 | Mixer and routing | [Workspace layout](docs/WORKSPACE_LAYOUT.md) |

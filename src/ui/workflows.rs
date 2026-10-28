@@ -84,6 +84,14 @@ fn unique(base: &str, names: impl Iterator<Item = String>) -> String {
 }
 impl PirateWaveApp {
     pub(super) fn reset_workflow_runtime(&mut self) {
+        self.obs_ui.disarm();
+        if let Some(service) = &self.obs_ui.service {
+            service.workspace.store(
+                self.controller.generation,
+                std::sync::atomic::Ordering::Release,
+            );
+        }
+
         self.workflow_ui.cached_project = None;
         self.workflow_ui.level_causes.clear();
         self.workflow_ui.recording_request = None;

@@ -13,6 +13,7 @@ pub(super) fn app() -> PirateWaveApp {
     let (_, load_rx) = mpsc::channel();
     let settings = AppSettings::default();
     PirateWaveApp {
+        obs_ui: Default::default(),
         editing: Default::default(),
         effect_tuning: Default::default(),
         workflow_ui: Default::default(),
@@ -379,6 +380,7 @@ pub(super) fn render(
         app.edit_shortcuts(ctx);
         egui::CentralPanel::default().show(ctx, |ui| match app.view {
             View::Cookbook => app.cookbook_page(ui),
+            View::Obs => app.obs_page(ui),
             View::Scenes => app.scenes_page(ui),
             View::Sessions => app.sessions_page(ui),
             View::Automation => app.automation_page(ui),

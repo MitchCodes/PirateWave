@@ -10,6 +10,7 @@ mod engine;
 mod extensions;
 mod hotkeys;
 mod logging;
+mod obs;
 mod plugins;
 mod recording_io;
 mod session_io;
@@ -185,6 +186,7 @@ fn run_app() -> anyhow::Result<()> {
             || a == "--tools-ui-smoke"
             || a == "--effect-tuning-smoke"
             || a == "--workflows-ui-smoke"
+            || a == "--obs-ui-smoke"
     });
     if smoke {
         std::fs::create_dir_all("dist")?;
