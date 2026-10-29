@@ -377,6 +377,20 @@ impl PirateWaveApp {
                                                 false,
                                             );
                                             restart |= *device != before;
+                                            if !*loopback {
+                                                changed |= self.format_picker.show(
+                                                    ui,
+                                                    (node.id, false),
+                                                    device,
+                                                    false,
+                                                    &mut node.audio_format,
+                                                    self.status.formats.get(&(node.id, false)),
+                                                );
+                                            } else {
+                                                ui.small(
+                                                    "Loopback follows the playback device format.",
+                                                );
+                                            }
                                         } else if let NodeKind::ApplicationCapture { target } =
                                             &mut node.kind
                                         {
@@ -535,7 +549,7 @@ impl PirateWaveApp {
                         ui.set_width(output_width-32.0);ui.spacing_mut().item_spacing.y=9.0;
                         mixer_type_label(ui,node.id,1,"OUTPUT BUS",theme::palette().green).context_menu(|ui|{if ui.button("Remove node").clicked(){*delete=Some(node.id);ui.close_menu();}});
                         changed|=ui.add(egui::TextEdit::singleline(&mut node.name).desired_width(output_width-44.).frame(false)).changed();
-                        if let NodeKind::Output{device}=&mut node.kind{let before=device.clone();device_combo(ui,node.id,device,&self.devices.outputs,true);restart|=*device!=before;}
+                        if let NodeKind::Output{device}=&mut node.kind{let before=device.clone();device_combo(ui,node.id,device,&self.devices.outputs,true);restart|=*device!=before; changed |= self.format_picker.show(ui, (node.id, false), device, true, &mut node.audio_format, self.status.formats.get(&(node.id, false)));}
                         ui.add_space(6.0);let peak=self.status.peaks.get(&node.id).copied().unwrap_or(0.0);meter(ui,peak,Vec2::new(output_width-32.0,7.0),false);ui.horizontal(|ui|{ui.label(RichText::new("-60").small().color(theme::palette().muted));ui.add_space(65.0);ui.label(RichText::new("-24").small().color(theme::palette().muted));ui.with_layout(egui::Layout::right_to_left(egui::Align::Center),|ui|{ui.label(RichText::new("0 dB").small().color(theme::palette().muted));});});
                         changed|=ui.add(egui::Slider::new(&mut node.gain_db,-60.0..=12.0).suffix(" dB")).changed();
                         ui.horizontal(|ui|{ui.label(RichText::new("STEREO").small().color(theme::palette().muted));ui.with_layout(egui::Layout::right_to_left(egui::Align::Center),|ui|{changed|=ui.toggle_value(&mut node.mute,"Mute").changed();});});
@@ -546,6 +560,7 @@ impl PirateWaveApp {
                                 let before = node.listen_device.clone();
                                 device_combo(ui, node.id, &mut node.listen_device, &self.devices.outputs, false);
                                 changed |= node.listen_device != before;
+                                changed |= self.format_picker.show(ui, (node.id, true), &node.listen_device, true, &mut node.listen_format, self.status.formats.get(&(node.id, true)));
                             });
                         }
                         if ui.add_sized([output_width-32.0,28.0],egui::Button::new("Keybinds")).clicked(){keybinds=Some(node.id);}

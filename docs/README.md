@@ -6,6 +6,7 @@
 - [Free virtual audio cable setup](../README.md#virtual-audio-device-setup)
 - [Workspaces](WORKSPACES.md) and [Cookbook recipes](COOKBOOK.md)
 - [Mixer, routing, and node controls](WORKSPACE_LAYOUT.md)
+- [Device sample rates and formats](AUDIO_FORMATS.md)
 - [Application Capture](APPLICATION_CAPTURE.md)
 - [Rack processors and shortcuts](RACK_PROCESSORS.md)
 - [Effect tuning and live displays](EFFECT_TUNING.md)

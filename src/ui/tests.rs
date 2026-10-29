@@ -15,6 +15,7 @@ pub(super) fn app() -> PirateWaveApp {
     PirateWaveApp {
         obs_ui: Default::default(),
         editing: Default::default(),
+        format_picker: Default::default(),
         effect_tuning: Default::default(),
         workflow_ui: Default::default(),
         tools_ui: Default::default(),

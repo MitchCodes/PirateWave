@@ -68,6 +68,7 @@ Start with the [documentation index](docs/README.md), or choose a guide:
 | OBS Studio integration | [OBS setup and scene links](docs/OBS.md) |
 | Example setups | [Cookbook](docs/COOKBOOK.md) |
 | Saving and switching setups | [Workspaces](docs/WORKSPACES.md) |
+| Device sample rates and formats | [Audio format settings](docs/AUDIO_FORMATS.md) |
 | Mixer and routing | [Workspace layout](docs/WORKSPACE_LAYOUT.md) |
 | Microphone processing | [Rack processors](docs/RACK_PROCESSORS.md), [Effect tuning](docs/EFFECT_TUNING.md) |
 | Application audio | [Application Capture](docs/APPLICATION_CAPTURE.md) |

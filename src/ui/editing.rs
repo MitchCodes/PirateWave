@@ -634,6 +634,7 @@ impl PirateWaveApp {
         self.notify("Nodes pasted with new names and no shortcut conflicts");
     }
     pub(super) fn refresh_audio_devices(&mut self) {
+        self.format_picker.invalidate();
         if self.editing.refreshing() {
             return;
         }
@@ -686,6 +687,19 @@ mod tests {
         f(app);
         let after = app.edit_snapshot();
         app.editing.record(before, after, None, false);
+    }
+    #[test]
+    fn device_format_undo_uses_live_update_without_full_restart() {
+        let mut app = app();
+        edit(&mut app, |a| {
+            a.project.nodes[0].audio_format.sample_rate = Some(96000)
+        });
+        app.undo_edit(false);
+        assert_eq!(app.project.nodes[0].audio_format.sample_rate, None);
+        assert!(!app.needs_restart);
+        app.undo_edit(true);
+        assert_eq!(app.project.nodes[0].audio_format.sample_rate, Some(96000));
+        assert!(!app.needs_restart);
     }
     #[test]
     fn gain_undo_redo_preserves_unrelated_controller_edits() {

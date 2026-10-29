@@ -92,3 +92,7 @@ Open **Cookbook** in the sidebar to import microphone-cleaning, music-ducking, s
 ## OBS Studio
 
 Open **OBS Studio** to connect to its local WebSocket server, switch program scenes, control OBS recording and source audio, and optionally link OBS scenes to PirateWave audio scenes. The connection carries controls; use a free virtual cable for Stream Mix audio. See [OBS setup](OBS.md).
+
+## Device audio formats
+
+In Mixer, expand **Audio format** beneath a microphone, output bus, or Listen device to choose supported sample rates and encodings. Auto follows the device default. The processing engine remains 48 kHz stereo float. See [Audio format settings](AUDIO_FORMATS.md) for conversion, recovery, and Windows shared-mode limits.

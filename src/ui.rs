@@ -11,6 +11,7 @@ use crate::{
     storage,
 };
 mod application_capture;
+mod audio_format;
 mod audio_widgets;
 mod controller;
 mod ducking;
@@ -151,6 +152,7 @@ struct Loaded {
 pub struct PirateWaveApp {
     obs_ui: obs::ObsUi,
     editing: editing::Editing,
+    format_picker: audio_format::FormatPicker,
     workflow_ui: workflows::WorkflowUi,
     effect_tuning: effect_tuning::TuningUi,
     tools_ui: tools::ToolsUi,
@@ -356,6 +358,7 @@ impl PirateWaveApp {
             effect_tuning: Default::default(),
             obs_ui: Default::default(),
             editing: Default::default(),
+            format_picker: Default::default(),
             workflow_ui: Default::default(),
             tools_ui: Default::default(),
             layout: Default::default(),
@@ -555,6 +558,7 @@ impl PirateWaveApp {
                     .as_ref()
                     .is_some_and(|previous| std::sync::Arc::ptr_eq(previous, devices))
                 {
+                    self.format_picker.invalidate();
                     self.devices = devices.as_ref().clone();
                 }
             }

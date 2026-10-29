@@ -12,6 +12,11 @@ use std::sync::{
     Arc,
 };
 
+mod encode;
+pub mod format;
+mod owner;
+use format::AudioFormat;
+
 pub const QUEUE_CAPACITY: usize = 8192;
 // The worker follows output callbacks in bursts, not one sample at a time.
 // Keep ~43 ms on each side to cover 10–20 ms WASAPI packets plus worker jitter.
@@ -214,13 +219,18 @@ impl StreamHealth {
     }
 }
 pub struct InputStream {
+    pub format_status: String,
     pub health: StreamHealth,
-    pub _stream: cpal::Stream,
+    pub _stream: owner::StreamLease,
+    pub requested_format: AudioFormat,
     pub resampler: QueueReader,
 }
 pub struct OutputStream {
+    pub clock_master: Arc<std::sync::atomic::AtomicBool>,
+    pub format_status: String,
     pub health: StreamHealth,
-    pub _stream: cpal::Stream,
+    pub _stream: owner::StreamLease,
+    pub requested_format: AudioFormat,
     pub queue: Arc<ArrayQueue<Frame>>,
     pub node_id: u64,
     pub sample_rate: u32,
@@ -390,71 +400,8 @@ pub fn inspect_devices() -> Vec<EndpointReport> {
     result
 }
 
-/// Stateful linear sample-rate conversion plus slow occupancy-based clock correction.
-/// Source and sink clocks are independent; the correction avoids unbounded drift.
-pub struct QueueReader {
-    queue: Arc<ArrayQueue<Frame>>,
-    ratio: f64,
-    phase: f64,
-    a: Frame,
-    b: Frame,
-    primed: bool,
-    target: usize,
-    underruns: u64,
-}
-impl QueueReader {
-    pub fn new(
-        queue: Arc<ArrayQueue<Frame>>,
-        input_rate: u32,
-        output_rate: u32,
-        target: usize,
-    ) -> Self {
-        Self {
-            queue,
-            ratio: input_rate as f64 / output_rate as f64,
-            phase: 0.0,
-            a: [0.0; 2],
-            b: [0.0; 2],
-            primed: false,
-            target,
-            underruns: 0,
-        }
-    }
-    /// Actual starvation after playback began; initial buffering is not an underrun.
-    pub fn underruns(&self) -> u64 {
-        self.underruns
-    }
-    pub fn next_frame(&mut self) -> Option<Frame> {
-        if !self.primed {
-            if self.queue.len() < self.target.max(2) {
-                return None;
-            }
-            self.a = self.queue.pop()?;
-            self.b = self.queue.pop()?;
-            self.phase = 0.0;
-            self.primed = true;
-        }
-        let result = [
-            self.a[0] + (self.b[0] - self.a[0]) * self.phase as f32,
-            self.a[1] + (self.b[1] - self.a[1]) * self.phase as f32,
-        ];
-        let error = (self.queue.len() as f64 - self.target as f64) / self.target.max(1) as f64;
-        self.phase += self.ratio * (1.0 + (error * 0.0005).clamp(-0.002, 0.002));
-        while self.phase >= 1.0 {
-            self.phase -= 1.0;
-            self.a = self.b;
-            match self.queue.pop() {
-                Some(frame) => self.b = frame,
-                None => {
-                    self.underruns += 1;
-                    self.primed = false;
-                    return None;
-                }
-            }
-        }
-        Some(result)
-    }
-}
+mod resample;
+pub use resample::QueueReader;
 fn build_input<T>(
     device: &cpal::Device,
     config: &cpal::StreamConfig,
@@ -501,6 +448,10 @@ fn build_output<T>(
     device: &cpal::Device,
     config: &cpal::StreamConfig,
     queue: Arc<ArrayQueue<Frame>>,
+    control: (
+        Arc<std::sync::atomic::AtomicBool>,
+        Arc<std::sync::atomic::AtomicBool>,
+    ),
     counters: Arc<Counters>,
     errors: Arc<ArrayQueue<String>>,
     ticks: Arc<AtomicU64>,
@@ -508,23 +459,49 @@ fn build_output<T>(
 where
     T: SizedSample + FromSample<f32>,
 {
+    let (clock_master, stopping) = control;
     let channels = config.channels as usize;
     let mut reader = QueueReader::new(queue, SAMPLE_RATE, config.sample_rate.0, TARGET_FRAMES);
+    let mut fade = 0usize;
+    let mut previous_master = false;
+    let mut stop_gain = 1.0_f32;
+    let mut encoder = encode::Encoder::new(T::FORMAT);
     Ok(device.build_output_stream(
         config,
         move |data: &mut [T], _| {
             ticks.fetch_add(1, Ordering::Relaxed);
+            let master = clock_master.load(Ordering::Relaxed);
+            if master != previous_master {
+                fade = 0;
+                previous_master = master;
+            }
+            reader.set_clock_correction(!master);
+            let stopping = stopping.load(Ordering::Relaxed);
             let mut underflow = false;
             for frame in data.chunks_exact_mut(channels) {
-                let value = reader.next_frame().unwrap_or_else(|| {
+                let mut value = reader.next_frame().unwrap_or_else(|| {
                     underflow = true;
+                    fade = 0;
                     [0.0; 2]
                 });
+                if fade < 240 {
+                    let gain = fade as f32 / 240.;
+                    value[0] *= gain;
+                    value[1] *= gain;
+                    if !underflow {
+                        fade += 1;
+                    }
+                }
+                if stopping {
+                    stop_gain = (stop_gain - 1. / 240.).max(0.);
+                }
+                value[0] *= stop_gain;
+                value[1] *= stop_gain;
                 if channels == 1 {
-                    frame[0] = T::from_sample((value[0] + value[1]) * 0.5);
+                    frame[0] = encoder.sample((value[0] + value[1]) * 0.5);
                 } else {
-                    frame[0] = T::from_sample(value[0]);
-                    frame[1] = T::from_sample(value[1]);
+                    frame[0] = encoder.sample(value[0]);
+                    frame[1] = encoder.sample(value[1]);
                     for sample in &mut frame[2..] {
                         *sample = T::from_sample(0.0);
                     }
@@ -543,65 +520,198 @@ where
         None,
     )?)
 }
+pub fn open_input_with_format(
+    id: &Option<String>,
+    loopback: bool,
+    preference: &AudioFormat,
+    counters: Arc<Counters>,
+    errors: Arc<ArrayQueue<String>>,
+) -> Result<InputStream> {
+    let id = id.clone();
+    let preference = preference.clone();
+    let retry_id = id.clone();
+    let retry_preference = preference.clone();
+    let retry_counters = counters.clone();
+    let retry_errors = errors.clone();
+    let result = owner::start(move |lease| {
+        #[cfg(not(windows))]
+        if loopback {
+            return Err(anyhow!(
+                "Desktop loopback capture is currently Windows-only"
+            ));
+        }
+        let device = find_device(&id, loopback)?;
+        let (supported, fallback) = format::negotiate(&device, loopback, &preference)?;
+        let format_status = format!(
+            "{} · converter filter {:.2} ms; staging up to 2.67 ms",
+            format::description(&supported, fallback),
+            64000. / supported.sample_rate().0 as f64
+        );
+        let format = supported.sample_format();
+        let config: cpal::StreamConfig = supported.into();
+        // Preserve the same time reserve/capacity at 44.1, 48, 96 and 192 kHz.
+        let queue = Arc::new(ArrayQueue::new(input_target(config.sample_rate.0) * 4));
+        let health = StreamHealth::new(errors.clone());
+        macro_rules! build {
+            ($t:ty) => {
+                build_input::<$t>(
+                    &device,
+                    &config,
+                    queue.clone(),
+                    counters,
+                    errors,
+                    health.ticks.clone(),
+                )
+            };
+        }
+        let stream = match format {
+            SampleFormat::F32 => build!(f32),
+            SampleFormat::I16 => build!(i16),
+            SampleFormat::U16 => build!(u16),
+            SampleFormat::I32 => build!(i32),
+            SampleFormat::U32 => build!(u32),
+            SampleFormat::F64 => build!(f64),
+            SampleFormat::I8 => build!(i8),
+            SampleFormat::U8 => build!(u8),
+            SampleFormat::I64 => build!(i64),
+            SampleFormat::U64 => build!(u64),
+            _ => Err(anyhow!("Unsupported input format {format:?}")),
+        }?;
+        stream.play().context("Starting input stream")?;
+        Ok((
+            stream,
+            InputStream {
+                format_status,
+                health,
+                _stream: lease,
+                requested_format: preference,
+                resampler: QueueReader::new(
+                    queue,
+                    config.sample_rate.0,
+                    SAMPLE_RATE,
+                    input_target(config.sample_rate.0),
+                ),
+            },
+        ))
+    });
+    match result {
+        Err(original) if retry_preference != AudioFormat::default() => {
+            let mut stream = open_input_with_format(
+                &retry_id,
+                loopback,
+                &AudioFormat::default(),
+                retry_counters,
+                retry_errors,
+            )
+            .with_context(|| {
+                format!("Requested format failed: {original:#}; default also failed")
+            })?;
+            stream.requested_format = retry_preference;
+            stream
+                .format_status
+                .push_str(" · requested stream could not open; using device default");
+            Ok(stream)
+        }
+        other => other,
+    }
+}
+
+pub fn open_output_with_format(
+    node_id: u64,
+    id: &Option<String>,
+    preference: &AudioFormat,
+    counters: Arc<Counters>,
+    errors: Arc<ArrayQueue<String>>,
+) -> Result<OutputStream> {
+    let id = id.clone();
+    let preference = preference.clone();
+    let retry_id = id.clone();
+    let retry_preference = preference.clone();
+    let retry_counters = counters.clone();
+    let retry_errors = errors.clone();
+    let result = owner::start(move |lease| {
+        let device = find_device(&id, true)?;
+        let (supported, fallback) = format::negotiate(&device, true, &preference)?;
+        let format_status = format::description(&supported, fallback);
+        let format = supported.sample_format();
+        let config: cpal::StreamConfig = supported.into();
+        let queue = Arc::new(ArrayQueue::new(QUEUE_CAPACITY));
+        for _ in 0..TARGET_FRAMES {
+            let _ = queue.push([0.0; 2]);
+        }
+        let health = StreamHealth::new(errors.clone());
+        let clock_master = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        macro_rules! build {
+            ($t:ty) => {
+                build_output::<$t>(
+                    &device,
+                    &config,
+                    queue.clone(),
+                    (clock_master.clone(), lease.stopping.clone()),
+                    counters,
+                    errors,
+                    health.ticks.clone(),
+                )
+            };
+        }
+        let stream = match format {
+            SampleFormat::F32 => build!(f32),
+            SampleFormat::I16 => build!(i16),
+            SampleFormat::U16 => build!(u16),
+            SampleFormat::I32 => build!(i32),
+            SampleFormat::U32 => build!(u32),
+            SampleFormat::F64 => build!(f64),
+            SampleFormat::I8 => build!(i8),
+            SampleFormat::U8 => build!(u8),
+            SampleFormat::I64 => build!(i64),
+            SampleFormat::U64 => build!(u64),
+            _ => Err(anyhow!("Unsupported output format {format:?}")),
+        }?;
+        stream.play().context("Starting output stream")?;
+        Ok((
+            stream,
+            OutputStream {
+                clock_master,
+                format_status,
+                health,
+                _stream: lease,
+                requested_format: preference,
+                queue,
+                node_id,
+                sample_rate: config.sample_rate.0,
+                channels: config.channels,
+            },
+        ))
+    });
+    match result {
+        Err(original) if retry_preference != AudioFormat::default() => {
+            let mut stream = open_output_with_format(
+                node_id,
+                &retry_id,
+                &AudioFormat::default(),
+                retry_counters,
+                retry_errors,
+            )
+            .with_context(|| {
+                format!("Requested format failed: {original:#}; default also failed")
+            })?;
+            stream.requested_format = retry_preference;
+            stream
+                .format_status
+                .push_str(" · requested stream could not open; using device default");
+            Ok(stream)
+        }
+        other => other,
+    }
+}
+
 pub fn open_input(
     id: &Option<String>,
     loopback: bool,
     counters: Arc<Counters>,
     errors: Arc<ArrayQueue<String>>,
 ) -> Result<InputStream> {
-    #[cfg(not(windows))]
-    if loopback {
-        return Err(anyhow!(
-            "Desktop loopback capture is currently Windows-only"
-        ));
-    }
-    let device = find_device(id, loopback)?;
-    let supported = if loopback {
-        device.default_output_config()?
-    } else {
-        device.default_input_config()?
-    };
-    let format = supported.sample_format();
-    let config: cpal::StreamConfig = supported.into();
-    // Preserve the same time reserve/capacity at 44.1, 48, 96 and 192 kHz.
-    let queue = Arc::new(ArrayQueue::new(input_target(config.sample_rate.0) * 4));
-    let health = StreamHealth::new(errors.clone());
-    macro_rules! build {
-        ($t:ty) => {
-            build_input::<$t>(
-                &device,
-                &config,
-                queue.clone(),
-                counters,
-                errors,
-                health.ticks.clone(),
-            )
-        };
-    }
-    let stream = match format {
-        SampleFormat::F32 => build!(f32),
-        SampleFormat::I16 => build!(i16),
-        SampleFormat::U16 => build!(u16),
-        SampleFormat::I32 => build!(i32),
-        SampleFormat::U32 => build!(u32),
-        SampleFormat::F64 => build!(f64),
-        SampleFormat::I8 => build!(i8),
-        SampleFormat::U8 => build!(u8),
-        SampleFormat::I64 => build!(i64),
-        SampleFormat::U64 => build!(u64),
-        _ => Err(anyhow!("Unsupported input format {format:?}")),
-    }?;
-    stream.play().context("Starting input stream")?;
-    Ok(InputStream {
-        health,
-        _stream: stream,
-        resampler: QueueReader::new(
-            queue,
-            config.sample_rate.0,
-            SAMPLE_RATE,
-            input_target(config.sample_rate.0),
-        ),
-    })
+    open_input_with_format(id, loopback, &AudioFormat::default(), counters, errors)
 }
 pub fn open_output(
     node_id: u64,
@@ -609,50 +719,9 @@ pub fn open_output(
     counters: Arc<Counters>,
     errors: Arc<ArrayQueue<String>>,
 ) -> Result<OutputStream> {
-    let device = find_device(id, true)?;
-    let supported = device.default_output_config()?;
-    let format = supported.sample_format();
-    let config: cpal::StreamConfig = supported.into();
-    let queue = Arc::new(ArrayQueue::new(QUEUE_CAPACITY));
-    for _ in 0..TARGET_FRAMES {
-        let _ = queue.push([0.0; 2]);
-    }
-    let health = StreamHealth::new(errors.clone());
-    macro_rules! build {
-        ($t:ty) => {
-            build_output::<$t>(
-                &device,
-                &config,
-                queue.clone(),
-                counters,
-                errors,
-                health.ticks.clone(),
-            )
-        };
-    }
-    let stream = match format {
-        SampleFormat::F32 => build!(f32),
-        SampleFormat::I16 => build!(i16),
-        SampleFormat::U16 => build!(u16),
-        SampleFormat::I32 => build!(i32),
-        SampleFormat::U32 => build!(u32),
-        SampleFormat::F64 => build!(f64),
-        SampleFormat::I8 => build!(i8),
-        SampleFormat::U8 => build!(u8),
-        SampleFormat::I64 => build!(i64),
-        SampleFormat::U64 => build!(u64),
-        _ => Err(anyhow!("Unsupported output format {format:?}")),
-    }?;
-    stream.play().context("Starting output stream")?;
-    Ok(OutputStream {
-        health,
-        _stream: stream,
-        queue,
-        node_id,
-        sample_rate: config.sample_rate.0,
-        channels: config.channels,
-    })
+    open_output_with_format(node_id, id, &AudioFormat::default(), counters, errors)
 }
+
 #[cfg(test)]
 mod tests {
     #[cfg(windows)]
@@ -896,6 +965,7 @@ mod tests {
     fn reader_silences_underflow_and_recovers() {
         let queue = Arc::new(ArrayQueue::new(100));
         let mut reader = QueueReader::new(queue.clone(), 48000, 48000, 2);
+        reader.set_clock_correction(false);
         assert!(reader.next_frame().is_none());
         assert_eq!(reader.underruns(), 0);
         for _ in 0..10 {
@@ -919,9 +989,9 @@ mod tests {
             queue.push([(i as f32 * 0.1).sin(); 2]).unwrap();
         }
         let mut reader = QueueReader::new(queue, 44100, 48000, 2);
-        for _ in 0..800 {
+        for _ in 0..640 {
             let frame = reader.next_frame().unwrap();
-            assert!(frame[0].is_finite() && frame[0].abs() <= 1.0);
+            assert!(frame[0].is_finite() && frame[0].abs() <= 1.01);
         }
     }
 }

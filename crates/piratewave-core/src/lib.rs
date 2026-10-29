@@ -1,5 +1,6 @@
 //! Device-independent DSP and routing. No GUI, audio driver, or filesystem dependencies.
 pub mod actions;
+pub mod audio_format;
 pub mod control;
 pub mod effects;
 pub mod graph;

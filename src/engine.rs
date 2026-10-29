@@ -1,3 +1,5 @@
+#[path = "engine_formats.rs"]
+mod formats;
 use crate::{
     assets::Clip,
     audio_io::{self, Counters, InputStream, OutputStream, TARGET_FRAMES},
@@ -113,6 +115,7 @@ impl Command {
 }
 #[derive(Clone, Default)]
 pub struct Status {
+    pub formats: HashMap<(u64, bool), String>,
     pub scene: Option<(u64, f32, bool)>,
     pub scene_controls: Vec<piratewave_core::workflows::SceneSetting>,
     pub available: HashMap<u64, bool>,
@@ -302,6 +305,8 @@ impl RenderMappings {
 }
 
 struct Session {
+    format_changes: formats::PendingFormats,
+    format_discontinuity: bool,
     _audio_thread: crate::audio_scheduling::AudioThread,
     graph: Graph,
     plugins: crate::plugins::Rack,
@@ -364,9 +369,10 @@ impl Session {
                     if device.as_ref().is_some_and(|s| s.is_empty()) {
                         continue;
                     }
-                    match audio_io::open_output(
+                    match audio_io::open_output_with_format(
                         node.id,
                         device,
+                        &node.audio_format,
                         counters.clone(),
                         Arc::new(ArrayQueue::new(4)),
                     ) {
@@ -389,9 +395,10 @@ impl Session {
                     }
                 }
                 NodeKind::Input { device, loopback } => {
-                    match audio_io::open_input(
+                    match audio_io::open_input_with_format(
                         device,
                         *loopback,
+                        &node.audio_format,
                         counters.clone(),
                         Arc::new(ArrayQueue::new(4)),
                     ) {
@@ -412,6 +419,8 @@ impl Session {
             crate::logging::warn(format_args!("Audio setup: {warning}"));
         }
         let mut session = Self {
+            format_changes: Default::default(),
+            format_discontinuity: false,
             _audio_thread: crate::audio_scheduling::AudioThread::register(),
             voice_changer: crate::voice::Rack::new(project),
             graph,
@@ -553,7 +562,13 @@ impl Session {
                 continue;
             }
             let errors = Arc::new(ArrayQueue::new(4));
-            match audio_io::open_output(id, &Some(endpoint), self.counters.clone(), errors.clone()) {
+            let preference = project
+                .nodes
+                .iter()
+                .find(|n| n.id == id)
+                .map(|n| n.listen_format.clone())
+                .unwrap_or_default();
+            match audio_io::open_output_with_format(id, &Some(endpoint), &preference, self.counters.clone(), errors.clone()) {
                 Ok(stream) => self.listeners.push(Listener { stream,gain:1.,target:1.,remaining:0 }),
                 Err(error) => self.message = format!("Listen output for bus {id} unavailable: {error:#}. Primary output continues; retrying automatically."),
             }
@@ -561,6 +576,7 @@ impl Session {
     }
     /// Each endpoint retries independently. Never rebuild the graph or reset playing clips.
     fn recover_devices(&mut self) {
+        self.poll_format_changes();
         if self.last_recovery.elapsed() < Duration::from_millis(500) {
             return;
         }
@@ -634,9 +650,13 @@ impl Session {
                             .as_ref()
                             .is_some_and(|d| d.available(device, *loopback)) =>
                 {
-                    if let Ok(stream) =
-                        audio_io::open_input(device, *loopback, self.counters.clone(), errors)
-                    {
+                    if let Ok(stream) = audio_io::open_input_with_format(
+                        device,
+                        *loopback,
+                        &node.audio_format,
+                        self.counters.clone(),
+                        errors,
+                    ) {
                         self.inputs.push((node.id, stream));
                         self.voice_changer.source_discontinuity(node.id);
                         crate::logging::info(format_args!("Device reconnected: {}", node.name));
@@ -650,9 +670,13 @@ impl Session {
                             .as_ref()
                             .is_some_and(|d| d.available(device, true)) =>
                 {
-                    if let Ok(stream) =
-                        audio_io::open_output(node.id, device, self.counters.clone(), errors)
-                    {
+                    if let Ok(stream) = audio_io::open_output_with_format(
+                        node.id,
+                        device,
+                        &node.audio_format,
+                        self.counters.clone(),
+                        errors,
+                    ) {
                         self.outputs.push(stream);
                         crate::logging::info(format_args!("Device reconnected: {}", node.name));
                         self.message = format!("{} reconnected; audio restored", node.name);
@@ -689,13 +713,16 @@ impl Session {
             software_clock_due(&mut self.software_deadline, Instant::now())
         } else {
             self.software_deadline = None;
-            self.outputs.iter().any(|o| o.queue.len() < TARGET_FRAMES)
+            for (i, output) in self.outputs.iter().enumerate() {
+                output.clock_master.store(i == 0, Ordering::Relaxed);
+            }
+            self.outputs[0].queue.len() < TARGET_FRAMES
         }
     }
     fn render(&mut self) {
         self.last_render = Instant::now();
         let start = Instant::now();
-        let mut discontinuity = false;
+        let mut discontinuity = std::mem::take(&mut self.format_discontinuity);
         while let Some(message) = self.application_errors.pop() {
             self.message = message;
         }
@@ -855,6 +882,32 @@ impl Session {
     }
     fn status(&mut self) -> Status {
         Status {
+            formats: self
+                .inputs
+                .iter()
+                .map(|(id, s)| ((*id, false), s.format_status.clone()))
+                .chain(self.outputs.iter().map(|s| {
+                    (
+                        (s.node_id, false),
+                        format!(
+                            "{} · {}",
+                            s.format_status,
+                            if s.clock_master.load(Ordering::Relaxed)
+                                && s.sample_rate == SAMPLE_RATE
+                            {
+                                "pacing output: direct transfer, no converter delay"
+                            } else {
+                                "converter filter 1.33 ms, plus block staging"
+                            }
+                        ),
+                    )
+                }))
+                .chain(
+                    self.listeners
+                        .iter()
+                        .map(|s| ((s.stream.node_id, true), s.stream.format_status.clone())),
+                )
+                .collect(),
             scene_controls: self
                 .graph
                 .scene
@@ -1414,6 +1467,7 @@ fn run(
                             active.recorder.sync(&project);
                             active.refresh_workflow_points();
                             active.sync_recording_effects(&project, &registry)?;
+                            active.format_changes.changed(&active.project, &project);
                             active.project = project.clone();
                             Ok(())
                         } else {

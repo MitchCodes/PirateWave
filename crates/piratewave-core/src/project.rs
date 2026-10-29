@@ -106,6 +106,10 @@ pub struct Node {
     #[serde(default)]
     pub listen_device: Option<String>,
     #[serde(default)]
+    pub audio_format: crate::audio_format::AudioFormat,
+    #[serde(default)]
+    pub listen_format: crate::audio_format::AudioFormat,
+    #[serde(default)]
     pub keybinds: std::collections::BTreeMap<crate::shortcuts::NodeAction, String>,
     #[serde(default)]
     pub plugin: Option<crate::plugins::NodePlugin>,
@@ -146,6 +150,8 @@ impl Node {
             effects_disabled: false,
             listen_enabled: false,
             listen_device: None,
+            audio_format: Default::default(),
+            listen_format: Default::default(),
             keybinds: Default::default(),
             plugin: None,
             voice,
