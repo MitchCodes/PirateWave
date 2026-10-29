@@ -105,7 +105,7 @@ Built-in processors remain linked Rust code. VST nodes use the injectable Graph:
 
 - `plugins/`: VST2/VST3 adapters, isolated scanner, shared VST3 module lifetime and live per-node instances.
 - `piratewave-vst2-host`: shared native VST2 adapter, bounded PE architecture detection and versioned bridge protocol.
-- `piratewave-vst-bridge`: 32-bit helper using that same adapter; no GUI or audio-device dependencies.
+- `piratewave-vst-bridge`: 32-bit helper using that same adapter and hosting VST2 editor windows; it does not open audio devices.
 - `ui/plugins.rs`: plugin library, generic parameter editor and instrument keyboard.
 - `audio_io.rs`: discovery, sample conversion, WASAPI loopback, queue readers, counters.
 - `engine.rs`: session lifetime, voice playback, commands, buffered execution, telemetry.
@@ -138,7 +138,7 @@ Listen errors use per-stream queues: a failed secondary is removed while primary
 
 ### 32-bit VST2 bridge
 
-Before loading a VST2 DLL, PirateWave validates its PE header and selects native x64 or the x86 helper. The shared adapter preserves Windows loader errors instead of collapsing them to InvalidPath. Each bridged node owns a helper, authenticated localhost connection, preallocated binary audio/event buffers and pending parameter changes. Only loopback addresses are used; a random per-instance token authenticates the child before any plugin is loaded. Frames and parameter changes travel in bounded, versioned little-endian packets. The engine's worker waits for each processed block (not a device callback); timeout/disconnection becomes a reported plugin failure and the normal fallback.
+Before loading a VST2 DLL, PirateWave validates its PE header and selects native x64 or the x86 helper. The shared adapter preserves Windows loader errors instead of collapsing them to InvalidPath. Each bridged node owns a helper, authenticated localhost connections, preallocated binary audio/event buffers and pending parameter changes. A separate connection transfers state snapshots so large chunks do not occupy the audio connection. Only loopback addresses are used; a random per-instance token authenticates both connections. Frames and parameter changes travel in bounded, versioned little-endian packets. The engine's worker waits for each processed block (not a device callback); timeout/disconnection becomes a reported plugin failure and the normal fallback. Experimental editor windows and state capture run on plugin control threads; audio transitions wait asynchronously for snapshots while rendering continues.
 
 The helper is built for i686-pc-windows-msvc, has an explicit asInvoker manifest, and is renamed piratewave-vst-bridge32.exe beside both development and packaged executables. Its Windows job uses kill-on-close, so a killed scanner or host does not leave child plugins running. Native x64 VST2 and the x86 helper share one implementation; fixture tests verify both paths, parameter changes, routing, notes and saved projects. The DLL supplied during diagnosis was PE machine 0x14c / optional-header magic 0x10b, explaining the original x64 loader failure; no plugin binary changes were required.
 

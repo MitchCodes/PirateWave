@@ -54,7 +54,7 @@ Optional check requiring existing VB-Audio CABLE Input and Line 1 Virtual Audio 
 
 Checks note commands, instrument mute and effect bypass through both real WASAPI loopbacks while preserving Windows settings. Results: `dist/plugin-audio-self-test.txt`.
 
-`--plugin-probe <effect-path>` checks a third-party effect in memory using a quiet sine and, when present, its Pre Gain parameter. Validation used Wolf Shaper VST2/VST3 in addition to fixtures; third-party plugins are not redistributed. The UI smoke test captures fifteen views with display-only plugin metadata, loads no plugins, starts no audio and saves no user settings.
+`--plugin-probe <effect-path>` checks a third-party effect in memory using a quiet sine and, when present, its Pre Gain parameter. Editor probes exercised installed Antares VST2/VST3 plugins; Wolf Shaper VST3 was also visually checked for resizing, display scaling and restored curve state. Auto-Tune.vst3 did not activate in its probe. Third-party plugins are not redistributed. The UI smoke test captures fifteen views with display-only plugin metadata, loads no plugins, starts no audio and saves no user settings.
 
 References: [Steinberg VST3 interfaces](https://steinbergmedia.github.io/vst3_doc/vstinterfaces/), [Rust VST3 bindings](https://github.com/coupler-rs/vst3-rs), [VST2 adapter library](https://github.com/RustAudio/vst-rs).
 

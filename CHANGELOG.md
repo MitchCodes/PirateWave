@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add opt-in experimental vendor editors for Windows VST3 and native/bridged VST2, with live parameter synchronization and optional full plugin-state persistence.
 - Add Cookbook recipes, managed autosaved workspaces, Mixer ordering, themes, audio tools, and effect-tuning displays.
 - Add Stream Deck controls alongside Loupedeck, with shared actions and live feedback.
 - Recover stalled application capture and disconnected outputs independently, preserving device selections; fix a Windows device-discovery allocation leak.
