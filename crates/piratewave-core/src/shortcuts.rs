@@ -333,6 +333,7 @@ impl ShortcutAction {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppSettings {
+    pub experimental_vst_editors: bool,
     pub obs_port: u16,
     pub loupedeck_enabled: bool,
     pub version: u32,
@@ -456,6 +457,7 @@ pub struct StartupSettings {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
+            experimental_vst_editors: false,
             obs_port: 4455,
             loupedeck_enabled: false,
             version: 1,
@@ -481,6 +483,16 @@ impl Default for AppSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn legacy_settings_leave_vendor_editors_disabled() {
+        let old: AppSettings = serde_json::from_str("{}").unwrap();
+        assert!(!old.experimental_vst_editors);
+        let mut enabled = old;
+        enabled.experimental_vst_editors = true;
+        let restored: AppSettings =
+            serde_json::from_str(&serde_json::to_string(&enabled).unwrap()).unwrap();
+        assert!(restored.experimental_vst_editors);
+    }
     fn source() -> Node {
         Node::new(1, "Input", NodeKind::Soundboard, [0.0; 2])
     }

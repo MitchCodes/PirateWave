@@ -100,7 +100,7 @@ CI checks builds and retains artifacts. Successful main-branch pushes publish fo
 - Stereo processing at 48 kHz in 128-frame blocks, with shared-mode Windows audio and resampling for native device rates. Buffering, drivers, and effects contribute to latency; ASIO and exclusive mode are not supported.
 - Devices recover independently after errors or disconnection; unavailable selections stay assigned. Device identity uses name and duplicate-name occurrence, so renamed or identically named devices may need reselection.
 - Routing is acyclic. Output buses clip at full scale; manage levels and limiting upstream. Headphones help prevent acoustic feedback.
-- VSTs use a generic parameter editor. Vendor editors, external MIDI input, and automatic plugin latency compensation are not included.
+- VSTs include generic parameter controls and optional experimental vendor editor windows. External MIDI input and automatic plugin latency compensation are not included.
 - Voice conversion and training are experimental with separate qualification limits. Custom trained voices can sound robotic or metallic.
 - PirateWave does not install a virtual audio driver or update itself automatically. Closing the application stops processing.
 

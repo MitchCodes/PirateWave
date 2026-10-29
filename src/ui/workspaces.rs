@@ -133,8 +133,8 @@ impl PirateWaveApp {
             self.notify("Finishing the active take before switching workspaces");
             return;
         }
-        if self.dirty {
-            self.save();
+        if self.dirty || self.plugin_ui.editor_used {
+            self.save_with_plugin_capture(true);
             if self.dirty {
                 return;
             }
@@ -162,6 +162,7 @@ impl PirateWaveApp {
                 self.effect_tuning = Default::default();
                 self.editing.clear_workspace();
                 self.project = project;
+                self.plugin_ui.editor_used = false;
                 self.path = path;
                 self.dirty = false;
                 self.needs_apply = false;
@@ -260,6 +261,27 @@ impl PirateWaveApp {
         }
     }
     pub(super) fn export_workspace(&mut self) {
+        if self.plugin_ui.editor_used {
+            // Snapshot asynchronously while audio remains active. The normal
+            // autosave retry completes the request when the plugin responds.
+            self.dirty = true;
+            self.changed_at = Instant::now()
+                .checked_sub(Duration::from_secs(2))
+                .unwrap_or_else(Instant::now);
+            self.save_with_plugin_capture(false);
+            if self.dirty {
+                self.plugin_ui.pending_export = Some(self.path.clone());
+                self.notify("Saving plugin state before export…");
+                return;
+            }
+        }
+        self.export_workspace_now();
+    }
+    pub(super) fn export_workspace_now(&mut self) {
+        let state_warning = self
+            .notice
+            .starts_with("Saved the last available plugin state")
+            .then(|| self.notice.clone());
         if let Some(path) = rfd::FileDialog::new()
             .add_filter("Workspace JSON", &["json"])
             .set_file_name("workspace.json")
@@ -267,7 +289,24 @@ impl PirateWaveApp {
         {
             // Export does not change autosave's managed destination.
             match storage::save(&path, &self.project) {
-                Ok(()) => self.notify(if self.project.workflows.sessions.iter().any(|s|!s.take_ids.is_empty()){"Workspace exported. Recording media is separate; export takes from Recording to transfer their audio."}else{"Workspace exported"}),
+                Ok(()) => {
+                    let message = if self
+                        .project
+                        .workflows
+                        .sessions
+                        .iter()
+                        .any(|s| !s.take_ids.is_empty())
+                    {
+                        "Workspace exported. Recording media is separate; export takes from Recording to transfer their audio."
+                    } else {
+                        "Workspace exported"
+                    };
+                    if let Some(warning) = state_warning {
+                        self.notify_error(format!("{message} {warning}"));
+                    } else {
+                        self.notify(message);
+                    }
+                }
                 Err(e) => self.notify_error(format!("Cannot export workspace: {e:#}")),
             }
         }

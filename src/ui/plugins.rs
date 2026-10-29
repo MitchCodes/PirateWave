@@ -1,14 +1,44 @@
 use super::*;
 use piratewave_core::plugins::{NodePlugin, PluginDescriptor, PluginRole};
 
+pub(super) type PluginCapture = (
+    HashMap<u64, (PluginDescriptor, piratewave_core::plugins::PluginState)>,
+    Vec<String>,
+    crate::plugins::PluginEdits,
+);
+pub(super) enum PluginChange {
+    Replace(PluginDescriptor),
+    Remove,
+}
+struct PendingPluginChange {
+    id: u64,
+    descriptor: PluginDescriptor,
+    path: PathBuf,
+    action: PluginChange,
+    started: Instant,
+    reply: Option<mpsc::Receiver<PluginCapture>>,
+    request_parameters: Option<std::collections::BTreeMap<u32, f64>>,
+    result: Option<(
+        Option<piratewave_core::plugins::PluginState>,
+        Option<String>,
+    )>,
+}
+
 pub(super) struct PluginUi {
     pub library: crate::plugins::Library,
     scan: Option<mpsc::Receiver<Result<Vec<PluginDescriptor>, String>>>,
     pub selection: Option<usize>,
     pub held: HashSet<(u64, u8)>,
     error: String,
+    editor_reply: Option<mpsc::Receiver<Result<(), String>>>,
+    pub editor_used: bool,
+    pending_change: Option<PendingPluginChange>,
+    pub pending_export: Option<PathBuf>,
 }
 impl PluginUi {
+    pub(super) fn change_pending(&self) -> bool {
+        self.pending_change.is_some()
+    }
     pub fn new(smoke: bool) -> Self {
         Self {
             library: if smoke {
@@ -20,6 +50,10 @@ impl PluginUi {
             selection: None,
             held: HashSet::new(),
             error: String::new(),
+            editor_reply: None,
+            editor_used: false,
+            pending_change: None,
+            pending_export: None,
         }
     }
     pub fn choice(&self, role: PluginRole) -> Option<PluginDescriptor> {
@@ -30,7 +64,213 @@ impl PluginUi {
     }
 }
 impl PirateWaveApp {
+    pub(super) fn defer_plugin_change(&mut self, id: u64, action: PluginChange) -> bool {
+        if !self.status.running
+            || !(self.app_settings.experimental_vst_editors || self.plugin_ui.editor_used)
+        {
+            return false;
+        }
+        let Some(descriptor) = self
+            .project
+            .nodes
+            .iter()
+            .find(|node| node.id == id)
+            .and_then(|node| node.plugin.as_ref())
+            .map(|plugin| plugin.descriptor.clone())
+        else {
+            return false;
+        };
+        if self.plugin_ui.pending_change.is_some() || self.editing.history_pending() {
+            self.notify_error("A plugin change is already waiting for state capture");
+            return true;
+        }
+        if let Err(error) = self.engine.send(Command::ClosePluginEditor(id)) {
+            self.notify_error(format!(
+                "Could not capture plugin state before the change: {error}"
+            ));
+            return true;
+        }
+        self.plugin_ui.pending_change = Some(PendingPluginChange {
+            id,
+            descriptor,
+            path: self.path.clone(),
+            action,
+            started: Instant::now(),
+            reply: None,
+            request_parameters: None,
+            result: None,
+        });
+        self.notify("Saving plugin state before the change…");
+        true
+    }
+    fn poll_plugin_change(&mut self, ctx: &egui::Context) {
+        let Some(mut pending) = self.plugin_ui.pending_change.take() else {
+            return;
+        };
+        let current = self
+            .project
+            .nodes
+            .iter()
+            .find(|node| node.id == pending.id)
+            .and_then(|node| node.plugin.as_ref());
+        if self.path != pending.path
+            || !current.is_some_and(|plugin| plugin.descriptor.same_plugin(&pending.descriptor))
+        {
+            return;
+        }
+        if pending.result.is_none() && pending.started.elapsed() >= Duration::from_secs(6) {
+            pending.result = Some((
+                None,
+                Some(
+                    "Plugin state capture timed out; the previous saved state was retained.".into(),
+                ),
+            ));
+        }
+        if pending.result.is_none() {
+            if let Some(reply) = &pending.reply {
+                match reply.try_recv() {
+                    Ok((states, errors, edits)) => {
+                        pending.reply = None;
+                        self.apply_plugin_editor_edits(&edits);
+                        let changed = self
+                            .project
+                            .nodes
+                            .iter()
+                            .find(|node| node.id == pending.id)
+                            .and_then(|node| node.plugin.as_ref())
+                            .is_some_and(|plugin| {
+                                Some(&plugin.parameters) != pending.request_parameters.as_ref()
+                            });
+                        let error = errors
+                            .into_iter()
+                            .find(|error| error.starts_with(&format!("Plugin {}:", pending.id)));
+                        if !changed
+                            && !error
+                                .as_ref()
+                                .is_some_and(|error| error.contains("state capture is pending"))
+                        {
+                            let state = if error.is_none() {
+                                states
+                                    .get(&pending.id)
+                                    .filter(|(descriptor, _)| {
+                                        descriptor.same_plugin(&pending.descriptor)
+                                    })
+                                    .map(|(_, state)| state.clone())
+                            } else {
+                                None
+                            };
+                            pending.result = Some((state, error));
+                        }
+                    }
+                    Err(mpsc::TryRecvError::Disconnected) => pending.result = Some((
+                        None,
+                        Some(
+                            "Plugin state capture stopped; the previous saved state was retained."
+                                .into(),
+                        ),
+                    )),
+                    Err(mpsc::TryRecvError::Empty) => {}
+                }
+            }
+            if pending.result.is_none() && pending.reply.is_none() {
+                let (tx, rx) = mpsc::sync_channel(1);
+                pending.request_parameters = self
+                    .project
+                    .nodes
+                    .iter()
+                    .find(|node| node.id == pending.id)
+                    .and_then(|node| node.plugin.as_ref())
+                    .map(|plugin| plugin.parameters.clone());
+                match self.engine.send(Command::CapturePluginStates(false, tx)) {
+                    Ok(()) => pending.reply = Some(rx),
+                    Err(error) => pending.result = Some((None, Some(format!("Plugin state capture failed; the previous saved state was retained: {error}")))),
+                }
+            }
+        }
+        if pending
+            .result
+            .as_ref()
+            .is_some_and(|(state, _)| state.is_some())
+            && self
+                .project
+                .nodes
+                .iter()
+                .find(|node| node.id == pending.id)
+                .and_then(|node| node.plugin.as_ref())
+                .is_some_and(|plugin| {
+                    Some(&plugin.parameters) != pending.request_parameters.as_ref()
+                })
+        {
+            pending.result = None;
+        }
+        let active_input = ctx.input(|i| i.pointer.any_down() || !i.events.is_empty());
+        if pending.result.is_some() && !active_input {
+            let (state, warning) = pending.result.take().unwrap();
+            if let Some(state) = state {
+                if let Some(plugin) = self
+                    .project
+                    .nodes
+                    .iter_mut()
+                    .find(|node| node.id == pending.id)
+                    .and_then(|node| node.plugin.as_mut())
+                {
+                    plugin.state = Some(state);
+                }
+            }
+            self.remember_plugin_states();
+            let before = self.edit_snapshot();
+            match pending.action {
+                PluginChange::Remove => self.remove_audio_node_now(pending.id),
+                PluginChange::Replace(descriptor) => {
+                    if let Some(node) = self
+                        .project
+                        .nodes
+                        .iter_mut()
+                        .find(|node| node.id == pending.id)
+                    {
+                        node.plugin = Some(NodePlugin::new(descriptor));
+                        self.changed(false);
+                    }
+                }
+            }
+            self.record_deferred_plugin_edit(before);
+            if let Some(warning) = warning {
+                self.notify_error(warning);
+            }
+        } else {
+            self.plugin_ui.pending_change = Some(pending);
+            ctx.request_repaint_after(Duration::from_millis(30));
+        }
+    }
     pub(super) fn poll_plugins(&mut self, ctx: &egui::Context) {
+        self.poll_history_capture(ctx);
+        self.poll_plugin_change(ctx);
+        if let Some(path) = &self.plugin_ui.pending_export {
+            if path != &self.path {
+                self.plugin_ui.pending_export = None;
+            } else if !self.dirty {
+                self.plugin_ui.pending_export = None;
+                self.export_workspace_now();
+            } else {
+                ctx.request_repaint_after(Duration::from_millis(30));
+            }
+        }
+        if let Some(result) = self
+            .plugin_ui
+            .editor_reply
+            .as_ref()
+            .and_then(|rx| rx.try_recv().ok())
+        {
+            self.plugin_ui.editor_reply = None;
+            match result {
+                Err(error) => self.notify_error(format!("Cannot open plugin editor: {error}")),
+                Ok(()) => {
+                    self.plugin_ui.editor_used = true;
+                    self.dirty = true;
+                    self.changed_at = Instant::now();
+                }
+            }
+        }
         if let Some(result) = self
             .plugin_ui
             .scan
@@ -115,7 +355,7 @@ impl PirateWaveApp {
             }
         });
         ui.add_space(12.0);
-        ui.label(RichText::new("64-bit VST3 and 32-/64-bit VST2 (.dll). 32-bit plugins run in a helper process. Mono or stereo audio; generic parameter controls.").color(theme::palette().muted));
+        ui.label(RichText::new("64-bit VST3 and 32-/64-bit VST2 (.dll). 32-bit plugins run in a helper process. Mono or stereo audio; generic parameter controls and optional experimental vendor editors.").color(theme::palette().muted));
         ui.label(RichText::new("Add a node, then connect it in Routing. Removing a library entry keeps existing project nodes.").small().color(theme::palette().muted));
         if !self.plugin_ui.error.is_empty() {
             ui.colored_label(theme::palette().peach, &self.plugin_ui.error);
@@ -217,7 +457,13 @@ impl PirateWaveApp {
         } else {
             PluginRole::Effect
         };
+        let editor_available = self.status.running
+            && self.plugin_ui.pending_change.is_none()
+            && !self.editing.history_pending();
         let node = &mut self.project.nodes[index];
+        let mut open_editor = false;
+        let mut replacement = None;
+        let mut parameter_edits = Vec::new();
         show_card(ui, |ui| {
             ui.heading("Plugin & status");
             let selected = node
@@ -245,8 +491,13 @@ impl PirateWaveApp {
                             )
                             .clicked()
                         {
-                            node.plugin = Some(NodePlugin::new(plugin.clone()));
-                            changed = true;
+                            if !node
+                                .plugin
+                                .as_ref()
+                                .is_some_and(|current| current.descriptor.same_plugin(plugin))
+                            {
+                                replacement = Some(plugin.clone());
+                            }
                         }
                     }
                 });
@@ -259,6 +510,17 @@ impl PirateWaveApp {
                     "{} · {:?}",
                     plugin.descriptor.vendor, plugin.descriptor.format
                 ));
+                if self.app_settings.experimental_vst_editors {
+                    if ui
+                        .add_enabled(editor_available, egui::Button::new("Open plugin editor"))
+                        .clicked()
+                    {
+                        open_editor = true;
+                    }
+                    if !self.status.running {
+                        ui.small("Start audio to open the plugin editor.");
+                    }
+                }
             }
             ui.label(self.status.plugins.get(&id).map_or(
                 if self.status.running {
@@ -344,6 +606,13 @@ impl PirateWaveApp {
                 egui::CollapsingHeader::new("Parameter help").id_salt(("plugin-help",id)).show(ui,|ui|{ui.small("Values use the plugin's normalized 0–1 scale and are saved with this node.");});
                 if ui.button("Reset plugin parameters").clicked() {
                     plugin.parameters.clear();
+                    parameter_edits.extend(
+                        plugin
+                            .descriptor
+                            .parameters
+                            .iter()
+                            .map(|p| (p.id, p.default)),
+                    );
                     changed = true;
                 }
                 if plugin.descriptor.parameters.is_empty() {
@@ -371,6 +640,7 @@ impl PirateWaveApp {
                                     }
                                     if ui.add(slider).changed() {
                                         plugin.parameters.insert(p.id, edited);
+                                        parameter_edits.push((p.id, edited));
                                         changed = true;
                                     }
                                     ui.label(
@@ -388,6 +658,30 @@ impl PirateWaveApp {
                 theme::palette().peach,
                 "Assign an imported plugin to this node.",
             );
+        }
+        if let Some(descriptor) = replacement {
+            if !self.defer_plugin_change(id, PluginChange::Replace(descriptor.clone())) {
+                if let Some(node) = self.project.nodes.get_mut(index) {
+                    node.plugin = Some(NodePlugin::new(descriptor));
+                    changed = true;
+                }
+            }
+        }
+        if !parameter_edits.is_empty() && self.app_settings.experimental_vst_editors {
+            self.command(Command::SetPluginParameters {
+                id,
+                values: parameter_edits,
+            });
+        }
+        if open_editor {
+            let (tx, rx) = mpsc::sync_channel(1);
+            match self
+                .engine
+                .send(Command::OpenPluginEditor { id, reply: tx })
+            {
+                Ok(()) => self.plugin_ui.editor_reply = Some(rx),
+                Err(error) => self.notify_error(error),
+            }
         }
         if changed {
             self.changed(false);
@@ -453,6 +747,7 @@ pub(super) fn smoke_plugins() -> Vec<PluginDescriptor> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::tests::app;
     use super::*;
     #[test]
     fn library_deduplicates_and_clearing_library_preserves_node_settings() {
@@ -466,5 +761,220 @@ mod tests {
         library.plugins.clear();
         assert_eq!(node.descriptor, plugin);
         assert!(node.parameters.is_empty());
+    }
+    #[test]
+    fn deferred_removal_keeps_the_captured_state_for_undo() {
+        let mut app = app();
+        let descriptor = fixture(PluginRole::Effect);
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        node.plugin = Some(NodePlugin::new(descriptor.clone()));
+        app.project.nodes.push(node);
+        let state = piratewave_core::plugins::PluginState {
+            component: vec![4, 5, 6].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        };
+        let (tx, rx) = mpsc::sync_channel(1);
+        tx.send((
+            HashMap::from([(77, (descriptor.clone(), state.clone()))]),
+            Vec::new(),
+            Default::default(),
+        ))
+        .unwrap();
+        app.plugin_ui.pending_change = Some(PendingPluginChange {
+            id: 77,
+            descriptor,
+            path: app.path.clone(),
+            action: PluginChange::Remove,
+            started: Instant::now(),
+            reply: Some(rx),
+            request_parameters: Some(Default::default()),
+            result: None,
+        });
+        app.poll_plugin_change(&egui::Context::default());
+        assert!(!app.project.nodes.iter().any(|node| node.id == 77));
+        app.undo_edit(false);
+        let restored = app.project.nodes.iter().find(|node| node.id == 77).unwrap();
+        assert_eq!(
+            restored.plugin.as_ref().unwrap().state.as_ref(),
+            Some(&state)
+        );
+    }
+    #[test]
+    fn deferred_replacement_cannot_change_another_workspace_or_plugin() {
+        let mut app = app();
+        let old = fixture(PluginRole::Effect);
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        node.plugin = Some(NodePlugin::new(old.clone()));
+        app.project.nodes.push(node);
+        let mut replacement = old.clone();
+        replacement.class_id = "replacement".into();
+        app.plugin_ui.pending_change = Some(PendingPluginChange {
+            id: 77,
+            descriptor: old.clone(),
+            path: PathBuf::from("another-project.json"),
+            action: PluginChange::Replace(replacement),
+            started: Instant::now(),
+            reply: None,
+            request_parameters: None,
+            result: Some((None, None)),
+        });
+        app.poll_plugin_change(&egui::Context::default());
+        assert!(app.plugin_ui.pending_change.is_none());
+        assert!(app
+            .project
+            .nodes
+            .iter()
+            .find(|node| node.id == 77)
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap()
+            .descriptor
+            .same_plugin(&old));
+    }
+    #[test]
+    fn deferred_replacement_preserves_old_state_for_undo() {
+        let mut app = app();
+        let old = fixture(PluginRole::Effect);
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        node.plugin = Some(NodePlugin::new(old.clone()));
+        app.project.nodes.push(node);
+        let state = piratewave_core::plugins::PluginState {
+            component: vec![9, 8, 7].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        };
+        let mut replacement = old.clone();
+        replacement.class_id = "replacement".into();
+        let (tx, rx) = mpsc::sync_channel(1);
+        tx.send((
+            HashMap::from([(77, (old.clone(), state.clone()))]),
+            Vec::new(),
+            Default::default(),
+        ))
+        .unwrap();
+        app.plugin_ui.pending_change = Some(PendingPluginChange {
+            id: 77,
+            descriptor: old.clone(),
+            path: app.path.clone(),
+            action: PluginChange::Replace(replacement.clone()),
+            started: Instant::now(),
+            reply: Some(rx),
+            request_parameters: Some(Default::default()),
+            result: None,
+        });
+        app.poll_plugin_change(&egui::Context::default());
+        assert!(app
+            .project
+            .nodes
+            .iter()
+            .find(|node| node.id == 77)
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap()
+            .descriptor
+            .same_plugin(&replacement));
+        app.undo_edit(false);
+        let restored = app
+            .project
+            .nodes
+            .iter()
+            .find(|node| node.id == 77)
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap();
+        assert!(restored.descriptor.same_plugin(&old));
+        assert_eq!(restored.state.as_ref(), Some(&state));
+    }
+    #[test]
+    fn failed_capture_retains_previous_state_and_reports_failure() {
+        let mut app = app();
+        let descriptor = fixture(PluginRole::Effect);
+        let state = piratewave_core::plugins::PluginState {
+            component: vec![1, 2].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        };
+        let mut config = NodePlugin::new(descriptor.clone());
+        config.state = Some(state.clone());
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        node.plugin = Some(config);
+        app.project.nodes.push(node);
+        let (tx, rx) = mpsc::sync_channel(1);
+        tx.send((
+            HashMap::new(),
+            vec!["Plugin 77: state capture failed".into()],
+            Default::default(),
+        ))
+        .unwrap();
+        app.plugin_ui.pending_change = Some(PendingPluginChange {
+            id: 77,
+            descriptor,
+            path: app.path.clone(),
+            action: PluginChange::Remove,
+            started: Instant::now(),
+            reply: Some(rx),
+            request_parameters: Some(Default::default()),
+            result: None,
+        });
+        app.poll_plugin_change(&egui::Context::default());
+        assert!(app.notice.contains("state capture failed"));
+        app.undo_edit(false);
+        assert_eq!(
+            app.project
+                .nodes
+                .iter()
+                .find(|node| node.id == 77)
+                .unwrap()
+                .plugin
+                .as_ref()
+                .unwrap()
+                .state
+                .as_ref(),
+            Some(&state)
+        );
+    }
+    #[test]
+    fn deferred_change_discards_snapshot_when_parameters_changed_after_capture() {
+        let mut app = app();
+        let descriptor = fixture(PluginRole::Effect);
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        let mut config = NodePlugin::new(descriptor.clone());
+        config.parameters.insert(0, 0.75);
+        node.plugin = Some(config);
+        app.project.nodes.push(node);
+        app.plugin_ui.pending_change = Some(PendingPluginChange {
+            id: 77,
+            descriptor,
+            path: app.path.clone(),
+            action: PluginChange::Remove,
+            started: Instant::now(),
+            reply: None,
+            request_parameters: Some(Default::default()),
+            result: Some((
+                Some(piratewave_core::plugins::PluginState {
+                    component: vec![1].into(),
+                    controller: None,
+                    vst2_bank: false,
+                    vst2_program: None,
+                }),
+                None,
+            )),
+        });
+        app.poll_plugin_change(&egui::Context::default());
+        assert!(app.project.nodes.iter().any(|node| node.id == 77));
+        assert!(app
+            .plugin_ui
+            .pending_change
+            .as_ref()
+            .unwrap()
+            .result
+            .is_none());
     }
 }

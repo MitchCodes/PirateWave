@@ -524,11 +524,102 @@ impl PirateWaveApp {
             self.notify("This sound has not loaded. Relink its file or wait for loading.");
         }
     }
+    fn apply_plugin_editor_edits(&mut self, changes: &crate::plugins::PluginEdits) {
+        let mut changed = false;
+        for (node_id, (descriptor, edits)) in changes {
+            if let Some(plugin) = self
+                .project
+                .nodes
+                .iter_mut()
+                .find(|n| n.id == *node_id)
+                .and_then(|n| n.plugin.as_mut())
+            {
+                if !plugin.descriptor.same_plugin(descriptor) {
+                    continue;
+                }
+                for (id, (base, value)) in edits {
+                    if let Some(parameter) =
+                        plugin.descriptor.parameters.iter().find(|p| p.id == *id)
+                    {
+                        let current = *plugin.parameters.get(id).unwrap_or(&parameter.default);
+                        if current == *base && current != *value {
+                            plugin.parameters.insert(*id, *value);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+        if changed {
+            self.changed(false);
+        }
+    }
     fn save(&mut self) {
+        self.save_with_plugin_capture(false);
+    }
+    fn save_with_plugin_capture(&mut self, final_capture: bool) {
+        let mut state_warning = None;
+        if (self.app_settings.experimental_vst_editors || self.plugin_ui.editor_used)
+            && self.project.nodes.iter().any(|n| n.plugin.is_some())
+        {
+            let (tx, rx) = mpsc::sync_channel(1);
+            let capture = match self
+                .engine
+                .send(Command::CapturePluginStates(final_capture, tx))
+            {
+                Ok(()) => rx
+                    .recv_timeout(Duration::from_secs(5))
+                    .map_err(|e| e.to_string()),
+                Err(error) => Err(error),
+            };
+            match capture {
+                Ok((states, errors, edits)) => {
+                    self.apply_plugin_editor_edits(&edits);
+                    for node in &mut self.project.nodes {
+                        if errors
+                            .iter()
+                            .any(|error| error.starts_with(&format!("Plugin {}:", node.id)))
+                        {
+                            continue;
+                        }
+                        if let (Some(plugin), Some((descriptor, state))) =
+                            (&mut node.plugin, states.get(&node.id))
+                        {
+                            if plugin.descriptor.same_plugin(descriptor) {
+                                plugin.state = Some(state.clone());
+                            }
+                        }
+                    }
+                    if !errors.is_empty() {
+                        if errors
+                            .iter()
+                            .any(|error| error.contains("state capture is pending"))
+                        {
+                            return;
+                        }
+                        state_warning = Some(format!("Saved the last available plugin state; current state could not be captured: {}", errors.join(" | ")));
+                    }
+                }
+                Err(error) => {
+                    if final_capture {
+                        state_warning = Some(format!("Saved the last available plugin state; final state capture did not complete: {error}"));
+                    } else {
+                        self.notify_error(format!(
+                            "Save delayed; plugin state capture did not complete: {error}"
+                        ));
+                        return;
+                    }
+                }
+            }
+        }
         match storage::save(&self.path, &self.project) {
             Ok(()) => {
                 self.dirty = false;
-                self.notify("Workspace saved");
+                if let Some(warning) = state_warning {
+                    self.notify_error(warning);
+                } else {
+                    self.notify("Workspace saved");
+                }
             }
             Err(error) => self.notify_error(format!("Save failed: {error:#}")),
         }
@@ -551,6 +642,20 @@ impl PirateWaveApp {
         self.poll_recordings();
         self.poll_controller();
         while let Some(status) = self.engine.statuses.pop() {
+            if self
+                .status
+                .plugin_editor_open
+                .iter()
+                .any(|id| !status.plugin_editor_open.contains(id))
+            {
+                self.dirty = true;
+                self.changed_at = Instant::now();
+            }
+            if self.status.running && !status.running && self.plugin_ui.editor_used {
+                self.dirty = true;
+                self.changed_at = Instant::now();
+            }
+            self.apply_plugin_editor_edits(&status.plugin_editor_edits);
             if let Some(devices) = &status.devices {
                 if !self
                     .status
@@ -3161,9 +3266,10 @@ impl eframe::App for PirateWaveApp {
                 eprintln!("Could not save settings: {error:#}");
             }
         }
-        if !self.smoke && self.dirty {
-            if let Err(error) = storage::save(&self.path, &self.project) {
-                eprintln!("Could not save workspace: {error:#}");
+        if !self.smoke && (self.dirty || self.plugin_ui.editor_used) {
+            self.save_with_plugin_capture(true);
+            if self.dirty {
+                eprintln!("Could not save workspace: {}", self.notice);
             }
         }
     }

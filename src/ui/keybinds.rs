@@ -233,6 +233,12 @@ impl PirateWaveApp {
         }
     }
     pub(super) fn remove_audio_node(&mut self, id: u64) {
+        if self.defer_plugin_change(id, super::plugins::PluginChange::Remove) {
+            return;
+        }
+        self.remove_audio_node_now(id);
+    }
+    pub(super) fn remove_audio_node_now(&mut self, id: u64) {
         let assets: Vec<_> = self
             .project
             .nodes
@@ -390,6 +396,20 @@ impl PirateWaveApp {
                 ui.add_space(16.);
                 self.extension_settings(ui);
                 self.controller_settings(ui);
+                ui.heading("Experimental VST editors");
+                if ui
+                    .checkbox(
+                        &mut self.app_settings.experimental_vst_editors,
+                        "Enable vendor plugin editors (experimental)",
+                    )
+                    .changed()
+                {
+                    if !self.app_settings.experimental_vst_editors {
+                        self.command(Command::ClosePluginEditors);
+                    }
+                    self.settings_dirty = true;
+                    self.layout_preferences_changed();
+                }
                 ui.heading("Startup preferences");
                 ui.label("Choose how PirateWave opens. Changes are saved immediately and take effect next time you launch it.");
                 ui.add_space(16.0);

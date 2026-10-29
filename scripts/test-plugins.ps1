@@ -24,3 +24,21 @@ if ($LASTEXITCODE -ne 0) { throw '32-bit VST test fixture build failed' }
 $taskFixture32=Join-Path $taskMetadata.target_directory 'i686-pc-windows-msvc/debug/piratewave_test_plugin.dll'
 & $taskExe --plugin-self-test $taskBundle $taskFixture32
 if ($LASTEXITCODE -ne 0) { throw '32-bit VST2 bridge regression checks failed' }
+
+$taskPreviousNoEditor = $env:PIRATEWAVE_TEST_VST2_NO_EDITOR
+$taskPreviousProgramOnly = $env:PIRATEWAVE_TEST_VST2_PROGRAM_ONLY
+try {
+    $env:PIRATEWAVE_TEST_VST2_NO_EDITOR = '1'
+    & $taskExe --plugin-no-editor-self-test $taskFixture
+    if ($LASTEXITCODE -ne 0) { throw 'Native VST2 editor-free state check failed' }
+    & $taskExe --plugin-no-editor-self-test $taskFixture32
+    if ($LASTEXITCODE -ne 0) { throw 'Bridged VST2 editor-free state check failed' }
+    $env:PIRATEWAVE_TEST_VST2_PROGRAM_ONLY = '1'
+    & $taskExe --plugin-no-editor-self-test $taskFixture
+    if ($LASTEXITCODE -ne 0) { throw 'Native VST2 program state check failed' }
+    & $taskExe --plugin-no-editor-self-test $taskFixture32
+    if ($LASTEXITCODE -ne 0) { throw 'Bridged VST2 program state check failed' }
+} finally {
+    $env:PIRATEWAVE_TEST_VST2_NO_EDITOR = $taskPreviousNoEditor
+    $env:PIRATEWAVE_TEST_VST2_PROGRAM_ONLY = $taskPreviousProgramOnly
+}

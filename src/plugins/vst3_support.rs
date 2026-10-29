@@ -4,11 +4,42 @@ use std::{
     cell::{Cell, RefCell},
     ffi::c_void,
     ptr,
+    sync::{
+        atomic::{AtomicI32, AtomicU64, Ordering},
+        Arc, OnceLock,
+    },
 };
 use vst3::{
     Steinberg::{Vst::*, *},
     *,
 };
+
+#[cfg(windows)]
+pub struct EditorFrame {
+    pub window: std::rc::Rc<piratewave_vst2_host::window::EditorWindow>,
+}
+#[cfg(windows)]
+impl Class for EditorFrame {
+    type Interfaces = (IPlugFrame,);
+}
+#[cfg(windows)]
+impl IPlugFrameTrait for EditorFrame {
+    unsafe fn resizeView(&self, view: *mut IPlugView, size: *mut ViewRect) -> tresult {
+        if view.is_null() || size.is_null() {
+            return kInvalidArgument;
+        }
+        let Some(width) = (*size).right.checked_sub((*size).left) else {
+            return kInvalidArgument;
+        };
+        let Some(height) = (*size).bottom.checked_sub((*size).top) else {
+            return kInvalidArgument;
+        };
+        if self.window.resize(width, height).is_err() {
+            return kResultFalse;
+        }
+        ((*(*view).vtbl).onSize)(view, size)
+    }
+}
 
 pub struct Host;
 impl Class for Host {
@@ -59,8 +90,138 @@ impl IHostApplicationTrait for Host {
         }
     }
 }
+pub struct HandlerState {
+    pub restart: AtomicI32,
+    pub edits: crossbeam_queue::ArrayQueue<(u32, f64, u64)>,
+    sequence: AtomicU64,
+    revisions: OnceLock<std::collections::HashMap<u32, ParameterRevision>>,
+}
+struct ParameterRevision {
+    latest: AtomicU64,
+    pending_host: AtomicU64,
+    host_value: AtomicU64,
+    vendor_value: AtomicU64,
+}
+impl HandlerState {
+    pub fn initialize_parameters(&self, ids: impl Iterator<Item = u32>) {
+        let _ = self.revisions.set(
+            ids.map(|id| {
+                (
+                    id,
+                    ParameterRevision {
+                        latest: AtomicU64::new(0),
+                        pending_host: AtomicU64::new(0),
+                        host_value: AtomicU64::new(0),
+                        vendor_value: AtomicU64::new(f64::NAN.to_bits()),
+                    },
+                )
+            })
+            .collect(),
+        );
+    }
+    fn revision(&self, id: u32) -> Option<&ParameterRevision> {
+        self.revisions.get().and_then(|items| items.get(&id))
+    }
+    pub fn record(&self, id: u32) -> u64 {
+        let sequence = self.sequence.fetch_add(1, Ordering::Relaxed) + 1;
+        if let Some(revision) = self.revision(id) {
+            revision.latest.fetch_max(sequence, Ordering::AcqRel);
+        }
+        sequence
+    }
+    pub fn record_host(&self, id: u32, value: f64) -> u64 {
+        let sequence = self.record(id);
+        if let Some(revision) = self.revision(id) {
+            revision
+                .host_value
+                .store(value.to_bits(), Ordering::Relaxed);
+            revision.pending_host.fetch_max(sequence, Ordering::AcqRel);
+        }
+        sequence
+    }
+    pub fn record_vendor(&self, id: u32, value: f64) -> Option<u64> {
+        if self.revisions.get().is_some() && self.revision(id).is_none() {
+            return None;
+        }
+        if let Some(revision) = self.revision(id) {
+            if revision
+                .vendor_value
+                .swap(value.to_bits(), Ordering::AcqRel)
+                == value.to_bits()
+            {
+                return None;
+            }
+        }
+        Some(self.record(id))
+    }
+    fn retry_vendor(&self, id: u32, value: f64) {
+        if let Some(revision) = self.revision(id) {
+            let _ = revision.vendor_value.compare_exchange(
+                value.to_bits(),
+                f64::NAN.to_bits(),
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            );
+        }
+    }
+    pub fn pending_host_values(&self) -> Vec<(u32, f64, u64)> {
+        let mut pending: Vec<_> = self
+            .revisions
+            .get()
+            .into_iter()
+            .flat_map(|items| items.iter())
+            .filter_map(|(&id, revision)| {
+                let sequence = revision.pending_host.load(Ordering::Acquire);
+                (sequence != 0).then(|| {
+                    (
+                        id,
+                        f64::from_bits(revision.host_value.load(Ordering::Relaxed)),
+                        sequence,
+                    )
+                })
+            })
+            .collect();
+        pending.sort_unstable_by_key(|(_, _, sequence)| *sequence);
+        pending
+    }
+    pub fn current(&self, id: u32, sequence: u64) -> bool {
+        self.revision(id)
+            .is_none_or(|revision| revision.latest.load(Ordering::Acquire) == sequence)
+    }
+    pub fn host_pending(&self, id: u32) -> bool {
+        self.revision(id)
+            .is_some_and(|revision| revision.pending_host.load(Ordering::Acquire) != 0)
+    }
+    pub fn finish_host(&self, id: u32, sequence: u64, applied_value: Option<f64>) {
+        if let Some(revision) = self.revision(id) {
+            if let Some(value) = applied_value {
+                if revision.latest.load(Ordering::Acquire) == sequence {
+                    revision
+                        .vendor_value
+                        .store(value.to_bits(), Ordering::Release);
+                }
+            }
+            let _ = revision.pending_host.compare_exchange(
+                sequence,
+                0,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            );
+        }
+    }
+}
+impl Default for HandlerState {
+    fn default() -> Self {
+        Self {
+            restart: AtomicI32::new(0),
+            edits: crossbeam_queue::ArrayQueue::new(4096),
+            sequence: AtomicU64::new(0),
+            revisions: OnceLock::new(),
+        }
+    }
+}
 pub struct Handler {
-    pub restart: Cell<i32>,
+    pub state: Arc<HandlerState>,
 }
 impl Class for Handler {
     type Interfaces = (IComponentHandler,);
@@ -69,15 +230,99 @@ impl IComponentHandlerTrait for Handler {
     unsafe fn beginEdit(&self, _id: u32) -> tresult {
         kResultOk
     }
-    unsafe fn performEdit(&self, _id: u32, _value: f64) -> tresult {
-        kResultOk
+    unsafe fn performEdit(&self, id: u32, value: f64) -> tresult {
+        if !value.is_finite() || !(0.0..=1.0).contains(&value) {
+            return kInvalidArgument;
+        }
+        let Some(sequence) = self.state.record_vendor(id, value) else {
+            return kResultOk;
+        };
+        if self.state.edits.push((id, value, sequence)).is_ok() {
+            kResultOk
+        } else {
+            self.state.retry_vendor(id, value);
+            kResultFalse
+        }
     }
     unsafe fn endEdit(&self, _id: u32) -> tresult {
         kResultOk
     }
     unsafe fn restartComponent(&self, flags: i32) -> tresult {
-        self.restart.set(self.restart.get() | flags);
+        self.state.restart.fetch_or(flags, Ordering::Release);
         kResultOk
+    }
+}
+#[cfg(test)]
+mod handler_tests {
+    use super::*;
+    #[test]
+    fn newer_parameter_edits_supersede_queued_updates_per_parameter() {
+        let state = Arc::new(HandlerState::default());
+        state.initialize_parameters([10, 20].into_iter());
+        let handler = Handler {
+            state: state.clone(),
+        };
+        assert_eq!(unsafe { handler.performEdit(10, 0.2) }, kResultOk);
+        let (_, _, old_editor) = state.edits.pop().unwrap();
+        let host = state.record_host(10, 0.5);
+        assert!(!state.current(10, old_editor));
+        assert!(state.host_pending(10));
+        let newer_host = state.record_host(10, 0.6);
+        assert_eq!(unsafe { handler.performEdit(10, 0.2) }, kResultOk);
+        assert!(state.edits.is_empty());
+        assert!(state.current(10, newer_host));
+        state.finish_host(10, host, None);
+        assert!(state.host_pending(10));
+        assert_eq!(state.pending_host_values(), vec![(10, 0.6, newer_host)]);
+        assert_eq!(unsafe { handler.performEdit(20, 0.3) }, kResultOk);
+        let (_, _, other_parameter) = state.edits.pop().unwrap();
+        assert!(state.current(10, newer_host));
+        assert!(state.current(20, other_parameter));
+        assert_eq!(unsafe { handler.performEdit(10, 0.8) }, kResultOk);
+        let (_, _, newer_editor) = state.edits.pop().unwrap();
+        assert!(!state.current(10, newer_host));
+        assert!(state.current(10, newer_editor));
+        state.finish_host(10, newer_host, None);
+        assert!(!state.host_pending(10));
+        let final_host = state.record_host(10, 0.6);
+        state.finish_host(10, final_host, Some(0.6));
+        assert_eq!(unsafe { handler.performEdit(10, 0.8) }, kResultOk);
+        assert!(state.edits.pop().is_some());
+    }
+    #[test]
+    fn edit_callbacks_are_safe_across_threads_and_bounded() {
+        let state = Arc::new(HandlerState::default());
+        let mut workers = Vec::new();
+        for id in 0..4 {
+            let state = state.clone();
+            workers.push(std::thread::spawn(move || {
+                let handler = Handler { state };
+                for _ in 0..100 {
+                    assert_eq!(unsafe { handler.performEdit(id, 0.75) }, kResultOk);
+                }
+                assert_eq!(unsafe { handler.restartComponent(1 << id) }, kResultOk);
+                assert_eq!(
+                    unsafe { handler.performEdit(id, f64::NAN) },
+                    kInvalidArgument
+                );
+            }));
+        }
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        assert_eq!(state.restart.load(Ordering::Acquire), 15);
+        let mut count = 0;
+        while state.edits.pop().is_some() {
+            count += 1;
+        }
+        assert_eq!(count, 400);
+        for _ in 0..4096 {
+            state.edits.push((0, 0.5, 0)).unwrap();
+        }
+        assert_eq!(
+            unsafe { Handler { state }.performEdit(0, 0.5) },
+            kResultFalse
+        );
     }
 }
 pub struct Events {
@@ -227,6 +472,15 @@ pub struct MemoryStream {
     position: Cell<usize>,
 }
 impl MemoryStream {
+    pub fn from_bytes(data: Vec<u8>) -> Self {
+        Self {
+            data: RefCell::new(data),
+            position: Cell::new(0),
+        }
+    }
+    pub fn bytes(&self) -> Vec<u8> {
+        self.data.borrow().clone()
+    }
     pub fn rewind(&self) {
         self.position.set(0);
     }

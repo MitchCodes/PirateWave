@@ -27,12 +27,73 @@ use std::{
     time::{Duration, Instant},
 };
 
+type PluginStates = HashMap<
+    u64,
+    (
+        piratewave_core::plugins::PluginDescriptor,
+        piratewave_core::plugins::PluginState,
+    ),
+>;
+type PluginEdits = crate::plugins::PluginEdits;
+fn apply_pending_plugin_edits(project: &mut Project, edits: &PluginEdits) {
+    for node in &mut project.nodes {
+        if let (Some(plugin), Some((descriptor, values))) = (&mut node.plugin, edits.get(&node.id))
+        {
+            if !plugin.descriptor.same_plugin(descriptor) {
+                continue;
+            }
+            for (id, (base, latest)) in values {
+                if let Some(parameter) = plugin.descriptor.parameters.iter().find(|p| p.id == *id) {
+                    let current = *plugin.parameters.get(id).unwrap_or(&parameter.default);
+                    if current == *base {
+                        plugin.parameters.insert(*id, *latest);
+                    }
+                }
+            }
+        }
+    }
+}
+fn apply_plugin_states(project: &mut Project, states: &PluginStates) {
+    for node in &mut project.nodes {
+        if let (Some(plugin), Some((descriptor, state))) = (&mut node.plugin, states.get(&node.id))
+        {
+            if plugin.descriptor.same_plugin(descriptor) {
+                plugin.state = Some(state.clone());
+            }
+        }
+    }
+}
+
 pub struct WorkflowEvent {
     pub context: piratewave_core::automation::Context,
     pub event: Option<piratewave_core::automation::EventKind>,
     pub result: Result<(), String>,
 }
 pub enum Command {
+    SetPluginParameters {
+        id: u64,
+        values: Vec<(u32, f64)>,
+    },
+    OpenPluginEditor {
+        id: u64,
+        reply: mpsc::SyncSender<Result<(), String>>,
+    },
+    ClosePluginEditors,
+    ClosePluginEditor(u64),
+    CapturePluginStates(
+        bool,
+        mpsc::SyncSender<(
+            HashMap<
+                u64,
+                (
+                    piratewave_core::plugins::PluginDescriptor,
+                    piratewave_core::plugins::PluginState,
+                ),
+            >,
+            Vec<String>,
+            PluginEdits,
+        )>,
+    ),
     Generation(u64),
     Perform {
         context: piratewave_core::automation::Context,
@@ -133,6 +194,8 @@ pub struct Status {
     pub outputs: usize,
     pub output_rates: Vec<u32>,
     pub plugins: HashMap<u64, String>,
+    pub plugin_editor_edits: PluginEdits,
+    pub plugin_editor_open: Vec<u64>,
     pub voice_changers: HashMap<u64, String>,
     pub recording_seconds: HashMap<u64, f32>,
     pub recording_buffers: usize,
@@ -955,6 +1018,8 @@ impl Session {
             recording_buffers: self.recorder.histories.len(),
             recording_bytes: self.recorder.allocated_bytes(),
             plugins: self.plugins.statuses(),
+            plugin_editor_edits: self.plugins.pending_editor_edits(),
+            plugin_editor_open: self.plugins.open_editor_nodes(),
             voice_changers: self.voice_changer.status().into_iter().collect(),
             peaks: self
                 .graph
@@ -1093,6 +1158,10 @@ fn run(
         }
     };
     let mut generation = 0u64;
+    let mut retained_plugin_states = PluginStates::new();
+    let mut retained_plugin_errors: Vec<String> = Vec::new();
+    let mut retained_plugin_edits = PluginEdits::new();
+    let mut workspace_changed = false;
     let mut last_available: HashMap<u64, bool> = HashMap::new();
     let history_budget = Arc::new(AtomicUsize::new(0));
     let mut frame_clock = 0u64;
@@ -1103,36 +1172,115 @@ fn run(
     let mut last = Instant::now();
     let mut logged_message = String::new();
     let mut last_metrics = Instant::now();
+    let mut pending_plugin_transition: Option<(
+        piratewave_core::automation::Context,
+        u64,
+        Command,
+        bool,
+        Instant,
+        Instant,
+    )> = None;
     loop {
-        while let Ok(command) = rx.try_recv() {
-            let (context, target, command, tracked) = match command {
-                Command::Perform {
-                    context,
-                    target,
-                    command,
-                } => {
-                    if context.generation != generation {
-                        emit(WorkflowEvent {
+        loop {
+            let (context, target, command, tracked, captured) =
+                if let Some((context, target, command, tracked, started, next_poll)) =
+                    pending_plugin_transition.take()
+                {
+                    if Instant::now() < next_poll {
+                        pending_plugin_transition =
+                            Some((context, target, command, tracked, started, next_poll));
+                        break;
+                    }
+                    let mut errors = Vec::new();
+                    if let Some(active) = &mut session {
+                        active.plugins.editor_idle();
+                        retained_plugin_edits = active.plugins.pending_editor_edits();
+                        let (states, capture_errors) = active.plugins.capture_states(false);
+                        retained_plugin_states.extend(states);
+                        errors = capture_errors;
+                    }
+                    if errors
+                        .iter()
+                        .any(|error| error.contains("state capture is pending"))
+                        && started.elapsed() < Duration::from_secs(6)
+                    {
+                        pending_plugin_transition = Some((
                             context,
-                            event: None,
-                            result: Err("Workspace changed; command cancelled".into()),
-                        });
+                            target,
+                            command,
+                            tracked,
+                            started,
+                            Instant::now() + Duration::from_millis(20),
+                        ));
+                        break;
+                    }
+                    retained_plugin_errors = errors
+                        .into_iter()
+                        .map(|error| {
+                            if error.contains("state capture is pending") {
+                                error.replace("state capture is pending", "state capture timed out")
+                            } else {
+                                error
+                            }
+                        })
+                        .collect();
+                    if let Some(active) = &mut session {
+                        for error in &retained_plugin_errors {
+                            crate::logging::error(format_args!("{error}"));
+                            active.message = error.clone();
+                        }
+                    }
+                    (context, target, command, tracked, true)
+                } else {
+                    let Ok(command) = rx.try_recv() else {
+                        break;
+                    };
+                    let (context, target, command, tracked) = match command {
+                        Command::Perform {
+                            context,
+                            target,
+                            command,
+                        } => {
+                            if context.generation != generation {
+                                emit(WorkflowEvent {
+                                    context,
+                                    event: None,
+                                    result: Err("Workspace changed; command cancelled".into()),
+                                });
+                                continue;
+                            }
+                            (context, target, *command, true)
+                        }
+                        command => (
+                            piratewave_core::automation::Context {
+                                generation,
+                                operation: piratewave_core::recording::RecordSlot::new("").id,
+                                ..Default::default()
+                            },
+                            0,
+                            command,
+                            false,
+                        ),
+                    };
+                    (context, target, command, tracked, false)
+                };
+            let was_running = session.is_some();
+            if !captured
+                && (matches!(
+                    &command,
+                    Command::Stop | Command::Start(_) | Command::Reconfigure(_) | Command::Shutdown
+                ) || matches!(&command, Command::Toggle(_)) && was_running)
+            {
+                if let Some(active) = &mut session {
+                    if active.plugins.tracking_state() {
+                        active.plugins.close_editors();
+                        let now = Instant::now();
+                        pending_plugin_transition =
+                            Some((context, target, command, tracked, now, now));
                         continue;
                     }
-                    (context, target, *command, true)
                 }
-                command => (
-                    piratewave_core::automation::Context {
-                        generation,
-                        operation: piratewave_core::recording::RecordSlot::new("").id,
-                        ..Default::default()
-                    },
-                    0,
-                    command,
-                    false,
-                ),
-            };
-            let was_running = session.is_some();
+            }
             let requested_start =
                 matches!(&command, Command::Start(_) | Command::StartIfStopped(_))
                     || matches!(&command, Command::Toggle(_)) && !was_running
@@ -1190,6 +1338,10 @@ fn run(
             match command {
                 Command::Generation(next) => {
                     generation = next;
+                    retained_plugin_states.clear();
+                    retained_plugin_errors.clear();
+                    retained_plugin_edits.clear();
+                    workspace_changed = true;
                     last_available.clear();
                 }
                 Command::Perform { .. } => {
@@ -1360,6 +1512,43 @@ fn run(
                     let status = session.as_mut().map(|s| s.status()).unwrap_or_default();
                     let _ = reply.try_send(status);
                 }
+                Command::CapturePluginStates(final_capture, reply) => {
+                    let (errors, edits) = if let Some(active) = &mut session {
+                        active.plugins.editor_idle();
+                        let (states, errors) = active.plugins.capture_states(final_capture);
+                        retained_plugin_states.extend(states);
+                        retained_plugin_errors = errors.clone();
+                        (errors, active.plugins.pending_editor_edits())
+                    } else {
+                        (
+                            retained_plugin_errors.clone(),
+                            retained_plugin_edits.clone(),
+                        )
+                    };
+                    let _ = reply.try_send((retained_plugin_states.clone(), errors, edits));
+                }
+                Command::OpenPluginEditor { id, reply } => {
+                    let result = session
+                        .as_mut()
+                        .ok_or_else(|| "Start audio before opening a plugin editor".to_string())
+                        .and_then(|s| s.plugins.open_editor(id).map_err(|e| format!("{e:#}")));
+                    let _ = reply.try_send(result);
+                }
+                Command::SetPluginParameters { id, values } => {
+                    if let Some(active) = &mut session {
+                        active.plugins.set_parameters(id, &values);
+                    }
+                }
+                Command::ClosePluginEditors => {
+                    if let Some(active) = &mut session {
+                        active.plugins.close_editors();
+                    }
+                }
+                Command::ClosePluginEditor(id) => {
+                    if let Some(active) = &mut session {
+                        active.plugins.close_editor(id);
+                    }
+                }
                 Command::Stop => {
                     crate::logging::info(format_args!("Audio stopped by user"));
                     crate::training::audio_running(false);
@@ -1368,12 +1557,22 @@ fn run(
                         &statuses,
                         Status {
                             message: "Audio stopped".into(),
+                            plugin_editor_edits: retained_plugin_edits.clone(),
                             ..Default::default()
                         },
                     );
                 }
-                Command::Start(project) => {
+                Command::Start(mut project) => {
                     drop(session.take());
+                    if workspace_changed {
+                        retained_plugin_states.clear();
+                        retained_plugin_errors.clear();
+                        retained_plugin_edits.clear();
+                        workspace_changed = false;
+                    } else {
+                        apply_plugin_states(&mut project, &retained_plugin_states);
+                        apply_pending_plugin_edits(&mut project, &retained_plugin_edits);
+                    }
                     session = start_session(
                         &project,
                         &statuses,
@@ -1381,9 +1580,16 @@ fn run(
                         history_budget.clone(),
                         None,
                     );
+                    if let Some(active) = &mut session {
+                        active
+                            .plugins
+                            .adopt_editor_edits(std::mem::take(&mut retained_plugin_edits));
+                    }
                 }
-                Command::StartIfStopped(project) => {
+                Command::StartIfStopped(mut project) => {
                     if session.is_none() {
+                        apply_plugin_states(&mut project, &retained_plugin_states);
+                        apply_pending_plugin_edits(&mut project, &retained_plugin_edits);
                         session = start_session(
                             &project,
                             &statuses,
@@ -1391,9 +1597,14 @@ fn run(
                             history_budget.clone(),
                             None,
                         );
+                        if let Some(active) = &mut session {
+                            active
+                                .plugins
+                                .adopt_editor_edits(std::mem::take(&mut retained_plugin_edits));
+                        }
                     }
                 }
-                Command::Toggle(project) => {
+                Command::Toggle(mut project) => {
                     if session.is_some() {
                         crate::training::audio_running(false);
                         session = None;
@@ -1401,10 +1612,13 @@ fn run(
                             &statuses,
                             Status {
                                 message: "Audio stopped".into(),
+                                plugin_editor_edits: retained_plugin_edits.clone(),
                                 ..Default::default()
                             },
                         );
                     } else {
+                        apply_plugin_states(&mut project, &retained_plugin_states);
+                        apply_pending_plugin_edits(&mut project, &retained_plugin_edits);
                         session = start_session(
                             &project,
                             &statuses,
@@ -1412,10 +1626,17 @@ fn run(
                             history_budget.clone(),
                             None,
                         );
+                        if let Some(active) = &mut session {
+                            active
+                                .plugins
+                                .adopt_editor_edits(std::mem::take(&mut retained_plugin_edits));
+                        }
                     }
                 }
-                Command::Reconfigure(project) => {
+                Command::Reconfigure(mut project) => {
                     if let Some(mut old) = session.take() {
+                        apply_plugin_states(&mut project, &retained_plugin_states);
+                        apply_pending_plugin_edits(&mut project, &retained_plugin_edits);
                         let histories = std::mem::take(&mut old.recorder);
                         let take = old.take.take();
                         let voices = std::mem::take(&mut old.recording_voices);
@@ -1428,6 +1649,9 @@ fn run(
                             Some(histories),
                         );
                         if let Some(active) = &mut session {
+                            active
+                                .plugins
+                                .adopt_editor_edits(std::mem::take(&mut retained_plugin_edits));
                             active.recording_voices = voices;
                             active.take = take;
                             active.refresh_workflow_points();
@@ -1443,6 +1667,22 @@ fn run(
                 Command::Update(project) => {
                     let result = validate_hardware_routes(&project).and_then(|()| {
                         if let Some(active) = &mut session {
+                            retained_plugin_states.retain(|id, (descriptor, _)| {
+                                project
+                                    .nodes
+                                    .iter()
+                                    .find(|n| n.id == *id)
+                                    .and_then(|n| n.plugin.as_ref())
+                                    .is_some_and(|plugin| plugin.descriptor.same_plugin(descriptor))
+                            });
+                            retained_plugin_edits.retain(|id, (descriptor, _)| {
+                                project
+                                    .nodes
+                                    .iter()
+                                    .find(|n| n.id == *id)
+                                    .and_then(|n| n.plugin.as_ref())
+                                    .is_some_and(|plugin| plugin.descriptor.same_plugin(descriptor))
+                            });
                             active.recorder.validate_memory(&project)?;
                             active.graph.update(&project, &registry)?;
                             if active.graph.scene.is_none() {
@@ -1818,6 +2058,7 @@ fn run(
             }
             if last.elapsed() >= Duration::from_millis(50) {
                 crate::plugins::pump_messages();
+                active.plugins.editor_idle();
                 let status = active.status();
                 for (id, available) in &status.available {
                     if last_available
@@ -1862,6 +2103,61 @@ fn run(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn restart_preserves_only_matching_plugin_state_and_unacknowledged_edits() {
+        use super::*;
+        use piratewave_core::plugins::{
+            NodePlugin, PluginDescriptor, PluginFormat, PluginParameter, PluginRole, PluginState,
+        };
+        use piratewave_core::project::Node;
+        let descriptor = PluginDescriptor {
+            path: "fixture.vst3".into(),
+            class_id: "class".into(),
+            format: PluginFormat::Vst3,
+            role: PluginRole::Effect,
+            name: "Fixture".into(),
+            vendor: "Test".into(),
+            parameters: vec![PluginParameter {
+                id: 7,
+                name: "Value".into(),
+                unit: String::new(),
+                default: 0.5,
+                steps: 0,
+            }],
+        };
+        let state = PluginState {
+            component: vec![1, 2, 3].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        };
+        let mut node = Node::new(77, "Fixture", NodeKind::VstEffect, [0.0; 2]);
+        node.plugin = Some(NodePlugin::new(descriptor.clone()));
+        let mut project = Project::default();
+        project.nodes = vec![node];
+        let states = [(77, (descriptor.clone(), state.clone()))]
+            .into_iter()
+            .collect();
+        let edits = [(
+            77,
+            (descriptor.clone(), [(7, (0.5, 0.75))].into_iter().collect()),
+        )]
+        .into_iter()
+        .collect();
+        apply_plugin_states(&mut project, &states);
+        apply_pending_plugin_edits(&mut project, &edits);
+        let plugin = project.nodes[0].plugin.as_ref().unwrap();
+        assert_eq!(plugin.state, Some(state));
+        assert_eq!(plugin.parameters[&7], 0.75);
+        let mut replacement = descriptor;
+        replacement.class_id = "other".into();
+        project.nodes[0].plugin = Some(NodePlugin::new(replacement));
+        apply_plugin_states(&mut project, &states);
+        apply_pending_plugin_edits(&mut project, &edits);
+        let plugin = project.nodes[0].plugin.as_ref().unwrap();
+        assert!(plugin.state.is_none());
+        assert!(plugin.parameters.is_empty());
+    }
     #[test]
     fn render_mappings_follow_stream_recovery_and_graph_reordering() {
         use piratewave_core::project::Node;

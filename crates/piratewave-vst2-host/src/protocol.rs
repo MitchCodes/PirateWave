@@ -7,12 +7,24 @@ pub const PROCESS: u8 = 2;
 pub const AUDIO: u8 = 3;
 pub const ERROR: u8 = 4;
 pub const QUIT: u8 = 5;
-pub const MAX_PACKET: usize = 1024 * 1024;
+pub const CAPTURE_STATE: u8 = 6;
+pub const RESTORE_STATE: u8 = 7;
+pub const STATE: u8 = 8;
+pub const OPEN_EDITOR: u8 = 9;
+pub const CLOSE_EDITOR: u8 = 10;
+pub const EDITOR_IDLE: u8 = 11;
+pub const EDITOR_STATUS: u8 = 12;
+pub const CAPTURE_STATE_FINAL: u8 = 13;
+pub const INVALIDATE_STATE_CAPTURE: u8 = 14;
+pub const SET_PARAMETERS: u8 = 15;
+pub const TEST_EDITOR_KEY: u8 = 16;
+pub const TEST_EDITOR_TIMEOUT: u8 = 17;
+pub const MAX_PACKET: usize = 64 * 1024 * 1024 + 5;
 pub const FRAME_BYTES: usize = BLOCK_SIZE * 8;
 pub fn write_packet(stream: &mut impl Write, kind: u8, bytes: &[u8]) -> Result<()> {
     anyhow::ensure!(bytes.len() <= MAX_PACKET, "Bridge packet too large");
     let mut header = [0u8; 9];
-    header[..4].copy_from_slice(b"PVB1");
+    header[..4].copy_from_slice(b"PVB2");
     header[4] = kind;
     header[5..].copy_from_slice(&(bytes.len() as u32).to_le_bytes());
     stream.write_all(&header)?;
@@ -26,11 +38,17 @@ pub fn read_packet(stream: &mut impl Read, buffer: &mut Vec<u8>) -> Result<u8> {
         .read_exact(&mut header)
         .context("Bridge disconnected or timed out")?;
     anyhow::ensure!(
-        &header[..4] == b"PVB1",
+        &header[..4] == b"PVB2",
         "Bridge protocol version/signature mismatch"
     );
     let size = u32::from_le_bytes(header[5..].try_into().unwrap()) as usize;
     anyhow::ensure!(size <= MAX_PACKET, "Bridge packet exceeds limit");
+    if !matches!(header[4], STATE | RESTORE_STATE) {
+        anyhow::ensure!(
+            size <= 1024 * 1024,
+            "Bridge control/audio packet exceeds limit"
+        );
+    }
     buffer.resize(size, 0);
     stream.read_exact(buffer)?;
     Ok(header[4])
@@ -112,9 +130,12 @@ mod tests {
         let mut output = [[0.0; 2]; BLOCK_SIZE];
         decode_frames(&decoded, &mut output).unwrap();
         assert_eq!(frames, output);
-        let mut malicious = b"PVB1\x03".to_vec();
+        let mut malicious = b"PVB2\x03".to_vec();
         malicious.extend_from_slice(&u32::MAX.to_le_bytes());
         assert!(read_packet(&mut &malicious[..], &mut decoded).is_err());
+        let mut oversized_control = b"PVB2\x02".to_vec();
+        oversized_control.extend_from_slice(&((1024 * 1024 + 1) as u32).to_le_bytes());
+        assert!(read_packet(&mut &oversized_control[..], &mut decoded).is_err());
         assert!(decode_frames(&[0; 3], &mut output).is_err());
     }
 }

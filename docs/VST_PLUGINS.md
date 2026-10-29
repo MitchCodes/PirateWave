@@ -9,6 +9,8 @@ PirateWave hosts installed 64-bit Windows VST3 plugins and 32-/64-bit VST 2.4 DL
 3. Click **Add instrument node** / **Add effect node**, or select either type in **Add node**. Connect it in **Routing**. Instruments have only an outgoing audio port; effects process an incoming mix. Both can feed processors and multiple output buses.
 4. Start audio. Open **Plugin / Play notes** or **Plugin controls** in Mixer, or select the node in Effects rack. Select an imported plugin of the matching type, edit parameter sliders, and play the instrument keyboard. Hold a keyboard button with the mouse; releasing anywhere releases that note. **Play audition note** stays on until **Stop all notes** or its release shortcut.
 
+To try the plugin's own interface, enable **Experimental VST editors** in Settings, then choose **Open plugin editor** on the node while audio is running. Reopening an existing window focuses it. Not every plugin provides a compatible editor; the generic parameter controls remain available. Turning the setting off closes open editors.
+
 Instruments have volume, pan, mute and solo controls. VST effects have **Disable (passthrough)**, bypassing the plugin and additional built-in effects while preserving saved parameters. Manage extra built-in effects below Plugin controls in Effects rack. Output Bus mute/gain and Listen apply to the resulting mix as usual.
 
 ## Global shortcuts
@@ -22,9 +24,11 @@ The audition note (MIDI 0–127, default 60 / C4) and velocity are saved per ins
 
 ## Persistence and compatibility
 
-Projects store plugin paths, class identities, parameter metadata/values, audition settings and shortcuts. `plugins.json`, beside `settings.json`, stores the imported library. Removing a library entry keeps existing nodes. After moving a plugin, import its new location and select it on affected nodes. Each node has a separate instance. Parameter edits and graph-only changes preserve active instances/notes; device-stream restarts recreate plugins.
+Projects store plugin paths, class identities, parameter metadata/values, audition settings and shortcuts. When experimental editors are enabled, the host also captures plugin-provided VST3 component/controller state or VST2 bank chunks and the selected program, falling back to VST2 program chunks where available. This can preserve settings that are not exposed as parameters. Plugins without supported state continue to use normalized parameters. If a state capture fails, PirateWave reports the problem and keeps the last available snapshot. Plugins may reference external sample files by path; those files must remain available. `plugins.json`, beside `settings.json`, stores the imported library. Removing a library entry keeps existing nodes. After moving a plugin, import its new location and select it on affected nodes. Each node has a separate instance. Parameter edits and graph-only changes preserve active instances/notes; device-stream restarts recreate plugins.
 
-Current scope: float32 mono/stereo main audio at 48 kHz / 128 frames, up to 4,096 parameters, generic normalized controls, and channel-1 notes from PirateWave. Vendor editor windows, external MIDI input, MIDI routing/output, presets or opaque state chunks, sample loading through vendor UIs, sidechains, surround, VST2 shells, 32-bit VST3, sample-accurate automation and latency compensation are not supported. Plugins requiring these may not be usable yet. Parallel branches containing plugins with latency may be misaligned.
+Undo history keeps up to 16 MiB of plugin state separately from ordinary edits. If a deleted or replaced plugin's state cannot fit in that history, PirateWave refuses the corresponding undo rather than restore the plugin with missing state.
+
+Current scope: float32 mono/stereo main audio at 48 kHz / 128 frames, up to 4,096 parameters, generic normalized controls, experimental vendor editors, and channel-1 notes from PirateWave. External MIDI input, MIDI routing/output, host preset management, sidechains, surround, VST2 shells, 32-bit VST3, sample-accurate automation and latency compensation are not supported. Plugins requiring these may not be usable yet. Parallel branches containing plugins with latency may be misaligned.
 
 32-bit VST2 is automatically hosted in `piratewave-vst-bridge32.exe`, bundled beside `PirateWave.exe`. No plugin conversion or administrator access is needed. Keep both executables together. The helper uses authenticated loopback IPC with bounded audio/parameter messages and a 500 ms processing deadline. This adds CPU/IPC overhead. Windows job objects terminate helpers on host/scanner exit; helper failure uses the existing silent-instrument / passthrough-effect fallback.
 
@@ -38,7 +42,9 @@ From a source checkout:
 ./scripts/test-plugins.ps1
 ```
 
-Builds self-authored 64-bit and 32-bit fixture plugins and checks isolated scans, instrument → effect → effect → output audio, live parameters, bypass, mute, notes, project restoration, invalid-plugin errors and shared module lifetime. CI runs native and bridged VST2 checks without audio hardware. Source builds require MSVC x86 and x64 build tools; `build.ps1` / `scripts/build-vst-bridge.ps1` install the i686 Rust standard library when needed. Results: `dist/plugin-self-test.txt`.
+Builds self-authored 64-bit and 32-bit fixture plugins and checks isolated scans, instrument → effect → effect → output audio, live parameters, editor open/close/reopen, keyboard and resize requests, slow editor operations, project save/reload, audio restart, opaque state and selected-program restoration, missing editors, rejected state, large bridged states, bypass, mute, notes, invalid-plugin errors and shared module lifetime. CI runs native and bridged VST2 checks without audio hardware. Source builds require MSVC x86 and x64 build tools; `build.ps1` / `scripts/build-vst-bridge.ps1` install the i686 Rust standard library when needed. Results: `dist/plugin-self-test.txt`.
+
+For a visual check with an installed third-party plugin, build the debug application and run `scripts/manual-vst-editor-check.ps1` from PowerShell. Choose the plugin, change a plugin-specific setting, try resizing and moving the window between display scales, and close it. The check opens a fresh instance with the captured state so you can inspect the restored setting. It does not open a workspace or audio device. VST3 bundle directories can also be supplied with `-PluginPath`.
 
 Optional check requiring existing VB-Audio CABLE Input and Line 1 Virtual Audio Cable playback devices:
 

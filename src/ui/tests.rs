@@ -75,6 +75,133 @@ pub(super) fn app() -> PirateWaveApp {
     }
 }
 #[test]
+fn plugin_editor_updates_are_guarded_by_identity_and_local_changes() {
+    use piratewave_core::plugins::{NodePlugin, PluginParameter, PluginRole};
+    let mut app = app();
+    let mut descriptor = plugins::fixture(PluginRole::Effect);
+    descriptor.parameters.push(PluginParameter {
+        id: 1,
+        name: "Gain".into(),
+        unit: String::new(),
+        default: 0.5,
+        steps: 0,
+    });
+    let mut node = Node::new(99, "Test", NodeKind::VstEffect, [0.0; 2]);
+    node.plugin = Some(NodePlugin::new(descriptor.clone()));
+    app.project.nodes.push(node);
+    let changes = [(
+        99,
+        (descriptor.clone(), [(1, (0.5, 0.7))].into_iter().collect()),
+    )]
+    .into_iter()
+    .collect();
+    app.apply_plugin_editor_edits(&changes);
+    assert_eq!(
+        app.project
+            .nodes
+            .last()
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap()
+            .parameters[&1],
+        0.7
+    );
+    app.project
+        .nodes
+        .last_mut()
+        .unwrap()
+        .plugin
+        .as_mut()
+        .unwrap()
+        .parameters
+        .insert(1, 0.2);
+    app.apply_plugin_editor_edits(&changes);
+    assert_eq!(
+        app.project
+            .nodes
+            .last()
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap()
+            .parameters[&1],
+        0.2
+    );
+    let mut replaced = descriptor;
+    replaced.class_id = "replacement".into();
+    app.project.nodes.last_mut().unwrap().plugin = Some(NodePlugin::new(replaced));
+    app.apply_plugin_editor_edits(&changes);
+    assert!(app
+        .project
+        .nodes
+        .last()
+        .unwrap()
+        .plugin
+        .as_ref()
+        .unwrap()
+        .parameters
+        .is_empty());
+}
+#[test]
+fn failed_plugin_state_capture_saves_last_snapshot_and_reports_warning() {
+    use piratewave_core::plugins::{NodePlugin, PluginRole, PluginState};
+    let mut app = app();
+    let descriptor = plugins::fixture(PluginRole::Effect);
+    let mut config = NodePlugin::new(descriptor);
+    config.state = Some(PluginState {
+        component: vec![7, 8, 9].into(),
+        controller: None,
+        vst2_bank: false,
+        vst2_program: None,
+    });
+    let mut node = Node::new(99, "Test", NodeKind::VstEffect, [0.0; 2]);
+    node.plugin = Some(config);
+    app.project.nodes.push(node);
+    app.path = std::env::temp_dir().join(format!(
+        "piratewave-plugin-state-test-{}.json",
+        piratewave_core::recording::RecordSlot::new("").id
+    ));
+    app.app_settings.experimental_vst_editors = true;
+    app.dirty = true;
+    let (engine, rx) = Engine::test_channel();
+    app.engine = engine;
+    let responder = std::thread::spawn(move || {
+        if let Command::CapturePluginStates(false, reply) = rx.recv().unwrap() {
+            reply
+                .send((
+                    HashMap::new(),
+                    vec!["Plugin 99: state capture failed".into()],
+                    HashMap::new(),
+                ))
+                .unwrap();
+        } else {
+            panic!("Expected a plugin state request");
+        }
+    });
+    app.save();
+    responder.join().unwrap();
+    assert!(!app.dirty);
+    assert!(app.notice.contains("last available plugin state"));
+    let saved = storage::load(&app.path).unwrap();
+    assert_eq!(
+        saved
+            .nodes
+            .iter()
+            .find(|n| n.id == 99)
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap()
+            .state
+            .as_ref()
+            .unwrap()
+            .component,
+        vec![7, 8, 9].into()
+    );
+    std::fs::remove_file(&app.path).unwrap();
+}
+#[test]
 fn voice_pages_shortcuts_and_second_activation_are_safe() {
     let ctx = egui::Context::default();
     let mut app = app();
@@ -989,6 +1116,30 @@ fn output_listen_checkbox_and_keybind_page_work() {
 }
 
 #[test]
+fn disabling_experimental_plugin_editors_closes_open_windows() {
+    let ctx = egui::Context::default();
+    let mut app = app();
+    let (engine, commands) = Engine::test_channel();
+    app.engine = engine;
+    app.view = View::Settings;
+    app.settings_section = keybinds::SettingsSection::General;
+    app.app_settings.experimental_vst_editors = true;
+    let _ = render(&ctx, &mut app, vec![]);
+    let output = render(&ctx, &mut app, vec![]);
+    click(
+        &ctx,
+        &mut app,
+        at(&output, "Enable vendor plugin editors (experimental)"),
+        egui::PointerButton::Primary,
+    );
+    assert!(!app.app_settings.experimental_vst_editors);
+    assert!(matches!(
+        commands.try_recv().unwrap(),
+        Command::ClosePluginEditors
+    ));
+}
+
+#[test]
 fn plugin_library_creates_nodes_and_opens_instrument_and_effect_controls() {
     use piratewave_core::plugins::PluginRole;
     let ctx = egui::Context::default();
@@ -1018,6 +1169,17 @@ fn plugin_library_creates_nodes_and_opens_instrument_and_effect_controls() {
     assert!(labels(&output)
         .iter()
         .any(|(s, _)| s == "Play notes (MIDI channel 1)"));
+    assert!(!labels(&output)
+        .iter()
+        .any(|(s, _)| s == "Open plugin editor"));
+    app.app_settings.experimental_vst_editors = true;
+    let output = render(&ctx, &mut app, vec![]);
+    assert!(labels(&output)
+        .iter()
+        .any(|(s, _)| s == "Open plugin editor"));
+    assert!(labels(&output)
+        .iter()
+        .any(|(s, _)| s == "Start audio to open the plugin editor."));
     app.open_node_keybinds(id);
     let output = render(&ctx, &mut app, vec![]);
     for action in NodeAction::INSTRUMENT {
@@ -1042,6 +1204,9 @@ fn plugin_library_creates_nodes_and_opens_instrument_and_effect_controls() {
     assert!(labels(&output)
         .iter()
         .any(|(s, _)| s == "Disable (passthrough)"));
+    assert!(labels(&output)
+        .iter()
+        .any(|(s, _)| s == "Open plugin editor"));
     app.open_node_keybinds(fx_id);
     let output = render(&ctx, &mut app, vec![]);
     for action in NodeAction::PROCESSOR {

@@ -38,6 +38,24 @@ pub(super) struct Editing {
     pub routing_selection: HashSet<u64>,
     paste_count: usize,
     devices: Option<mpsc::Receiver<DeviceResult>>,
+    plugin_states: HashMap<(u64, String, String, u8), piratewave_core::plugins::PluginState>,
+    plugin_state_order: std::collections::VecDeque<(u64, String, String, u8)>,
+    unretained_plugin_states: HashSet<(u64, String, String, u8)>,
+    pending_history: Option<PendingHistory>,
+    history_ready: bool,
+}
+struct PendingHistory {
+    redo: bool,
+    fingerprint: Vec<u8>,
+    path: PathBuf,
+    plugins: Vec<(u64, piratewave_core::plugins::PluginDescriptor)>,
+    started: Instant,
+    parameters: HashMap<u64, std::collections::BTreeMap<u32, f64>>,
+    reply: Option<mpsc::Receiver<super::plugins::PluginCapture>>,
+    result: Option<(
+        HashMap<u64, piratewave_core::plugins::PluginState>,
+        Vec<String>,
+    )>,
 }
 type DeviceResult = Result<(Devices, Vec<crate::windows_audio::EndpointState>), String>;
 #[derive(Clone, Serialize, Deserialize)]
@@ -48,6 +66,9 @@ pub(super) struct Clipboard {
     connections: Vec<piratewave_core::project::Connection>,
 }
 impl Editing {
+    pub(super) fn history_pending(&self) -> bool {
+        self.pending_history.is_some()
+    }
     pub fn can_undo(&self) -> bool {
         !self.undo.is_empty()
     }
@@ -60,6 +81,10 @@ impl Editing {
     pub fn clear_workspace(&mut self) {
         self.undo.clear();
         self.redo.clear();
+        self.plugin_states.clear();
+        self.plugin_state_order.clear();
+        self.unretained_plugin_states.clear();
+        self.pending_history = None;
         self.routing_selection.clear();
         self.group = None;
         self.pointer_group = false;
@@ -243,8 +268,68 @@ fn replace(
     }
 }
 impl PirateWaveApp {
-    fn edit_snapshot(&self) -> Value {
-        serde_json::json!({"project":self.project,"order":self.app_settings.ui.mixer_orders.get(self.path.to_string_lossy().as_ref())})
+    pub(super) fn remember_plugin_states(&mut self) {
+        for node in &self.project.nodes {
+            let Some(plugin) = &node.plugin else {
+                continue;
+            };
+            let Some(state) = &plugin.state else {
+                continue;
+            };
+            let size = state.component.len() + state.controller.as_ref().map_or(0, |v| v.len());
+            let key = (
+                node.id,
+                plugin.descriptor.path.clone(),
+                plugin.descriptor.class_id.clone(),
+                plugin.descriptor.format as u8,
+            );
+            if size > MAX_BYTES {
+                self.editing.plugin_states.remove(&key);
+                self.editing
+                    .plugin_state_order
+                    .retain(|existing| existing != &key);
+                self.editing.unretained_plugin_states.insert(key);
+                continue;
+            }
+            self.editing.unretained_plugin_states.remove(&key);
+            self.editing
+                .plugin_state_order
+                .retain(|existing| existing != &key);
+            self.editing
+                .plugin_states
+                .insert(key.clone(), state.clone());
+            self.editing.plugin_state_order.push_back(key);
+            while self
+                .editing
+                .plugin_states
+                .values()
+                .map(|s| s.component.len() + s.controller.as_ref().map_or(0, |v| v.len()))
+                .sum::<usize>()
+                > MAX_BYTES
+            {
+                if let Some(oldest) = self.editing.plugin_state_order.pop_front() {
+                    self.editing.plugin_states.remove(&oldest);
+                    self.editing.unretained_plugin_states.insert(oldest);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    pub(super) fn edit_snapshot(&self) -> Value {
+        let mut project = self.project.clone();
+        for node in &mut project.nodes {
+            if let Some(plugin) = &mut node.plugin {
+                plugin.state = None;
+            }
+        }
+        serde_json::json!({"project":project,"order":self.app_settings.ui.mixer_orders.get(self.path.to_string_lossy().as_ref())})
+    }
+    pub(super) fn record_deferred_plugin_edit(&mut self, before: Value) {
+        self.remember_plugin_states();
+        let after = self.edit_snapshot();
+        self.editing.record(before, after, None, false);
+        self.editing.replayed = true;
     }
     pub(super) fn begin_edit_frame(&mut self, ctx: &egui::Context) -> Option<Value> {
         self.editing.replayed = false;
@@ -264,13 +349,19 @@ impl PirateWaveApp {
                     )
                 })
         });
-        active.then(|| self.edit_snapshot())
+        if active {
+            self.remember_plugin_states();
+            Some(self.edit_snapshot())
+        } else {
+            None
+        }
     }
     pub(super) fn finish_edit_frame(&mut self, ctx: &egui::Context, before: Option<Value>) {
         if self.editing.replayed {
             return;
         }
         if let Some(before) = before {
+            self.remember_plugin_states();
             let after = self.edit_snapshot();
             self.editing.record(
                 before,
@@ -298,7 +389,217 @@ impl PirateWaveApp {
             self.editing.pointer_group = false;
         }
     }
+    fn defer_history_for_plugins(&mut self, redo: bool) -> bool {
+        if self.editing.history_ready
+            || !self.status.running
+            || !(self.app_settings.experimental_vst_editors || self.plugin_ui.editor_used)
+        {
+            return false;
+        }
+        if self.editing.pending_history.is_some() || self.plugin_ui.change_pending() {
+            self.notify_error("A plugin change is already waiting for state capture");
+            return true;
+        }
+        let entry = if redo {
+            self.editing.redo.last()
+        } else {
+            self.editing.undo.last()
+        };
+        let Some(entry) = entry else {
+            return false;
+        };
+        let fingerprint = serde_json::to_vec(&entry.changes).unwrap_or_default();
+        let mut next = self.edit_snapshot();
+        if redo {
+            for change in &entry.changes {
+                replace(&mut next, &change.path, &change.before, &change.after);
+            }
+        } else {
+            for change in entry.changes.iter().rev() {
+                replace(&mut next, &change.path, &change.after, &change.before);
+            }
+        }
+        let Ok(project) = serde_json::from_value::<Project>(next["project"].clone()) else {
+            return false;
+        };
+        let plugins: Vec<_> = self
+            .project
+            .nodes
+            .iter()
+            .filter_map(|node| {
+                let plugin = node.plugin.as_ref()?;
+                let preserved = project
+                    .nodes
+                    .iter()
+                    .find(|new| new.id == node.id && new.kind.is_plugin())
+                    .and_then(|new| new.plugin.as_ref())
+                    .is_some_and(|new| new.descriptor.same_plugin(&plugin.descriptor));
+                (!preserved).then(|| (node.id, plugin.descriptor.clone()))
+            })
+            .collect();
+        if plugins.is_empty() {
+            return false;
+        }
+        for (id, _) in &plugins {
+            if let Err(error) = self.engine.send(Command::ClosePluginEditor(*id)) {
+                self.notify_error(format!("Cannot save plugin state before undo: {error}"));
+                return true;
+            }
+        }
+        self.editing.pending_history = Some(PendingHistory {
+            redo,
+            fingerprint,
+            path: self.path.clone(),
+            plugins,
+            started: Instant::now(),
+            parameters: HashMap::new(),
+            reply: None,
+            result: None,
+        });
+        self.notify("Saving plugin state before changing edit history…");
+        true
+    }
+    pub(super) fn poll_history_capture(&mut self, ctx: &egui::Context) {
+        let Some(mut pending) = self.editing.pending_history.take() else {
+            return;
+        };
+        let entry = if pending.redo {
+            self.editing.redo.last()
+        } else {
+            self.editing.undo.last()
+        };
+        let same_entry = entry.is_some_and(|entry| {
+            serde_json::to_vec(&entry.changes).ok().as_ref() == Some(&pending.fingerprint)
+        });
+        let same_plugins = pending.plugins.iter().all(|(id, descriptor)| {
+            self.project
+                .nodes
+                .iter()
+                .find(|node| node.id == *id)
+                .and_then(|node| node.plugin.as_ref())
+                .is_some_and(|plugin| plugin.descriptor.same_plugin(descriptor))
+        });
+        if pending.path != self.path || !same_entry || !same_plugins {
+            self.notify_error("The edit history changed before plugin state capture completed");
+            return;
+        }
+        if pending.result.is_none() && pending.started.elapsed() >= Duration::from_secs(6) {
+            pending.result = Some((
+                HashMap::new(),
+                vec![
+                    "Plugin state capture timed out; the previous saved state was retained".into(),
+                ],
+            ));
+        }
+        let parameters =
+            |app: &PirateWaveApp| -> HashMap<u64, std::collections::BTreeMap<u32, f64>> {
+                pending
+                    .plugins
+                    .iter()
+                    .filter_map(|(id, _)| {
+                        app.project
+                            .nodes
+                            .iter()
+                            .find(|node| node.id == *id)
+                            .and_then(|node| node.plugin.as_ref())
+                            .map(|plugin| (*id, plugin.parameters.clone()))
+                    })
+                    .collect()
+            };
+        if pending.result.is_none() {
+            if let Some(reply) = &pending.reply {
+                match reply.try_recv() {
+                    Ok((states, errors, edits)) => {
+                        pending.reply = None;
+                        self.apply_plugin_editor_edits(&edits);
+                        let errors: Vec<_> = errors
+                            .into_iter()
+                            .filter(|error| {
+                                pending
+                                    .plugins
+                                    .iter()
+                                    .any(|(id, _)| error.starts_with(&format!("Plugin {id}:")))
+                            })
+                            .collect();
+                        if parameters(self) == pending.parameters
+                            && !errors
+                                .iter()
+                                .any(|error| error.contains("state capture is pending"))
+                        {
+                            let states = pending
+                                .plugins
+                                .iter()
+                                .filter_map(|(id, descriptor)| {
+                                    if errors
+                                        .iter()
+                                        .any(|error| error.starts_with(&format!("Plugin {id}:")))
+                                    {
+                                        return None;
+                                    }
+                                    states
+                                        .get(id)
+                                        .filter(|(saved, _)| saved.same_plugin(descriptor))
+                                        .map(|(_, state)| (*id, state.clone()))
+                                })
+                                .collect();
+                            pending.result = Some((states, errors));
+                        }
+                    }
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        pending.result = Some((
+                            HashMap::new(),
+                            vec![
+                            "Plugin state capture stopped; the previous saved state was retained"
+                                .into(),
+                        ],
+                        ))
+                    }
+                    Err(mpsc::TryRecvError::Empty) => {}
+                }
+            }
+            if pending.result.is_none() && pending.reply.is_none() {
+                pending.parameters = parameters(self);
+                let (tx, rx) = mpsc::sync_channel(1);
+                match self.engine.send(Command::CapturePluginStates(false, tx)) {
+                    Ok(()) => pending.reply = Some(rx),
+                    Err(error) => pending.result = Some((HashMap::new(), vec![format!("Plugin state capture failed; the previous saved state was retained: {error}")])),
+                }
+            }
+        }
+        if pending
+            .result
+            .as_ref()
+            .is_some_and(|(states, _)| !states.is_empty())
+            && parameters(self) != pending.parameters
+        {
+            pending.result = None;
+        }
+        let active_input = ctx.input(|i| i.pointer.any_down() || !i.events.is_empty());
+        if pending.result.is_some() && !active_input {
+            let (states, errors) = pending.result.take().unwrap();
+            for node in &mut self.project.nodes {
+                if let (Some(plugin), Some(state)) = (&mut node.plugin, states.get(&node.id)) {
+                    plugin.state = Some(state.clone());
+                }
+            }
+            self.editing.history_ready = true;
+            self.undo_edit(pending.redo);
+            self.editing.history_ready = false;
+            if !errors.is_empty() {
+                self.notify_error(format!(
+                    "The previous plugin state was retained: {}",
+                    errors.join(" | ")
+                ));
+            }
+        } else {
+            self.editing.pending_history = Some(pending);
+            ctx.request_repaint_after(Duration::from_millis(30));
+        }
+    }
     pub(super) fn undo_edit(&mut self, redo: bool) {
+        if self.defer_history_for_plugins(redo) {
+            return;
+        }
         let entry = if redo {
             self.editing.redo.pop()
         } else {
@@ -307,6 +608,7 @@ impl PirateWaveApp {
         let Some(entry) = entry else {
             return;
         };
+        self.remember_plugin_states();
         let mut next = self.edit_snapshot();
         let mut applied = 0;
         let changes: Vec<_> = if redo {
@@ -327,10 +629,34 @@ impl PirateWaveApp {
             }
         }
         let result = (|| -> Result<(), String> {
-            let project: Project =
+            let mut project: Project =
                 serde_json::from_value(next["project"].clone()).map_err(|e| e.to_string())?;
+            for node in &mut project.nodes {
+                if let Some(plugin) = &mut node.plugin {
+                    let key = (
+                        node.id,
+                        plugin.descriptor.path.clone(),
+                        plugin.descriptor.class_id.clone(),
+                        plugin.descriptor.format as u8,
+                    );
+                    plugin.state = self
+                        .project
+                        .nodes
+                        .iter()
+                        .find(|old| old.id == node.id)
+                        .and_then(|old| old.plugin.as_ref())
+                        .filter(|old| old.descriptor.same_plugin(&plugin.descriptor))
+                        .and_then(|old| old.state.clone())
+                        .or_else(|| self.editing.plugin_states.get(&key).cloned());
+                    if plugin.state.is_none()
+                        && self.editing.unretained_plugin_states.contains(&key)
+                    {
+                        return Err("Plugin state exceeded the undo history limit; the edit was not restored".into());
+                    }
+                }
+            }
             piratewave_core::graph::validate(&project)?;
-            let before = serde_json::to_value(&self.project).map_err(|e| e.to_string())?;
+            let before = self.edit_snapshot()["project"].clone();
             let mut old_audio = before.clone();
             let mut new_audio = next["project"].clone();
             for p in [&mut old_audio, &mut new_audio] {
@@ -379,7 +705,7 @@ impl PirateWaveApp {
                 }
             }
             for id in removed {
-                self.remove_audio_node(id);
+                self.remove_audio_node_now(id);
             }
             self.project = project;
             if old_audio != new_audio {
@@ -687,6 +1013,207 @@ mod tests {
         f(app);
         let after = app.edit_snapshot();
         app.editing.record(before, after, None, false);
+    }
+    #[test]
+    fn undo_restores_plugin_state_without_embedding_it_in_edit_snapshots() {
+        use piratewave_core::plugins::{NodePlugin, PluginRole, PluginState};
+        let mut app = app();
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        let mut config = NodePlugin::new(super::super::plugins::fixture(PluginRole::Effect));
+        config.state = Some(PluginState {
+            component: vec![7, 8, 9].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        });
+        node.plugin = Some(config);
+        app.project.nodes.push(node);
+        app.remember_plugin_states();
+        assert!(app.edit_snapshot()["project"]["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|n| n["id"] == 77)
+            .unwrap()["plugin"]
+            .get("state")
+            .is_none());
+        edit(&mut app, |app| app.project.remove_node(77));
+        app.undo_edit(false);
+        let state = app
+            .project
+            .nodes
+            .iter()
+            .find(|n| n.id == 77)
+            .unwrap()
+            .plugin
+            .as_ref()
+            .unwrap()
+            .state
+            .as_ref()
+            .unwrap();
+        assert_eq!(state.component.as_slice(), &[7, 8, 9]);
+    }
+    #[test]
+    fn undo_of_live_plugin_addition_captures_state_before_removal_and_redo() {
+        use piratewave_core::plugins::{NodePlugin, PluginRole, PluginState};
+        let mut app = app();
+        let (engine, commands) = crate::engine::Engine::test_channel();
+        app.engine = engine;
+        app.status.running = true;
+        app.plugin_ui.editor_used = true;
+        let descriptor = super::super::plugins::fixture(PluginRole::Effect);
+        edit(&mut app, |app| {
+            let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+            node.plugin = Some(NodePlugin::new(descriptor.clone()));
+            app.project.nodes.push(node);
+        });
+        app.undo_edit(false);
+        assert!(app.project.nodes.iter().any(|node| node.id == 77));
+        assert!(matches!(
+            commands.try_recv().unwrap(),
+            Command::ClosePluginEditor(77)
+        ));
+        let ctx = egui::Context::default();
+        app.poll_history_capture(&ctx);
+        let Command::CapturePluginStates(false, reply) = commands.try_recv().unwrap() else {
+            panic!("Expected state capture");
+        };
+        let state = PluginState {
+            component: vec![4, 3, 2].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        };
+        reply
+            .send((
+                HashMap::from([(77, (descriptor.clone(), state.clone()))]),
+                Vec::new(),
+                Default::default(),
+            ))
+            .unwrap();
+        app.poll_history_capture(&ctx);
+        assert!(!app.project.nodes.iter().any(|node| node.id == 77));
+        app.undo_edit(true);
+        let restored = app.project.nodes.iter().find(|node| node.id == 77).unwrap();
+        assert_eq!(
+            restored.plugin.as_ref().unwrap().state.as_ref(),
+            Some(&state)
+        );
+    }
+    #[test]
+    fn deferred_undo_is_cancelled_if_history_changes_while_capture_waits() {
+        use piratewave_core::plugins::{NodePlugin, PluginRole};
+        let mut app = app();
+        let (engine, _commands) = crate::engine::Engine::test_channel();
+        app.engine = engine;
+        app.status.running = true;
+        app.plugin_ui.editor_used = true;
+        edit(&mut app, |app| {
+            let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+            node.plugin = Some(NodePlugin::new(super::super::plugins::fixture(
+                PluginRole::Effect,
+            )));
+            app.project.nodes.push(node);
+        });
+        app.undo_edit(false);
+        assert!(app.editing.history_pending());
+        edit(&mut app, |app| app.project.nodes[0].gain_db = -2.0);
+        app.poll_history_capture(&egui::Context::default());
+        assert!(!app.editing.history_pending());
+        assert!(app.project.nodes.iter().any(|node| node.id == 77));
+        assert!(app.notice.contains("edit history changed"));
+    }
+    #[test]
+    fn undo_captures_every_live_plugin_removed_by_one_edit() {
+        use piratewave_core::plugins::{NodePlugin, PluginRole, PluginState};
+        let mut app = app();
+        let (engine, commands) = crate::engine::Engine::test_channel();
+        app.engine = engine;
+        app.status.running = true;
+        app.plugin_ui.editor_used = true;
+        let descriptor = super::super::plugins::fixture(PluginRole::Effect);
+        edit(&mut app, |app| {
+            for id in [77, 78] {
+                let mut node = Node::new(id, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+                node.plugin = Some(NodePlugin::new(descriptor.clone()));
+                app.project.nodes.push(node);
+            }
+        });
+        app.undo_edit(false);
+        assert!(matches!(
+            commands.try_recv().unwrap(),
+            Command::ClosePluginEditor(77)
+        ));
+        assert!(matches!(
+            commands.try_recv().unwrap(),
+            Command::ClosePluginEditor(78)
+        ));
+        let ctx = egui::Context::default();
+        app.poll_history_capture(&ctx);
+        let Command::CapturePluginStates(false, reply) = commands.try_recv().unwrap() else {
+            panic!("Expected state capture");
+        };
+        let states = [77, 78]
+            .into_iter()
+            .map(|id| {
+                (
+                    id,
+                    (
+                        descriptor.clone(),
+                        PluginState {
+                            component: vec![id as u8].into(),
+                            controller: None,
+                            vst2_bank: false,
+                            vst2_program: None,
+                        },
+                    ),
+                )
+            })
+            .collect();
+        reply
+            .send((states, Vec::new(), Default::default()))
+            .unwrap();
+        app.poll_history_capture(&ctx);
+        assert!(!app
+            .project
+            .nodes
+            .iter()
+            .any(|node| node.id == 77 || node.id == 78));
+        app.undo_edit(true);
+        for id in [77, 78] {
+            let node = app.project.nodes.iter().find(|node| node.id == id).unwrap();
+            assert_eq!(
+                node.plugin
+                    .as_ref()
+                    .unwrap()
+                    .state
+                    .as_ref()
+                    .unwrap()
+                    .component
+                    .as_slice(),
+                &[id as u8]
+            );
+        }
+    }
+    #[test]
+    fn undo_refuses_to_restore_a_plugin_when_its_state_exceeded_history_budget() {
+        use piratewave_core::plugins::{NodePlugin, PluginRole, PluginState};
+        let mut app = app();
+        let mut node = Node::new(77, "Plugin", NodeKind::VstEffect, [0.0; 2]);
+        let mut config = NodePlugin::new(super::super::plugins::fixture(PluginRole::Effect));
+        config.state = Some(PluginState {
+            component: vec![0; MAX_BYTES + 1].into(),
+            controller: None,
+            vst2_bank: false,
+            vst2_program: None,
+        });
+        node.plugin = Some(config);
+        app.project.nodes.push(node);
+        app.remember_plugin_states();
+        edit(&mut app, |app| app.project.remove_node(77));
+        app.undo_edit(false);
+        assert!(!app.project.nodes.iter().any(|n| n.id == 77));
+        assert!(app.notice.contains("undo history limit"));
     }
     #[test]
     fn device_format_undo_uses_live_update_without_full_restart() {

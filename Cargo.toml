@@ -53,3 +53,4 @@ winresource = "0.1"
 
 [patch.crates-io]
 cpal = { path = "vendor/cpal" }
+vst = { path = "vendor/vst" }

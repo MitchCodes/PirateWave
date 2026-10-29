@@ -115,6 +115,38 @@ fn run_app() -> anyhow::Result<()> {
             .ok_or_else(|| anyhow::anyhow!("Missing plugin path"))?;
         return plugins::diagnostics::probe(std::path::Path::new(path));
     }
+    if let Some(index) = args.iter().position(|a| a == "--plugin-editor-probe") {
+        let path = args
+            .get(index + 1)
+            .ok_or_else(|| anyhow::anyhow!("Missing plugin path"))?;
+        let seconds = args
+            .get(index + 2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(15);
+        return plugins::diagnostics::editor_probe(std::path::Path::new(path), seconds, false);
+    }
+    if let Some(index) = args
+        .iter()
+        .position(|a| a == "--plugin-editor-manual-check")
+    {
+        let path = args
+            .get(index + 1)
+            .ok_or_else(|| anyhow::anyhow!("Missing plugin path"))?;
+        let seconds = args
+            .get(index + 2)
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(60);
+        return plugins::diagnostics::editor_probe(std::path::Path::new(path), seconds, true);
+    }
+    if let Some(index) = args
+        .iter()
+        .position(|a| a == "--plugin-no-editor-self-test")
+    {
+        let path = args
+            .get(index + 1)
+            .ok_or_else(|| anyhow::anyhow!("Missing fixture path"))?;
+        return plugins::diagnostics::no_editor_self_test(std::path::Path::new(path));
+    }
     if let Some(index) = args.iter().position(|a| a == "--plugin-self-test") {
         let vst3 = args
             .get(index + 1)
