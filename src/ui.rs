@@ -424,7 +424,7 @@ impl PirateWaveApp {
             smoke_error: None,
         };
         if !smoke {
-            app.refresh_shortcuts();
+            app.restore_shortcuts();
             app.load_clips();
             app.apply_launch_preferences(&cc.egui_ctx, workspace_restored);
         }
@@ -489,6 +489,16 @@ impl PirateWaveApp {
             if !self.clips.contains_key(&s.id) && self.loading.insert(s.id) {
                 let _ = self.load_tx.send((s.id, s.path.clone()));
             }
+        }
+    }
+    fn restore_shortcuts(&mut self) {
+        self.shortcut_errors = if let Some(h) = &mut self.hotkeys {
+            h.restore(&self.project, &self.app_settings)
+        } else {
+            vec!["Global shortcuts could not initialize".into()]
+        };
+        for error in &self.shortcut_errors {
+            crate::logging::error(format_args!("Shortcut registration: {error}"));
         }
     }
     fn refresh_shortcuts(&mut self) {
@@ -1346,15 +1356,15 @@ impl PirateWaveApp {
                     .unwrap_or_default()
                     .to_string_lossy()
                     .to_string();
-                let used: HashSet<_> = self
-                    .project
-                    .sounds
-                    .iter()
-                    .map(|s| s.shortcut.as_str())
-                    .collect();
                 let shortcut = (1..=12)
                     .map(|i| format!("Ctrl+Alt+F{i}"))
-                    .find(|key| !used.contains(key.as_str()))
+                    .find(|key| {
+                        crate::hotkeys::available_sound_shortcut(
+                            &self.project,
+                            &self.app_settings,
+                            key,
+                        )
+                    })
                     .unwrap_or_default();
                 self.project.sounds.push(Sound {
                     id: self.project.next_id(),
@@ -1365,7 +1375,6 @@ impl PirateWaveApp {
                 });
             }
             self.load_clips();
-            self.refresh_shortcuts();
             self.refresh_shortcuts();
             self.changed(false);
         }

@@ -179,7 +179,7 @@ impl PirateWaveApp {
                 self.effect_help = None;
                 self.workspace_rename = None;
                 self.workspace_delete = None;
-                self.refresh_shortcuts();
+                self.restore_shortcuts();
                 self.load_clips();
                 if running {
                     self.command(Command::Start(self.project.clone()));

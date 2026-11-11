@@ -3,7 +3,7 @@ use piratewave_core::{
     project::Project,
     shortcuts::{AppAction, AppSettings, NodeAction, ShortcutAction},
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Own on the GUI/event-loop thread so WM_HOTKEY is delivered by winit.
 pub struct Hotkeys {
@@ -20,6 +20,28 @@ impl Hotkeys {
             ids: HashMap::new(),
             paused: None,
         })
+    }
+    /// Restore every usable binding at startup, even if another binding is invalid
+    /// or owned by a different application. Ambiguous chords are never assigned.
+    pub fn restore(&mut self, project: &Project, settings: &AppSettings) -> Vec<String> {
+        let (plan, mut errors) = partial_binding_plan(project, settings);
+        for binding in plan {
+            match self.manager.register(binding.key) {
+                Ok(()) => {
+                    self.registered.insert(binding.key.id(), binding.key);
+                    self.ids.insert(binding.key.id(), binding.action);
+                }
+                Err(error) => errors.push(format!(
+                    "Cannot register {} ({}): {error}.",
+                    binding.label, binding.text
+                )),
+            }
+        }
+        crate::logging::info(format_args!(
+            "Global shortcuts restored: {} registrations",
+            self.registered.len()
+        ));
+        errors
     }
     /// Register additions before releasing old keys. A parse/conflict/OS failure
     /// leaves the last successfully applied shortcut set intact.
@@ -171,7 +193,33 @@ struct Binding {
     text: String,
 }
 fn binding_plan(project: &Project, settings: &AppSettings) -> Result<Vec<Binding>, Vec<String>> {
+    let (plan, errors) = partial_binding_plan(project, settings);
+    if errors.is_empty() {
+        Ok(plan)
+    } else {
+        Err(errors)
+    }
+}
+
+pub fn available_sound_shortcut(project: &Project, settings: &AppSettings, text: &str) -> bool {
+    let mut candidate = project.clone();
+    let id = candidate.next_id();
+    candidate.sounds.push(piratewave_core::project::Sound {
+        id,
+        name: "New sound".into(),
+        path: String::new(),
+        shortcut: text.into(),
+        volume: 1.0,
+    });
+    partial_binding_plan(&candidate, settings)
+        .0
+        .iter()
+        .any(|binding| binding.action == ShortcutAction::Sound(id))
+}
+
+fn partial_binding_plan(project: &Project, settings: &AppSettings) -> (Vec<Binding>, Vec<String>) {
     let mut items = vec![];
+    let mut errors = vec![];
     for action in AppAction::ALL {
         if let Some(key) = settings.keybinds.get(&action) {
             items.push((
@@ -245,11 +293,8 @@ fn binding_plan(project: &Project, settings: &AppSettings) -> Result<Vec<Binding
         }
         for (action, key) in &node.keybinds {
             if !NodeAction::for_kind(&node.kind).contains(action) {
-                return Err(vec![format!(
-                    "{} does not support {}",
-                    node.name,
-                    action.label()
-                )]);
+                errors.push(format!("{} does not support {}", node.name, action.label()));
+                continue;
             }
             items.push((
                 ShortcutAction::Node {
@@ -305,7 +350,7 @@ fn binding_plan(project: &Project, settings: &AppSettings) -> Result<Vec<Binding
     }
     let mut plan = vec![];
     let mut seen = HashMap::new();
-    let mut errors = vec![];
+    let mut ambiguous = HashSet::new();
     for (action, label, text) in items {
         let text = text.trim();
         if text.is_empty() {
@@ -313,11 +358,13 @@ fn binding_plan(project: &Project, settings: &AppSettings) -> Result<Vec<Binding
         }
         match text.parse::<HotKey>() {
             Ok(key) => {
-                if let Some(previous) = seen.insert(key.id(), label.clone()) {
+                if let Some(previous) = seen.get(&key.id()) {
                     errors.push(format!(
                         "Shortcut {text} is assigned to both {previous} and {label}."
                     ));
+                    ambiguous.insert(key.id());
                 } else {
+                    seen.insert(key.id(), label.clone());
                     plan.push(Binding {
                         key,
                         action,
@@ -329,11 +376,8 @@ fn binding_plan(project: &Project, settings: &AppSettings) -> Result<Vec<Binding
             Err(error) => errors.push(format!("Invalid shortcut for {label} ({text}): {error}")),
         }
     }
-    if errors.is_empty() {
-        Ok(plan)
-    } else {
-        Err(errors)
-    }
+    plan.retain(|binding| !ambiguous.contains(&binding.key.id()));
+    (plan, errors)
 }
 
 #[cfg(windows)]
@@ -831,6 +875,31 @@ pub fn self_test() -> Result<(), String> {
         return Err(errors.join("; "));
     }
     hotkeys.clear();
+    // A shortcut held by another process must not suppress the remaining keys.
+    let blocked: HotKey = "Ctrl+Alt+Shift+F11"
+        .parse()
+        .map_err(|e: global_hotkey::hotkey::HotKeyParseError| e.to_string())?;
+    let blocker = GlobalHotKeyManager::new().map_err(|e| e.to_string())?;
+    blocker.register(blocked).map_err(|e| e.to_string())?;
+    let mut startup = Project::default();
+    startup.nodes[0]
+        .keybinds
+        .insert(NodeAction::Mute, "Ctrl+Alt+Shift+F11".into());
+    startup.nodes[0]
+        .keybinds
+        .insert(NodeAction::Unmute, "Ctrl+Alt+Shift+F12".into());
+    let errors = hotkeys.restore(&startup, &empty);
+    let usable: HotKey = "Ctrl+Alt+Shift+F12"
+        .parse()
+        .map_err(|e: global_hotkey::hotkey::HotKeyParseError| e.to_string())?;
+    if errors.len() != 1
+        || !hotkeys.ids.contains_key(&usable.id())
+        || hotkeys.ids.contains_key(&blocked.id())
+    {
+        return Err(format!("Partial startup restoration failed: {errors:?}"));
+    }
+    hotkeys.clear();
+    blocker.unregister(blocked).map_err(|e| e.to_string())?;
     let report=format!("PASS: {delivered} Windows global shortcut mappings registered and delivered through WM_HOTKEY: all application actions, 14 actions for each of three source types, eight actions for each output bus, three processor actions, 17 VST instrument actions, three VST effect actions, per-effect enable/disable/toggle, switch outputs, recording-node start/stop, stop playback, rack bypass and individual recording effects, all three ducking actions, all five recording-slot actions, and unchanged sound-pad playback. Deleted effects, recording slots and routes release their OS keys for reuse. Recording suspension releases OS keys, suppresses dispatch and restores applied bindings. Unbinding, conflict rollback, and deleted-node cleanup verified. No user keystrokes synthesized.");
     std::fs::create_dir_all("dist").map_err(|e| e.to_string())?;
     std::fs::write("dist/shortcut-self-test.txt", &report).map_err(|e| e.to_string())?;
@@ -873,6 +942,20 @@ mod tests {
             volume: 1.0,
         });
         assert!(binding_plan(&p, &AppSettings::default()).is_err());
+        let (plan, errors) = partial_binding_plan(&p, &AppSettings::default());
+        assert_eq!(errors.len(), 1);
+        assert_eq!(plan.len(), 1);
+        assert_eq!(plan[0].action, ShortcutAction::App(AppAction::StopSounds));
+        assert!(!available_sound_shortcut(
+            &p,
+            &AppSettings::default(),
+            "Ctrl+Alt+F2"
+        ));
+        assert!(available_sound_shortcut(
+            &p,
+            &AppSettings::default(),
+            "Ctrl+Alt+F4"
+        ));
     }
     #[test]
     fn validates_syntax_and_preserves_sound_pad_mapping() {
