@@ -357,19 +357,21 @@ impl Hosted for Threaded {
     fn take_editor_edits(&mut self) -> Vec<(u32, f64)> {
         let mut edits = Vec::new();
         while let Some((id, value, sequence)) = self.audio.as_ref().unwrap().handler.edits.pop() {
-            if self.editor_used && self.audio.as_ref().unwrap().handler.current(id, sequence) {
-                if self.last_values.insert(id, value) != Some(value) {
-                    self.audio.as_mut().unwrap().set_parameter(id, value);
-                    edits.push((id, value));
-                }
+            if self.editor_used
+                && self.audio.as_ref().unwrap().handler.current(id, sequence)
+                && self.last_values.insert(id, value) != Some(value)
+            {
+                self.audio.as_mut().unwrap().set_parameter(id, value);
+                edits.push((id, value));
             }
         }
         while let Some((id, value, sequence)) = self.edits.pop() {
-            if self.editor_used && self.audio.as_ref().unwrap().handler.current(id, sequence) {
-                if self.last_values.insert(id, value) != Some(value) {
-                    self.audio.as_mut().unwrap().set_parameter(id, value);
-                    edits.push((id, value));
-                }
+            if self.editor_used
+                && self.audio.as_ref().unwrap().handler.current(id, sequence)
+                && self.last_values.insert(id, value) != Some(value)
+            {
+                self.audio.as_mut().unwrap().set_parameter(id, value);
+                edits.push((id, value));
             }
         }
         if !edits.is_empty() {

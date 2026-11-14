@@ -33,6 +33,17 @@ pub struct Worker {
     size: Arc<AtomicU64>,
     has_editor: bool,
 }
+pub struct WorkerConfig {
+    pub editor: Option<Box<dyn Editor + Send>>,
+    pub title: String,
+    pub resize: Arc<Mutex<Option<(i32, i32)>>>,
+    pub state_handle: PluginStateHandle,
+    pub parameter_ids: Vec<u32>,
+    pub values: Arc<Mutex<std::collections::BTreeMap<u32, f64>>>,
+    pub edits: Arc<crossbeam_queue::ArrayQueue<(u32, f64, u64)>>,
+    pub revisions: Arc<crate::ParameterRevisions>,
+    pub program_count: i32,
+}
 struct ThreadGuard {
     open: Arc<AtomicBool>,
     error: Arc<Mutex<Option<String>>>,
@@ -48,17 +59,18 @@ impl Drop for ThreadGuard {
     }
 }
 impl Worker {
-    pub fn start(
-        mut editor: Option<Box<dyn Editor + Send>>,
-        title: String,
-        resize: Arc<Mutex<Option<(i32, i32)>>>,
-        state_handle: PluginStateHandle,
-        parameter_ids: Vec<u32>,
-        values: Arc<Mutex<std::collections::BTreeMap<u32, f64>>>,
-        edits: Arc<crossbeam_queue::ArrayQueue<(u32, f64, u64)>>,
-        revisions: Arc<crate::ParameterRevisions>,
-        program_count: i32,
-    ) -> anyhow::Result<Self> {
+    pub fn start(config: WorkerConfig) -> anyhow::Result<Self> {
+        let WorkerConfig {
+            mut editor,
+            title,
+            resize,
+            state_handle,
+            parameter_ids,
+            values,
+            edits,
+            revisions,
+            program_count,
+        } = config;
         let (tx, rx) = mpsc::channel();
         let open = Arc::new(AtomicBool::new(false));
         let open_thread = open.clone();

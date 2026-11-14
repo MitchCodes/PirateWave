@@ -316,17 +316,17 @@ impl Vst2 {
             let instance = self.instance.as_mut().unwrap();
             let state_handle = instance.state_handle();
             let editor = instance.take_editor_for_ui_thread();
-            self.editor = Some(editor_worker::Worker::start(
+            self.editor = Some(editor_worker::Worker::start(editor_worker::WorkerConfig {
                 editor,
-                self.descriptor.name.clone(),
-                self.resize.clone(),
+                title: self.descriptor.name.clone(),
+                resize: self.resize.clone(),
                 state_handle,
-                self.descriptor.parameters.iter().map(|p| p.id).collect(),
-                self.editor_values.clone(),
-                self.editor_edits.clone(),
-                self.revisions.clone(),
-                self.program_count,
-            )?);
+                parameter_ids: self.descriptor.parameters.iter().map(|p| p.id).collect(),
+                values: self.editor_values.clone(),
+                edits: self.editor_edits.clone(),
+                revisions: self.revisions.clone(),
+                program_count: self.program_count,
+            })?);
         }
         Ok(())
     }

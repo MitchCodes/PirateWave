@@ -35,6 +35,7 @@ type PluginStates = HashMap<
     ),
 >;
 type PluginEdits = crate::plugins::PluginEdits;
+type PluginCapture = (PluginStates, Vec<String>, PluginEdits);
 fn apply_pending_plugin_edits(project: &mut Project, edits: &PluginEdits) {
     for node in &mut project.nodes {
         if let (Some(plugin), Some((descriptor, values))) = (&mut node.plugin, edits.get(&node.id))
@@ -80,20 +81,7 @@ pub enum Command {
     },
     ClosePluginEditors,
     ClosePluginEditor(u64),
-    CapturePluginStates(
-        bool,
-        mpsc::SyncSender<(
-            HashMap<
-                u64,
-                (
-                    piratewave_core::plugins::PluginDescriptor,
-                    piratewave_core::plugins::PluginState,
-                ),
-            >,
-            Vec<String>,
-            PluginEdits,
-        )>,
-    ),
+    CapturePluginStates(bool, mpsc::SyncSender<PluginCapture>),
     Generation(u64),
     Perform {
         context: piratewave_core::automation::Context,
@@ -2133,8 +2121,10 @@ mod tests {
         };
         let mut node = Node::new(77, "Fixture", NodeKind::VstEffect, [0.0; 2]);
         node.plugin = Some(NodePlugin::new(descriptor.clone()));
-        let mut project = Project::default();
-        project.nodes = vec![node];
+        let mut project = Project {
+            nodes: vec![node],
+            ..Project::default()
+        };
         let states = [(77, (descriptor.clone(), state.clone()))]
             .into_iter()
             .collect();

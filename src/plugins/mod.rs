@@ -973,8 +973,10 @@ mod recovery_tests {
             [0.; 2],
         );
         node.plugin = Some(NodePlugin::new(descriptor));
-        let mut project = Project::default();
-        project.nodes = vec![node];
+        let mut project = Project {
+            nodes: vec![node],
+            ..Project::default()
+        };
         rack.editor_idle();
         assert_eq!(rack.pending_edits[&7][&5], (0.5, 0.6));
         edits.borrow_mut().push((5, 0.7));

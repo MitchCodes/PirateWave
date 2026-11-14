@@ -490,14 +490,12 @@ impl PirateWaveApp {
                                 &plugin.name,
                             )
                             .clicked()
-                        {
-                            if !node
+                            && !node
                                 .plugin
                                 .as_ref()
                                 .is_some_and(|current| current.descriptor.same_plugin(plugin))
-                            {
-                                replacement = Some(plugin.clone());
-                            }
+                        {
+                            replacement = Some(plugin.clone());
                         }
                     }
                 });

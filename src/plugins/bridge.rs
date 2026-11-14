@@ -275,7 +275,7 @@ impl Bridge {
             kind == EDITOR_STATUS
                 && self.response.len() >= 9
                 && self.response[0] <= 1
-                && (self.response.len() - 9) % 12 == 0
+                && (self.response.len() - 9).is_multiple_of(12)
                 && self.response.len() <= 9 + 4096 * 12,
             "Invalid VST2 editor response"
         );
@@ -290,7 +290,7 @@ impl Bridge {
             (0..=8192).contains(&self.editor_size.0) && (0..=8192).contains(&self.editor_size.1),
             "Invalid VST2 editor size"
         );
-        for item in self.response[9..].chunks_exact(12) {
+        for item in self.response[9..].as_chunks::<12>().0 {
             let id = u32::from_le_bytes(item[..4].try_into().unwrap());
             let value = f64::from_le_bytes(item[4..].try_into().unwrap());
             anyhow::ensure!(

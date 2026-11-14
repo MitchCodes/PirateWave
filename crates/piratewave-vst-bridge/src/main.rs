@@ -134,7 +134,7 @@ fn main() -> Result<()> {
                     count <= 4096 && packet.len() == 2 + count * 12,
                     "Invalid parameter update"
                 );
-                for item in packet[2..].chunks_exact(12) {
+                for item in packet[2..].as_chunks::<12>().0 {
                     let id = u32::from_le_bytes(item[..4].try_into().unwrap());
                     let value = f64::from_le_bytes(item[4..].try_into().unwrap());
                     anyhow::ensure!(
@@ -144,7 +144,7 @@ fn main() -> Result<()> {
                         "Invalid plugin parameter"
                     );
                 }
-                for item in packet[2..].chunks_exact(12) {
+                for item in packet[2..].as_chunks::<12>().0 {
                     let id = u32::from_le_bytes(item[..4].try_into().unwrap());
                     let value = f64::from_le_bytes(item[4..].try_into().unwrap());
                     plugin.set_parameter(id, value);
