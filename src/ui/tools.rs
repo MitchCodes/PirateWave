@@ -1141,8 +1141,8 @@ fn reading_panel(ui: &mut egui::Ui, r: &Reading) {
         }
     });
     ui.horizontal_wrapped(|ui| {
-        for ch in 0..2 {
-            let db = workbench::db(r.rms[ch] as f64);
+        for (ch, &rms) in r.rms.iter().enumerate() {
+            let db = workbench::db(rms as f64);
             ui.label(if ch == 0 { "L" } else { "R" });
             ui.add(
                 egui::ProgressBar::new(((db + 72.) / 72.).clamp(0., 1.))

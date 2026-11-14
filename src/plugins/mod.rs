@@ -567,8 +567,8 @@ impl Rack {
                     }
                 }
                 if entry.disabled != node.effects_disabled {
-                    for note in 0..128 {
-                        if entry.notes[note] {
+                    for (note, &active) in entry.notes.iter().enumerate() {
+                        if active {
                             plugin.note(note as u8, 0.0, false);
                         }
                     }
